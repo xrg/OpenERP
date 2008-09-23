@@ -1,3 +1,15 @@
 [submodule "server"]
 	path = server
 	url = /home/panos/tmp/tinyerp/openobject-server/.git
+[submodule "client"]
+	path = client
+	url = /home/panos/tmp/tinyerp/openobject-client/.git
+[submodule "client-kde"]
+	path = client-kde
+	url = /home/panos/tmp/tinyerp/openobject-client-kde/.git
+[submodule "addons"]
+	path = addons
+	url = /home/panos/tmp/tinyerp/openobject-addons/.git
+[submodule "bi"]
+	path = bi
+	url = /home/panos/tmp/tinyerp/openobject-bi/.git
