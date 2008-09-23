@@ -1,0 +1,3 @@
+[submodule "server"]
+	path = server
+	url = /home/panos/tmp/tinyerp/openobject-server/.git
