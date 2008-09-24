@@ -30,12 +30,7 @@ Group:		Databases
 Summary:	ERP Client
 URL:		http://tinyerp.org
 Obsoletes:	tinyerp
-Source0:	openerp-server-%{version}.tar.gz
-Source1:	openerp-client-%{version}.tar.gz
-Source2:	openerp-client-kde-%{version}.tar.gz
-Source3:	openerp-addons-%{version}.tar.gz
-#Source4:	openerp-bi-%{version}.tar.gz
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root
+# BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch:	noarch
 BuildRequires:	python, pygtk2.0-devel, pygtk2.0-libglade, python-libxslt
 BuildRequires:	python-psycopg, python-dot
@@ -59,7 +54,7 @@ project management...
 %package client
 Group:		Databases
 Summary:	ERP Client
-Requires:       pygtk2.0, pygtk2.0-libglade, python-dot
+Requires:       pygtk2.0, pygtk2.0-libglade, python-dot, python-pytz
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 
@@ -86,13 +81,11 @@ IMPORTANT: Please read the INSTALL file in /usr/share/doc/openerp-server for
 the first time run.
 
 %prep
-%setup -q -b 1
-%setup -q -T -D -b 2
-%setup -q -T -D -b 3
-#%patch0
-#%patch1
+%git_clone_source
+%git_prep_submodules
 
 %build
+cd %{name}-%{version}
 pushd client
 # %{_xvfb} :69 -nolisten tcp -ac -terminate &
 DISPLAY= ./setup.py build
@@ -103,6 +96,7 @@ DISPLAY= ./setup.py build
 popd
 
 %install
+cd %{name}-%{version}
 rm -rf $RPM_BUILD_ROOT
 pushd client
 	DISPLAY= ./setup.py install --root=$RPM_BUILD_ROOT
@@ -111,7 +105,7 @@ popd
 pushd server
 	DISPLAY= ./setup.py install --root=$RPM_BUILD_ROOT
 popd
-%find_lang client
+%find_lang %{name}-client
 
 mv $RPM_BUILD_ROOT/%{_datadir}/openerp-client/* $RPM_BUILD_ROOT/%{python_sitelib}/openerp-client
 rm -rf $RPM_BUILD_ROOT/%{_datadir}/openerp-client
@@ -130,10 +124,10 @@ Categories=GNOME;GTK;Databases;
 EOF
 
 mkdir -p $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-%{version}
-# install -m 644 -D %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/openerp-server.conf
-#install -m 755 -D %{SOURCE3} $RPM_BUILD_ROOT%{_initrddir}/openerp-server
-#install -m 644 -D %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/openerp-server
-#install -m 755 -D %{SOURCE5} $RPM_BUILD_ROOT%{_defaultdocdir}/%{name}-%{version}/README.urpmi
+install -m 644 -D server/doc/openerp-server.conf $RPM_BUILD_ROOT%{_sysconfdir}/openerp-server.conf
+install -m 755 -D server/doc/openerp-server.init $RPM_BUILD_ROOT%{_initrddir}/openerp-server
+install -m 644 -D server/doc/openerp-server.logrotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/openerp-server
+install -m 755 -D server/doc/README.urpmi $RPM_BUILD_ROOT%{_defaultdocdir}/%{name}-%{version}/README.urpmi
 mkdir -p $RPM_BUILD_ROOT/var/log/openerp
 mkdir -p $RPM_BUILD_ROOT/var/spool/openerp
 mkdir -p $RPM_BUILD_ROOT/var/run/openerp
@@ -144,7 +138,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 %{_defaultdocdir}/%{name}-%{version}/README.urpmi
 
-%files client -f %{name}-client.lang
+%files client -f %{name}-%{version}/%{name}-client.lang
 %doc
 %defattr(-,root,root)
 %{_bindir}/openerp-client
@@ -174,7 +168,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %{_defaultdocdir}/%{name}-server-%{version}/
 %{_mandir}/man1/openerp-server.*
 %{py_puresitedir}/openerp_server-%{version}-py2.5.egg-info
-%{_mandir}/man5/terp_serverrc.5*
+%{_mandir}/man5/openerp_serverrc.5*
 
 %pre server
 %_pre_useradd tinyerp /var/spool/openerp /sbin/nologin
