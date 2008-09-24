@@ -5,19 +5,6 @@
 #define version %
 #define release %{git_get_rel}
 
-%if %mdkversion
-%if %mdkversion < 200700
-# default to non-modular X on MDV < 200700
-%define _modular_X 0%{?_with_modular_x:1}
-%else
-# default to modular X on MDV >= 200700
-%define _modular_X 0%{!?_without_modular_x:1}
-%endif
-%else
-# default to modular X elsewhere
-%define _modular_X 0%{!?_without_modular_x:1}
-%endif
-
 %{?!pyver: %define pyver %(python -c 'import sys;print(sys.version[0:3])')}
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
@@ -28,20 +15,13 @@ Release:	%{git_get_rel}xrg
 License:	GPLv2+
 Group:		Databases
 Summary:	ERP Client
-URL:		http://tinyerp.org
+URL:		http://www.openerp.com
 Obsoletes:	tinyerp
 # BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch:	noarch
 BuildRequires:	python, pygtk2.0-devel, pygtk2.0-libglade, python-libxslt
 BuildRequires:	python-psycopg, python-dot
 BuildRequires:	desktop-file-utils
-%if %_modular_X
-BuildRequires:	x11-server-xvfb
-%define _xvfb /usr/bin/Xvfb
-%else
-BuildRequires:	xorg-x11-Xvfb
-%define _xvfb /usr/X11R6/bin/Xvfb
-%endif
 Requires:       pygtk2.0, pygtk2.0-libglade
 Requires:	openerp-client, openerp-server
 
