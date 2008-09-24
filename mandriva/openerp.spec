@@ -1,3 +1,10 @@
+%define git_repo openerp
+%define git_head HEAD
+
+%define name openerp
+#define version %
+#define release %{git_get_rel}
+
 %if %mdkversion
 %if %mdkversion < 200700
 # default to non-modular X on MDV < 200700
@@ -15,19 +22,19 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 
-Name:		tinyerp
-Version:	4.2.3
-Release:	%mkrel 1
+Name:		%name
+Version:	%{git_get_ver}
+Release:	%{git_get_rel}xrg
 License:	GPLv2+
 Group:		Databases
 Summary:	ERP Client
 URL:		http://tinyerp.org
-Source0:	http://tinyerp.org/download/sources/tinyerp-server-%{version}.tar.bz2
-Source1:	http://tinyerp.org/download/sources/tinyerp-client-%{version}.tar.bz2
-Source2:	tinyerp-server.conf
-Source3:	tinyerp-server.init
-Source4:	tinyerp-server.logrotate
-Source5:	tinyerp-README.urpmi
+Obsoletes:	tinyerp
+Source0:	openerp-server-%{version}.tar.gz
+Source1:	openerp-client-%{version}.tar.gz
+Source2:	openerp-client-kde-%{version}.tar.gz
+Source3:	openerp-addons-%{version}.tar.gz
+#Source4:	openerp-bi-%{version}.tar.gz
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch:	noarch
 BuildRequires:	python, pygtk2.0-devel, pygtk2.0-libglade, python-libxslt
@@ -41,12 +48,10 @@ BuildRequires:	xorg-x11-Xvfb
 %define _xvfb /usr/X11R6/bin/Xvfb
 %endif
 Requires:       pygtk2.0, pygtk2.0-libglade
-Requires:	tinyerp-client, tinyerp-server
-Patch0:		tinyerp-client.patch
-Patch1:		tinyerp-server.patch
+Requires:	openerp-client, openerp-server
 
 %description
-Tiny ERP is a free enterprise management software package. It
+Open ERP is a free enterprise management software package. It
 covers all domains for small to medium businesses; accounting,
 stock management, sales, customer relationship, purchases,
 project management...
@@ -59,7 +64,7 @@ Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 
 %description client
-Client components for Tiny ERP.
+Client components for Open ERP.
 
 %package server
 Group:		System/Servers
@@ -72,44 +77,49 @@ Requires:	python-psycopg, python-reportlab
 Requires:	graphviz, python-parsing, postgresql8.2-server
 Requires:	ghostscript
 Requires(pre):	rpm-helper
-Requires(postun):	rpm-helper
+Requires(postun): rpm-helper
 
 %description server
-Server components for Tiny ERP.
+Server components for Open ERP.
 
-IMPORTANT: Please read the INSTALL file in /usr/share/doc/tinyerp-server for
-the first
-time run.
+IMPORTANT: Please read the INSTALL file in /usr/share/doc/openerp-server for
+the first time run.
 
 %prep
-%setup -q -a 1 -c %{name}-%{version}
+%setup -q -b 1
+%setup -q -T -D -b 2
+%setup -q -T -D -b 3
 #%patch0
 #%patch1
 
 %build
-cd client
-%{_xvfb} :69 -nolisten tcp -ac -terminate &
-DISPLAY=:69 ./setup.py build
-cd ../server
-DISPLAY=:69 ./setup.py build
+pushd client
+# %{_xvfb} :69 -nolisten tcp -ac -terminate &
+DISPLAY= ./setup.py build
+popd
+
+pushd server
+DISPLAY= ./setup.py build
+popd
 
 %install
 rm -rf $RPM_BUILD_ROOT
-cd client
-%{_xvfb} :69 -nolisten tcp -ac -terminate &
-DISPLAY=:69 ./setup.py install --root=$RPM_BUILD_ROOT
-cd ../server
-DISPLAY=:69 ./setup.py install --root=$RPM_BUILD_ROOT
-cd ..
-%find_lang tinyerp-client
+pushd client
+	DISPLAY= ./setup.py install --root=$RPM_BUILD_ROOT
+popd
 
-mv $RPM_BUILD_ROOT/%{_datadir}/tinyerp-client/* $RPM_BUILD_ROOT/%{python_sitelib}/tinyerp-client
-rm -rf $RPM_BUILD_ROOT/%{_datadir}/tinyerp-client
+pushd server
+	DISPLAY= ./setup.py install --root=$RPM_BUILD_ROOT
+popd
+%find_lang client
+
+mv $RPM_BUILD_ROOT/%{_datadir}/openerp-client/* $RPM_BUILD_ROOT/%{python_sitelib}/openerp-client
+rm -rf $RPM_BUILD_ROOT/%{_datadir}/openerp-client
 
 mkdir $RPM_BUILD_ROOT%{_datadir}/applications
 cat > $RPM_BUILD_ROOT%{_datadir}/applications/mandriva-%{name}.desktop << EOF
 [Desktop Entry]
-Name=Tiny ERP
+Name=Open ERP
 Comment=Open Source ERP Client
 Exec=%{_bindir}/%{name}
 Icon=%{name}
@@ -120,13 +130,13 @@ Categories=GNOME;GTK;Databases;
 EOF
 
 mkdir -p $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-%{version}
-install -m 644 -D %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/tinyerp-server.conf
-install -m 755 -D %{SOURCE3} $RPM_BUILD_ROOT%{_initrddir}/tinyerp-server
-install -m 644 -D %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/tinyerp-server
-install -m 755 -D %{SOURCE5} $RPM_BUILD_ROOT%{_defaultdocdir}/%{name}-%{version}/README.urpmi
-mkdir -p $RPM_BUILD_ROOT/var/log/tinyerp
-mkdir -p $RPM_BUILD_ROOT/var/spool/tinyerp
-mkdir -p $RPM_BUILD_ROOT/var/run/tinyerp
+# install -m 644 -D %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/openerp-server.conf
+#install -m 755 -D %{SOURCE3} $RPM_BUILD_ROOT%{_initrddir}/openerp-server
+#install -m 644 -D %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/openerp-server
+#install -m 755 -D %{SOURCE5} $RPM_BUILD_ROOT%{_defaultdocdir}/%{name}-%{version}/README.urpmi
+mkdir -p $RPM_BUILD_ROOT/var/log/openerp
+mkdir -p $RPM_BUILD_ROOT/var/spool/openerp
+mkdir -p $RPM_BUILD_ROOT/var/run/openerp
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -137,13 +147,13 @@ rm -rf $RPM_BUILD_ROOT
 %files client -f %{name}-client.lang
 %doc
 %defattr(-,root,root)
-%{_bindir}/tinyerp-client
-%{python_sitelib}/tinyerp-client/
+%{_bindir}/openerp-client
+%{python_sitelib}/openerp-client/
 %{_defaultdocdir}/%{name}-client-%{version}/
-%{_mandir}/man1/tinyerp-client.*
-%{_datadir}/pixmaps/tinyerp-client/
+%{_mandir}/man1/openerp-client.*
+%{_datadir}/pixmaps/openerp-client/
 %{_datadir}/applications/*.desktop
-%{py_puresitedir}/tinyerp_client-%{version}-py2.5.egg-info
+%{py_puresitedir}/openerp_client-%{version}-py2.5.egg-info
 
 %post client
 %{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null
@@ -153,28 +163,28 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 
 %files server
 %defattr(-,root,root)
-%attr(0755,tinyerp,tinyerp) %dir /var/log/tinyerp
-%attr(0755,tinyerp,tinyerp) %dir /var/spool/tinyerp
-%attr(0755,tinyerp,tinyerp) %dir /var/run/tinyerp
-%{_initrddir}/tinyerp-server
-%attr(0644,tinyerp,tinyerp) %config(noreplace) %{_sysconfdir}/tinyerp-server.conf
-%attr(0644,tinyerp,tinyerp) %config(noreplace) %{_sysconfdir}/logrotate.d/tinyerp-server
-%{_bindir}/tinyerp-server
-%{python_sitelib}/tinyerp-server/
+%attr(0755,tinyerp,tinyerp) %dir /var/log/openerp
+%attr(0755,tinyerp,tinyerp) %dir /var/spool/openerp
+%attr(0755,tinyerp,tinyerp) %dir /var/run/openerp
+%{_initrddir}/openerp-server
+%attr(0644,tinyerp,tinyerp) %config(noreplace) %{_sysconfdir}/openerp-server.conf
+%attr(0644,tinyerp,tinyerp) %config(noreplace) %{_sysconfdir}/logrotate.d/openerp-server
+%{_bindir}/openerp-server
+%{python_sitelib}/openerp-server/
 %{_defaultdocdir}/%{name}-server-%{version}/
-%{_mandir}/man1/tinyerp-server.*
-%{py_puresitedir}/tinyerp_server-%{version}-py2.5.egg-info
+%{_mandir}/man1/openerp-server.*
+%{py_puresitedir}/openerp_server-%{version}-py2.5.egg-info
 %{_mandir}/man5/terp_serverrc.5*
 
 %pre server
-%_pre_useradd tinyerp /var/spool/tinyerp /sbin/nologin
+%_pre_useradd tinyerp /var/spool/openerp /sbin/nologin
 
 %post server
-%_post_service tinyerp-server
+%_post_service openerp-server
 
 %preun server
-%_preun_service tinyerp-server
+%_preun_service openerp-server
 
 %postun server
-%_postun_service tinyerp-server
+%_postun_service openerp-server
 %_postun_userdel tinyerp
