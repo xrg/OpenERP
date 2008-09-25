@@ -102,7 +102,7 @@ def fmt_spec(name,info):
 		nii+= "Version: %s\n" % info['version']
 	nii += """Group: Databases
 Summary: %s
-Requires: openerp-server = %s
+Requires: openerp-server >= %s
 """ % (info['name'], release.version.rsplit('.', 1)[0])
 	if 'depends' in info:
 		nii += get_depends(info['depends'])
