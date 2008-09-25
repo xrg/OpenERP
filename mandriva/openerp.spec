@@ -108,6 +108,11 @@ install -m 644 -D server/doc/openerp-server.conf $RPM_BUILD_ROOT%{_sysconfdir}/o
 install -m 755 -D server/doc/openerp-server.init $RPM_BUILD_ROOT%{_initrddir}/openerp-server
 install -m 644 -D server/doc/openerp-server.logrotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/openerp-server
 install -m 755 -D server/doc/README.urpmi $RPM_BUILD_ROOT%{_defaultdocdir}/%{name}-%{version}/README.urpmi
+
+install -m 644 server/bin/import_xml.rng $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/
+install -d $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/base/security/
+install -m 644 server/bin/addons/base/security/* $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/base/security/
+
 mkdir -p $RPM_BUILD_ROOT/var/log/openerp
 mkdir -p $RPM_BUILD_ROOT/var/spool/openerp
 mkdir -p $RPM_BUILD_ROOT/var/run/openerp
