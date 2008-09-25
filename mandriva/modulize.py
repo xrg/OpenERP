@@ -38,21 +38,35 @@ from optparse import OptionParser
 
 class release:
 	version = '4.3.x'
+	release = '1'
 
-knight = """Name:	openerp-addons
+knight = """
+%%{?!pyver: %%define pyver %%(python -c 'import sys;print(sys.version[0:3])')}
+%%{!?python_sitelib: %%define python_sitelib %%(%%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+
+Name:	openerp-addons
 Version:	%s
 Release:	%sxrg
 License:	GPLv2+
 Group:		Databases
 Summary:	ERP Client
+Source0:	openerp-addons-%%{version}.tar.gz
 URL:		http://www.openerp.com
-Obsoletes:	tinyerp
 BuildArch:	noarch
 
 %%description
 Addon modules for OpenERP
 
-""" % (release.version.rsplit('.', 1)[0],"1")
+%%prep
+%%setup -q
+
+%%build
+
+%%install
+install -d $RPM_BUILD_ROOT/%%{python_sitelib}/openerp-server/addons
+cp -ar ./* $RPM_BUILD_ROOT/%%{python_sitelib}/openerp-server/addons/
+
+""" % (release.version.rsplit('.', 1)[0],release.release)
 
 def get_module_info(name):
 	try:
