@@ -36,9 +36,12 @@ import glob
 
 from optparse import OptionParser
 
+class release:
+	version = '4.3.x'
+
 knight = """Name:	openerp-addons
-Version:	%{git_get_ver}
-Release:	%{git_get_rel}xrg
+Version:	%s
+Release:	%sxrg
 License:	GPLv2+
 Group:		Databases
 Summary:	ERP Client
@@ -46,10 +49,10 @@ URL:		http://www.openerp.com
 Obsoletes:	tinyerp
 BuildArch:	noarch
 
-"""
+%%description
+Addon modules for OpenERP
 
-class release:
-	version = '4.3.x'
+""" % (release.version.rsplit('.', 1)[0],"1")
 
 def get_module_info(name):
 	try:
@@ -90,8 +93,8 @@ Requires: openerp-server = %s
 	if 'depends' in info:
 		nii += get_depends(info['depends'])
 	if 'author' in info:
-		nii+= "Author: %s\n" % info['author']
-	if 'website' in info:
+		nii+= "Vendor: %s\n" % info['author']
+	if 'website' in info  and info['website'] != '' :
 		nii+= "URL: %s\n" % info['website']
 	if 'description' in info:
 		nii += "\n%%description %s\n%s\n" % (name, info['description'])
