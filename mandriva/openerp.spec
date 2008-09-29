@@ -41,6 +41,16 @@ Requires(postun): desktop-file-utils
 %description client
 Client components for Open ERP.
 
+%package client-kde
+Group:		Databases
+Summary:	ERP Client (KDE)
+Requires:       python-dot, python-pytz, python-kde
+Requires(post): desktop-file-utils
+Requires(postun): desktop-file-utils
+
+%description client-kde
+KDE client components for Open ERP.
+
 %package server
 Group:		System/Servers
 Summary:	ERP Server
@@ -71,6 +81,11 @@ pushd client
 DISPLAY= ./setup.py build
 popd
 
+pushd client-kde
+# %{_xvfb} :69 -nolisten tcp -ac -terminate &
+DISPLAY= ./setup.py build
+popd
+
 pushd server
 DISPLAY= ./setup.py build
 popd
@@ -82,10 +97,16 @@ pushd client
 	DISPLAY= ./setup.py install --root=$RPM_BUILD_ROOT
 popd
 
+pushd client-kde
+	DISPLAY= ./setup.py install --root=$RPM_BUILD_ROOT
+popd
+
 pushd server
 	DISPLAY= ./setup.py install --root=$RPM_BUILD_ROOT
 popd
 %find_lang %{name}-client
+
+%find_lang ktiny
 
 mv $RPM_BUILD_ROOT/%{_datadir}/openerp-client/* $RPM_BUILD_ROOT/%{python_sitelib}/openerp-client
 rm -rf $RPM_BUILD_ROOT/%{_datadir}/openerp-client
@@ -101,6 +122,18 @@ Terminal=false
 Type=Application
 StartupNotify=true
 Categories=GNOME;GTK;Databases;
+EOF
+
+cat > $RPM_BUILD_ROOT%{_datadir}/applications/mandriva-ktiny.desktop << EOF
+[Desktop Entry]
+Name=Open ERP
+Comment=Open Source ERP Client (KDE)
+Exec=%{_bindir}/ktiny
+Icon=%{name}
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=KDE;Databases;
 EOF
 
 mkdir -p $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-%{version}
@@ -131,8 +164,19 @@ rm -rf $RPM_BUILD_ROOT
 %{_defaultdocdir}/%{name}-client-%{version}/
 %{_mandir}/man1/openerp-client.*
 %{_datadir}/pixmaps/openerp-client/
-%{_datadir}/applications/*.desktop
+%{_datadir}/applications/mandriva-%{name}.desktop
 %{py_puresitedir}/openerp_client-%{version}-py2.5.egg-info
+
+%files client-kde -f %{name}-%{version}/ktiny.lang
+%doc
+%defattr(-,root,root)
+%{_bindir}/ktiny
+%{python_sitelib}/ktiny/
+%{_defaultdocdir}/ktiny/
+%{_mandir}/man1/ktiny.*
+%{_datadir}/ktiny/
+%{_datadir}/applications/mandriva-ktiny.desktop
+%{py_puresitedir}/ktiny-*-py2.5.egg-info
 
 %post client
 %{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null
