@@ -33,12 +33,37 @@ import imp
 import sys
 import os
 import glob
+import subprocess
+import re
 
 from optparse import OptionParser
 
 class release:
 	version = '4.3.x'
 	release = '1'
+	def __init__(self):
+		#sys.stderr.write("Init\n")
+		try:
+			p = subprocess.Popen(["git", "describe", "--tags"], bufsize=4096, \
+				stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
+			(child_stdout, child_stdin) = (p.stdout, p.stdin)
+			rescode = p.wait()
+			if rescode != 0 : raise CalledProcessError, rescode
+			res= child_stdout.read()
+			#sys.stderr.write("Git version: %s\n" % res)
+			resc = res.split('-')
+			if re.match('g.*',resc[len(resc)-1]) :
+				resc.pop()
+			if len(resc)>1 :
+				self.release = resc.pop()
+			else:
+				self.release = '0'
+			self.version = "-".join(resc).lstrip('v')
+			sys.stderr.write("Got version from git: v: %s , r: %s \n" %(self.version,self.release))
+		except:
+			sys.stderr.write("Get release exception: %s \n " % str(sys.exc_info()))
+
+rel = release()
 
 knight = """
 %%{?!pyver: %%define pyver %%(python -c 'import sys;print(sys.version[0:3])')}
@@ -66,7 +91,7 @@ Addon modules for OpenERP
 install -d $RPM_BUILD_ROOT/%%{python_sitelib}/openerp-server/addons
 cp -ar ./* $RPM_BUILD_ROOT/%%{python_sitelib}/openerp-server/addons/
 
-""" % (release.version.rsplit('.', 1)[0],release.release)
+""" % (rel.version.rsplit('.', 1)[0],rel.release)
 
 def get_module_info(name):
 	try:
@@ -74,7 +99,7 @@ def get_module_info(name):
 		data = f.read()
 		info = eval(data)
 		if 'version' in info:
-			info['version'] = release.version.rsplit('.', 1)[0] + '.' + info['version']
+			info['version'] = rel.version.rsplit('.', 1)[0] + '.' + info['version']
 		f.close()
 	except IOError:
 		print "Dir at %s may not be an OpenERP module." % name
@@ -103,7 +128,7 @@ def fmt_spec(name,info):
 	nii += """Group: Databases
 Summary: %s
 Requires: openerp-server >= %s
-""" % (info['name'], release.version.rsplit('.', 1)[0])
+""" % (info['name'], rel.version.rsplit('.', 1)[0])
 	if 'depends' in info:
 		nii += get_depends(info['depends'])
 	if 'author' in info:
