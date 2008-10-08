@@ -159,4 +159,7 @@ for tdir in args:
 	info = get_module_info(tdir)
 	print fmt_spec(os.path.basename(tdir),info)
 
+sys.stderr.write("Don't forget to create the archive, with:\n" \
+	"git archive --format=tar --prefix=openerp-addons-%s/ HEAD | gzip -c > openerp-addons-%s.tar.gz\n" \
+	% (rel.version.rsplit('.', 1)[0],rel.version.rsplit('.', 1)[0]));
 #eof
