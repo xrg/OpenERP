@@ -55,11 +55,12 @@ KDE client components for Open ERP.
 Group:		System/Servers
 Summary:	ERP Server
 Requires:	pygtk2.0, pygtk2.0-libglade
-Requires:	python-psycopg, python-libxslt
-Requires:	postgresql8.2-plpython
+Requires:	python-psycopg, python-libxslt, python-lxml
+Requires:	postgresql-plpython >= 8.2
 Requires:	python-imaging
 Requires:	python-psycopg, python-reportlab
-Requires:	graphviz, python-parsing, postgresql8.2-server
+Requires:	graphviz, python-parsing
+Requires:	postgresql-server >= 8.2
 Requires:	ghostscript
 Requires(pre):	rpm-helper
 Requires(postun): rpm-helper
