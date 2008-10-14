@@ -102,10 +102,10 @@ def get_module_info(name):
 			info['version'] = rel.version.rsplit('.', 1)[0] + '.' + info['version']
 		f.close()
 	except IOError:
-		print "Dir at %s may not be an OpenERP module." % name
+		sys.stderr.write("Dir at %s may not be an OpenERP module.\n" % name)
 		return {}
 	except:
-		print sys.exc_info()
+		sys.stderr.write(str( sys.exc_info()))
 		return {}
 	return info
 
@@ -121,6 +121,7 @@ def get_depends(deps):
 def fmt_spec(name,info):
 	""" Format the info object fields into a SPEC submodule section
 	"""
+	if ('name' not in info) : return ""
 	nii = "\n"
 	nii += '%%package %s\n' % name;
 	if 'version' in info:
