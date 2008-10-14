@@ -87,11 +87,13 @@ Addon modules for OpenERP
 
 %%build
 
-%%install
-install -d $RPM_BUILD_ROOT/%%{python_sitelib}/openerp-server/addons
-cp -ar ./* $RPM_BUILD_ROOT/%%{python_sitelib}/openerp-server/addons/
-
 """ % (rel.version.rsplit('.', 1)[0],rel.release)
+
+inst_str = """
+%install
+install -d $RPM_BUILD_ROOT/%{python_sitelib}/openerp-server/addons
+cp -ar ./* $RPM_BUILD_ROOT/%{python_sitelib}/openerp-server/addons/
+"""
 
 def get_module_info(name):
 	try:
@@ -154,12 +156,30 @@ parser.add_option("-q", "--quiet",
 
 (options, args) = parser.parse_args()
 
-print knight
+info_dirs = []
+no_dirs = []
 
 for tdir in args:
 	info = get_module_info(tdir)
-	print fmt_spec(os.path.basename(tdir),info)
+	bdir = os.path.basename(tdir)
+	if (info == {}) :
+		no_dirs.append(bdir)
+	else :
+		info_dirs.append({'dir': bdir, 'info': info})
 
+print knight
+print inst_str
+
+if no_dirs != [] :
+	print 'pushd $RPM_BUILD_ROOT/%{python_sitelib}/openerp-server/addons/'
+	for tdir in no_dirs:
+		print "\trm -rf %s" % tdir
+	print "popd\n"
+
+for tinf in info_dirs:
+	print fmt_spec(tinf['dir'],tinf['info'])
+
+sys.stderr.write("Modules created: %d\n"% len(info_dirs))
 sys.stderr.write("Don't forget to create the archive, with:\n" \
 	"git archive --format=tar --prefix=openerp-addons-%s/ HEAD | gzip -c > openerp-addons-%s.tar.gz\n" \
 	% (rel.version.rsplit('.', 1)[0],rel.version.rsplit('.', 1)[0]));
