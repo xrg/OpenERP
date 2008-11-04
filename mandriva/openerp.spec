@@ -79,31 +79,31 @@ the first time run.
 cd %{name}-%{version}
 pushd client
 # %{_xvfb} :69 -nolisten tcp -ac -terminate &
-DISPLAY= ./setup.py build
+DISPLAY= python ./setup.py build
 popd
 
 pushd client-kde
 # %{_xvfb} :69 -nolisten tcp -ac -terminate &
-DISPLAY= ./setup.py build
+DISPLAY= python ./setup.py build
 popd
 
 pushd server
-DISPLAY= ./setup.py build
+DISPLAY= python ./setup.py build
 popd
 
 %install
 cd %{name}-%{version}
 rm -rf $RPM_BUILD_ROOT
 pushd client
-	DISPLAY= ./setup.py install --root=$RPM_BUILD_ROOT
+	DISPLAY= python ./setup.py install --root=$RPM_BUILD_ROOT
 popd
 
 pushd client-kde
-	DISPLAY= ./setup.py install --root=$RPM_BUILD_ROOT
+	DISPLAY= python ./setup.py install --root=$RPM_BUILD_ROOT
 popd
 
 pushd server
-	DISPLAY= ./setup.py install --root=$RPM_BUILD_ROOT
+	DISPLAY= python ./setup.py install --root=$RPM_BUILD_ROOT
 popd
 %find_lang %{name}-client
 
@@ -138,14 +138,24 @@ Categories=KDE;Databases;
 EOF
 
 mkdir -p $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-%{version}
+mv $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-server-5.0.0-alpha $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-server-%{version}
+mv $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-5.0.0-alpha $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-%{version}
 install -m 644 -D server/doc/openerp-server.conf $RPM_BUILD_ROOT%{_sysconfdir}/openerp-server.conf
 install -m 755 -D server/doc/openerp-server.init $RPM_BUILD_ROOT%{_initrddir}/openerp-server
 install -m 644 -D server/doc/openerp-server.logrotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/openerp-server
 install -m 755 -D server/doc/README.urpmi $RPM_BUILD_ROOT%{_defaultdocdir}/%{name}-%{version}/README.urpmi
 
-install -m 644 server/bin/import_xml.rng $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/
+#install -m 644 server/bin/import_xml.rng $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/
+mv $RPM_BUILD_ROOT%{_prefix}/import_xml.rng $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/
+
 install -d $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/base/security/
 install -m 644 server/bin/addons/base/security/* $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/base/security/
+
+#temp fixes for alpha builds
+pushd $RPM_BUILD_ROOT%{python_sitelib}
+	mv openerp_client-5.0.0_alpha-py2.5.egg-info openerp_client-%{version}-py2.5.egg-info
+	mv openerp_server-5.0.0_alpha-py2.5.egg-info openerp_server-%{version}-py2.5.egg-info
+popd
 
 mkdir -p $RPM_BUILD_ROOT/var/log/openerp
 mkdir -p $RPM_BUILD_ROOT/var/spool/openerp
