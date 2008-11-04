@@ -148,8 +148,8 @@ install -m 755 -D server/doc/README.urpmi $RPM_BUILD_ROOT%{_defaultdocdir}/%{nam
 #install -m 644 server/bin/import_xml.rng $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/
 mv $RPM_BUILD_ROOT%{_prefix}/import_xml.rng $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/
 
-install -d $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/base/security/
-install -m 644 server/bin/addons/base/security/* $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/base/security/
+install -d $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/addons/base/security/
+install -m 644 server/bin/addons/base/security/* $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/addons/base/security/
 
 #temp fixes for alpha builds
 pushd $RPM_BUILD_ROOT%{python_sitelib}
