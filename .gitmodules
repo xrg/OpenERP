@@ -13,3 +13,6 @@
 [submodule "bi"]
 	path = bi
 	url = /home/panos/tmp/tinyerp/openobject-bi/.git
+[submodule "client-web"]
+	path = client-web
+	url = /home/panos/tmp/tinyerp/openobject-client-web/
