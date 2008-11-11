@@ -51,6 +51,16 @@ Requires(postun): desktop-file-utils
 %description client-kde
 KDE client components for Open ERP.
 
+%package client-web
+Group:		Databases
+Summary:	Web Client of OpenERP, the Enterprise Management Software
+#BuildRequires: ....
+Requires:       python-pytz
+
+%description client-web
+OpenERP Web is the web client of the OpenERP, a free enterprise management 
+software: accounting, stock, manufacturing, project mgt...
+
 %package server
 Group:		System/Servers
 Summary:	ERP Server
@@ -87,6 +97,10 @@ pushd client-kde
 DISPLAY= python ./setup.py build
 popd
 
+pushd client-web
+	DISPLAY= python ./setup.py build
+popd
+
 pushd server
 DISPLAY= python ./setup.py build
 popd
@@ -102,10 +116,16 @@ pushd client-kde
 	DISPLAY= python ./setup.py install --root=$RPM_BUILD_ROOT
 popd
 
+pushd client-web
+	DISPLAY= python ./setup.py install --root=$RPM_BUILD_ROOT
+popd
+mv $RPM_BUILD_ROOT/%{python_sitelib}/openerp  $RPM_BUILD_ROOT/%{python_sitelib}/openerp-web
+
 pushd server
 	DISPLAY= python ./setup.py install --root=$RPM_BUILD_ROOT
 popd
 %find_lang %{name}-client
+%find_lang %{name}-client-web
 
 %find_lang ktiny
 
@@ -166,6 +186,14 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root)
 %{_defaultdocdir}/%{name}-%{version}/README.urpmi
+
+%files client-web -f %{name}-%{version}/%{name}-client-web.lang
+%doc
+%defattr(-,root,root)
+# %{_bindir}/openerp-client
+%{python_sitelib}/openerp-web/
+%{_defaultdocdir}/%{name}-client-%{version}/
+%{py_puresitedir}/openerp_web-*-py2.5.egg-info
 
 %files client -f %{name}-%{version}/%{name}-client.lang
 %doc
