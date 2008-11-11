@@ -121,11 +121,22 @@ pushd client-web
 popd
 mv $RPM_BUILD_ROOT/%{python_sitelib}/openerp  $RPM_BUILD_ROOT/%{python_sitelib}/openerp-web
 
+pushd $RPM_BUILD_ROOT/%{python_sitelib}/locales
+	rm -f messages.pot
+	for LOCFI in */LC_MESSAGES/messages.mo ; do
+		LFF=$(dirname "$LOCFI")
+		if [ ! -d $RPM_BUILD_ROOT/%{_prefix}/share/locale/$LFF ] ; then
+			mkdir $RPM_BUILD_ROOT/%{_prefix}/share/locale/$LFF
+		fi
+		mv $LOCFI $RPM_BUILD_ROOT/%{_prefix}/share/locale/$LFF/openerp-web.mo
+	done
+popd
+
 pushd server
 	DISPLAY= python ./setup.py install --root=$RPM_BUILD_ROOT
 popd
 %find_lang %{name}-client
-%find_lang %{name}-client-web
+%find_lang %{name}-web
 
 %find_lang ktiny
 
@@ -177,6 +188,9 @@ pushd $RPM_BUILD_ROOT%{python_sitelib}
 	mv openerp_server-5.0.0_alpha-py2.5.egg-info openerp_server-%{version}-py2.5.egg-info
 popd
 
+#some files for the web-client
+mv $RPM_BUILD_ROOT/etc/init.d/%{name}-web.mdv $RPM_BUILD_ROOT/%{_initrddir}/%{name}-web
+
 mkdir -p $RPM_BUILD_ROOT/var/log/openerp
 mkdir -p $RPM_BUILD_ROOT/var/spool/openerp
 mkdir -p $RPM_BUILD_ROOT/var/run/openerp
@@ -187,10 +201,12 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 %{_defaultdocdir}/%{name}-%{version}/README.urpmi
 
-%files client-web -f %{name}-%{version}/%{name}-client-web.lang
+%files client-web -f %{name}-%{version}/%{name}-web.lang
 %doc
 %defattr(-,root,root)
-# %{_bindir}/openerp-client
+%{_bindir}/start-openerp-web
+%attr(0755,root,root) %{_initrddir}/openerp-web
+%attr(0644,tinyerp,tinyerp) %config(noreplace) %{_sysconfdir}/openerp-web.cfg
 %{python_sitelib}/openerp-web/
 %{_defaultdocdir}/%{name}-client-%{version}/
 %{py_puresitedir}/openerp_web-*-py2.5.egg-info
