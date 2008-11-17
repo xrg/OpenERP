@@ -176,6 +176,8 @@ install -m 755 -D server/doc/openerp-server.init $RPM_BUILD_ROOT%{_initrddir}/op
 install -m 644 -D server/doc/openerp-server.logrotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/openerp-server
 install -m 755 -D server/doc/README.urpmi $RPM_BUILD_ROOT%{_defaultdocdir}/%{name}-%{version}/README.urpmi
 
+install -m 750 -D server/bin/ssl/cert.cfg $RPM_BUILD_ROOT%{_sysconfdir}/openerp/cert.cfg
+
 #install -m 644 server/bin/import_xml.rng $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/
 mv $RPM_BUILD_ROOT%{_prefix}/import_xml.rng $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/
 
@@ -244,6 +246,8 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %attr(0755,tinyerp,tinyerp) %dir /var/log/openerp
 %attr(0755,tinyerp,tinyerp) %dir /var/spool/openerp
 %attr(0755,tinyerp,tinyerp) %dir /var/run/openerp
+%attr(0750,tinyerp,tinyerp) %dir %{_sysconfdir}/openerp
+%attr(0755,tinyerp,tinyerp) %config(noreplace) %{_sysconfdir}/openerp/cert.cfg
 %{_initrddir}/openerp-server
 %attr(0644,tinyerp,tinyerp) %config(noreplace) %{_sysconfdir}/openerp-server.conf
 %attr(0644,tinyerp,tinyerp) %config(noreplace) %{_sysconfdir}/logrotate.d/openerp-server
@@ -258,6 +262,19 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %_pre_useradd tinyerp /var/spool/openerp /sbin/nologin
 
 %post server
+if [ ! -r "%{_sysconfdir}/openerp/server.cert" ] ; then
+	if [ ! -x "$(which certtool)" ] ; then
+		echo "OpenERP server: certtool is missing. Cannot create SSL certificates"
+	else
+		pushd %{_sysconfdir}/openerp/
+		if [ ! -r "server.key" ] ; then
+			certtool -p --outfile server.key
+		fi
+		certtool -s --load-privkey server.key --outfile server.cert --template cert.cfg
+		echo "Created a self-signed SSL certificate for OpenERP. You may want to revise it or get a real one."
+		popd
+	fi
+fi
 %_post_service openerp-server
 
 %preun server
