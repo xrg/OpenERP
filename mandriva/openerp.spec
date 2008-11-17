@@ -272,6 +272,7 @@ if [ ! -r "%{_sysconfdir}/openerp/server.cert" ] ; then
 		fi
 		certtool -s --load-privkey server.key --outfile server.cert --template cert.cfg
 		echo "Created a self-signed SSL certificate for OpenERP. You may want to revise it or get a real one."
+		chown tinyerp:tinyerp server.cert server.key
 		popd
 	fi
 fi
