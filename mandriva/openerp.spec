@@ -69,7 +69,7 @@ Requires:	python-psycopg, python-libxslt, python-lxml
 Requires:	postgresql-plpython >= 8.2
 Requires:	python-imaging
 Requires:	python-psycopg, python-reportlab
-Requires:	graphviz, python-parsing
+Requires:       python-parsing
 Requires:	postgresql-server >= 8.2
 Requires:	ghostscript
 Requires(pre):	rpm-helper
