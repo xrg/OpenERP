@@ -34,7 +34,8 @@ project management...
 %package client
 Group:		Databases
 Summary:	ERP Client
-Requires:       pygtk2.0, pygtk2.0-libglade, python-dot, python-pytz
+Requires:       pygtk2.0, pygtk2.0-libglade, python-dot
+Requires:	python-matplotlib, python-egenix-mx-base
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 
@@ -72,6 +73,8 @@ Requires:	python-psycopg, python-reportlab
 Requires:       python-parsing
 Requires:	postgresql-server >= 8.2
 Requires:	ghostscript
+# perhaps the matplotlib could yield for pytz, in Mdv >=2009.0
+Requires:	python-pyxml, python-matplotlib
 Requires(pre):	rpm-helper
 Requires(postun): rpm-helper
 
@@ -144,16 +147,18 @@ mv $RPM_BUILD_ROOT/%{_datadir}/openerp-client/* $RPM_BUILD_ROOT/%{python_sitelib
 rm -rf $RPM_BUILD_ROOT/%{_datadir}/openerp-client
 
 mkdir $RPM_BUILD_ROOT%{_datadir}/applications
-cat > $RPM_BUILD_ROOT%{_datadir}/applications/mandriva-%{name}.desktop << EOF
+cat > $RPM_BUILD_ROOT%{_datadir}/applications/mandriva-openerp-client.desktop << EOF
 [Desktop Entry]
+Encoding=UTF-8
 Name=Open ERP
+GenericName=Open Source ERP
 Comment=Open Source ERP Client
-Exec=%{_bindir}/%{name}
+Exec=%{_bindir}/openerp-client
 Icon=%{name}
 Terminal=false
 Type=Application
 StartupNotify=true
-Categories=GNOME;GTK;Databases;
+Categories=Office;GNOME;GTK;
 EOF
 
 cat > $RPM_BUILD_ROOT%{_datadir}/applications/mandriva-ktiny.desktop << EOF
@@ -165,7 +170,7 @@ Icon=%{name}
 Terminal=false
 Type=Application
 StartupNotify=true
-Categories=KDE;Databases;
+Categories=Office;KDE;
 EOF
 
 mkdir -p $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-%{version}
@@ -221,7 +226,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_defaultdocdir}/%{name}-client-%{version}/
 %{_mandir}/man1/openerp-client.*
 %{_datadir}/pixmaps/openerp-client/
-%{_datadir}/applications/mandriva-%{name}.desktop
+%{_datadir}/applications/mandriva-openerp-client.desktop
 %{py_puresitedir}/openerp_client-%{version}-py2.5.egg-info
 
 %files client-kde -f %{name}-%{version}/ktiny.lang
