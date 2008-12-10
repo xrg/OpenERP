@@ -146,6 +146,17 @@ popd
 pushd server
 	DISPLAY= python ./setup.py install --root=$RPM_BUILD_ROOT
 popd
+
+# the Python installer plants the RPM_BUILD_ROOT inside the launch scripts, fix that:
+pushd $RPM_BUILD_ROOT/%{_bindir}/
+	for BIN in %{name}-server %{name}-client ; do
+		mv $BIN $BIN.old
+		cat $BIN.old | sed "s|$RPM_BUILD_ROOT||" > $BIN
+		chmod a+x $BIN
+		rm $BIN.old
+	done
+popd
+
 %find_lang %{name}-client
 %find_lang %{name}-web
 
