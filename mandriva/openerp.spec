@@ -46,6 +46,7 @@ Client components for Open ERP.
 Group:		Databases
 Summary:	ERP Client (KDE)
 Requires:       python-dot, python-pytz, python-kde
+Obsoletes:	ktiny
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 
@@ -141,7 +142,7 @@ popd
 %find_lang %{name}-client
 %find_lang %{name}-web
 
-%find_lang ktiny
+%find_lang koo
 
 mv $RPM_BUILD_ROOT/%{_datadir}/openerp-client/* $RPM_BUILD_ROOT/%{python_sitelib}/openerp-client
 rm -rf $RPM_BUILD_ROOT/%{_datadir}/openerp-client
@@ -161,7 +162,7 @@ StartupNotify=true
 Categories=Office;GNOME;GTK;
 EOF
 
-cat > $RPM_BUILD_ROOT%{_datadir}/applications/mandriva-ktiny.desktop << EOF
+cat > $RPM_BUILD_ROOT%{_datadir}/applications/mandriva-koo.desktop << EOF
 [Desktop Entry]
 Name=Open ERP
 Comment=Open Source ERP Client (KDE)
@@ -229,16 +230,16 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/applications/mandriva-openerp-client.desktop
 %{py_puresitedir}/openerp_client-%{version}-py2.5.egg-info
 
-%files client-kde -f %{name}-%{version}/ktiny.lang
+%files client-kde -f %{name}-%{version}/koo.lang
 %doc
 %defattr(-,root,root)
-%{_bindir}/ktiny
-%{python_sitelib}/ktiny/
-%{_defaultdocdir}/ktiny/
-%{_mandir}/man1/ktiny.*
-%{_datadir}/ktiny/
-%{_datadir}/applications/mandriva-ktiny.desktop
-%{py_puresitedir}/ktiny-*-py2.5.egg-info
+%{_bindir}/koo
+%{python_sitelib}/Koo/
+%{_defaultdocdir}/koo/
+%{_mandir}/man1/koo.*
+%{_datadir}/Koo/
+%{_datadir}/applications/mandriva-koo.desktop
+%{py_puresitedir}/koo-*-py2.5.egg-info
 
 %post client
 %{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null
