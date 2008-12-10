@@ -20,7 +20,7 @@ Obsoletes:	tinyerp
 # BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch:	noarch
 BuildRequires:	python, pygtk2.0-devel, pygtk2.0-libglade, python-libxslt
-BuildRequires:	python-psycopg, python-dot
+BuildRequires:	python-psycopg, python-dot, python-pychart
 BuildRequires:	desktop-file-utils
 Requires:       pygtk2.0, pygtk2.0-libglade
 Requires:	openerp-client, openerp-server
@@ -174,8 +174,8 @@ Categories=Office;KDE;
 EOF
 
 mkdir -p $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-%{version}
-mv $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-server-5.0.0-alpha $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-server-%{version}
-mv $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-5.0.0-alpha $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-%{version}
+mv $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-server-5.0.0-rc1 $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-server-%{version}
+mv $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-5.0.0-rc1 $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-%{version}
 install -m 644 -D server/doc/openerp-server.conf $RPM_BUILD_ROOT%{_sysconfdir}/openerp-server.conf
 install -m 755 -D server/doc/openerp-server.init $RPM_BUILD_ROOT%{_initrddir}/openerp-server
 install -m 644 -D server/doc/openerp-server.logrotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/openerp-server
@@ -184,19 +184,19 @@ install -m 755 -D server/doc/README.urpmi $RPM_BUILD_ROOT%{_defaultdocdir}/%{nam
 install -m 750 -D server/bin/ssl/cert.cfg $RPM_BUILD_ROOT%{_sysconfdir}/openerp/cert.cfg
 
 #install -m 644 server/bin/import_xml.rng $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/
-mv $RPM_BUILD_ROOT%{_prefix}/import_xml.rng $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/
+# mv $RPM_BUILD_ROOT%{_prefix}/import_xml.rng $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/
 
 install -d $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/addons/base/security/
 install -m 644 server/bin/addons/base/security/* $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/addons/base/security/
 
 #temp fixes for alpha builds
 pushd $RPM_BUILD_ROOT%{python_sitelib}
-	mv openerp_client-5.0.0_alpha-py2.5.egg-info openerp_client-%{version}-py2.5.egg-info
-	mv openerp_server-5.0.0_alpha-py2.5.egg-info openerp_server-%{version}-py2.5.egg-info
+	mv openerp_client-5.0.0_rc1-py2.5.egg-info openerp_client-%{version}-py2.5.egg-info
+	mv openerp_server-5.0.0_rc1-py2.5.egg-info openerp_server-%{version}-py2.5.egg-info
 popd
 
 #some files for the web-client
-mv $RPM_BUILD_ROOT/etc/init.d/%{name}-web.mdv $RPM_BUILD_ROOT/%{_initrddir}/%{name}-web
+install -D client-web/openerp-web.mdv $RPM_BUILD_ROOT/%{_initrddir}/%{name}-web
 
 mkdir -p $RPM_BUILD_ROOT/var/log/openerp
 mkdir -p $RPM_BUILD_ROOT/var/spool/openerp
