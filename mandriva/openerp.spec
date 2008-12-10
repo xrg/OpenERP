@@ -123,7 +123,14 @@ popd
 pushd client-web
 	DISPLAY= python ./setup.py install --root=$RPM_BUILD_ROOT
 popd
+	#remove the default init script
+rm $RPM_BUILD_ROOT/usr/scripts/openerp-web
 mv $RPM_BUILD_ROOT/%{python_sitelib}/openerp  $RPM_BUILD_ROOT/%{python_sitelib}/openerp-web
+mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}
+mv $RPM_BUILD_ROOT/usr/config/default.cfg $RPM_BUILD_ROOT/%{_sysconfdir}/openerp-web.cfg
+mkdir -p $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-web-%{version}/
+mv $RPM_BUILD_ROOT/usr/doc/CHANGES.txt $RPM_BUILD_ROOT/usr/doc/README.txt $RPM_BUILD_ROOT/usr/doc/LICENSE.txt \
+	 $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-web-%{version}/
 
 pushd $RPM_BUILD_ROOT/%{python_sitelib}/locales
 	rm -f messages.pot
@@ -216,7 +223,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0755,root,root) %{_initrddir}/openerp-web
 %attr(0644,tinyerp,tinyerp) %config(noreplace) %{_sysconfdir}/openerp-web.cfg
 %{python_sitelib}/openerp-web/
-%{_defaultdocdir}/%{name}-client-%{version}/
+%{_defaultdocdir}/%{name}-client-web-%{version}/
 %{py_puresitedir}/openerp_web-*-py2.5.egg-info
 
 %files client -f %{name}-%{version}/%{name}-client.lang
