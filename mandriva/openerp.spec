@@ -76,6 +76,7 @@ Requires:	postgresql-server >= 8.2
 Requires:	ghostscript
 # perhaps the matplotlib could yield for pytz, in Mdv >=2009.0
 Requires:	python-pyxml, python-matplotlib
+Requires:	python-pychart
 Requires(pre):	rpm-helper
 Requires(postun): rpm-helper
 
