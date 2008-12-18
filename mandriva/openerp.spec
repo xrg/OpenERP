@@ -95,6 +95,7 @@ instead of the "pychart" package.
 
 echo "Preparing for addons build.."
 ./mandriva/modulize.py addons/* > %{_specdir}/openerp-addons.spec
+rm -f %{_builddir}/openerp-addons-$(./mandriva/modulize.py --onlyver)
 ln -sf $(pwd)/addons %{_builddir}/openerp-addons-$(./mandriva/modulize.py --onlyver)
 echo "Prepared addons"
 
