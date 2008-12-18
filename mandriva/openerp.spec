@@ -93,6 +93,11 @@ instead of the "pychart" package.
 %git_clone_source
 %git_prep_submodules
 
+echo "Preparing for addons build.."
+./mandriva/modulize.py addons/* > %{_specdir}/openerp-addons.spec
+ln -sf $(pwd)/addons %{_builddir}/openerp-addons-$(./mandriva/modulize.py --onlyver)
+echo "Prepared addons"
+
 %build
 cd %{name}-%{version}
 pushd client

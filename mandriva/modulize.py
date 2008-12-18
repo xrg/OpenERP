@@ -75,7 +75,7 @@ Release:	%sxrg
 License:	GPLv2+
 Group:		Databases
 Summary:	ERP Client
-Source0:	openerp-addons-%%{version}.tar.gz
+#Source0:	openerp-addons-%%{version}.tar.gz
 URL:		http://www.openerp.com
 BuildArch:	noarch
 
@@ -83,7 +83,8 @@ BuildArch:	noarch
 Addon modules for OpenERP
 
 %%prep
-%%setup -q
+cd openerp-addons-%%{version}/
+# setup -q
 
 %%build
 
@@ -154,10 +155,18 @@ parser.add_option("-q", "--quiet",
                   action="store_false", dest="verbose", default=True,
                   help="don't print status messages to stdout")
 
+parser.add_option("-r", "--onlyver",
+                  action="store_true", dest="onlyver", default=False,
+                  help="Generates the version string and exits.")
+
 (options, args) = parser.parse_args()
 
 info_dirs = []
 no_dirs = []
+
+if ( options.onlyver):
+	print rel.version.rsplit('.', 1)[0]
+	exit(0)
 
 for tdir in args:
 	info = get_module_info(tdir)
@@ -166,6 +175,7 @@ for tdir in args:
 		no_dirs.append(bdir)
 	else :
 		info_dirs.append({'dir': bdir, 'info': info})
+
 
 print knight
 print inst_str
@@ -180,7 +190,7 @@ for tinf in info_dirs:
 	print fmt_spec(tinf['dir'],tinf['info'])
 
 sys.stderr.write("Modules created: %d\n"% len(info_dirs))
-sys.stderr.write("Don't forget to create the archive, with:\n" \
-	"git archive --format=tar --prefix=openerp-addons-%s/ HEAD | gzip -c > openerp-addons-%s.tar.gz\n" \
-	% (rel.version.rsplit('.', 1)[0],rel.version.rsplit('.', 1)[0]));
+#sys.stderr.write("Don't forget to create the archive, with:\n" \
+	#"git archive --format=tar --prefix=openerp-addons-%s/ HEAD | gzip -c > openerp-addons-%s.tar.gz\n" \
+	#% (rel.version.rsplit('.', 1)[0],rel.version.rsplit('.', 1)[0]));
 #eof
