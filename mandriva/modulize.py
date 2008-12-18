@@ -83,15 +83,19 @@ BuildArch:	noarch
 Addon modules for OpenERP
 
 %%prep
-cd openerp-addons-%%{version}/
+cd %%{name}-%%{version}
 # setup -q
 
 %%build
+cd %%{name}-%%{version}
 
 """ % (rel.version.rsplit('.', 1)[0],rel.release)
 
 inst_str = """
 %install
+cd %{name}-%{version}
+rm -rf $RPM_BUILD_ROOT
+
 install -d $RPM_BUILD_ROOT/%{python_sitelib}/openerp-server/addons
 cp -ar ./* $RPM_BUILD_ROOT/%{python_sitelib}/openerp-server/addons/
 """
