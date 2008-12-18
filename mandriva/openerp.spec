@@ -20,7 +20,7 @@ Obsoletes:	tinyerp
 # BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch:	noarch
 BuildRequires:	python, pygtk2.0-devel, pygtk2.0-libglade, python-libxslt
-BuildRequires:	python-psycopg, python-dot, python-pychart
+BuildRequires:	python-psycopg2, python-dot, python-pychart
 BuildRequires:	desktop-file-utils
 Requires:       pygtk2.0, pygtk2.0-libglade
 Requires:	openerp-client, openerp-server
@@ -70,7 +70,7 @@ Requires:	pygtk2.0, pygtk2.0-libglade
 Requires:	python-psycopg, python-libxslt, python-lxml
 Requires:	postgresql-plpython >= 8.2
 Requires:	python-imaging
-Requires:	python-psycopg, python-reportlab
+Requires:	python-psycopg2, python-reportlab
 Requires:       python-parsing
 Requires:	postgresql-server >= 8.2
 Requires:	ghostscript
@@ -85,6 +85,9 @@ Server components for Open ERP.
 
 IMPORTANT: Please read the INSTALL file in /usr/share/doc/openerp-server for
 the first time run.
+
+Note: at Mandriva 2008.1, python-pychart is needed from backports,
+instead of the "pychart" package.
 
 %prep
 %git_clone_source
@@ -194,7 +197,7 @@ Categories=Office;KDE;
 EOF
 
 mkdir -p $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-%{version}
-mv $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-server-5.0.0-rc1 $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-server-%{version}
+mv $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-server-5.0.0_rc1 $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-server-%{version}
 mv $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-5.0.0-rc1 $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-%{version}
 install -m 644 -D server/doc/openerp-server.conf $RPM_BUILD_ROOT%{_sysconfdir}/openerp-server.conf
 install -m 755 -D server/doc/openerp-server.init $RPM_BUILD_ROOT%{_initrddir}/openerp-server
@@ -203,7 +206,7 @@ install -m 755 -D server/doc/README.urpmi $RPM_BUILD_ROOT%{_defaultdocdir}/%{nam
 
 install -m 750 -D server/bin/ssl/cert.cfg $RPM_BUILD_ROOT%{_sysconfdir}/openerp/cert.cfg
 
-#install -m 644 server/bin/import_xml.rng $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/
+install -m 644 server/bin/import_xml.rng $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/
 # mv $RPM_BUILD_ROOT%{_prefix}/import_xml.rng $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/
 
 install -d $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/addons/base/security/
