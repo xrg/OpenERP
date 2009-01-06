@@ -2,7 +2,7 @@
 %define git_head HEAD
 
 %define name openerp
-%define verstr 5.0.0_rc2
+%define verstr 5.0.0_rc3
 #define release %{git_get_rel}
 
 %{?!pyver: %define pyver %(python -c 'import sys;print(sys.version[0:3])')}
