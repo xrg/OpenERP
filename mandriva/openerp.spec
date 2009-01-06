@@ -2,7 +2,7 @@
 %define git_head HEAD
 
 %define name openerp
-#define version %
+%define verstr 5.0.0_rc2
 #define release %{git_get_rel}
 
 %{?!pyver: %define pyver %(python -c 'import sys;print(sys.version[0:3])')}
@@ -203,8 +203,8 @@ Categories=Office;KDE;
 EOF
 
 mkdir -p $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-%{version}
-mv $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-server-5.0.0_rc1 $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-server-%{version}
-mv $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-5.0.0_rc1 $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-%{version}
+mv $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-server-%{verstr} $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-server-%{version}
+mv $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-%{verstr} $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-%{version}
 install -m 644 -D server/doc/openerp-server.conf $RPM_BUILD_ROOT%{_sysconfdir}/openerp-server.conf
 install -m 755 -D server/doc/openerp-server.init $RPM_BUILD_ROOT%{_initrddir}/openerp-server
 install -m 644 -D server/doc/openerp-server.logrotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/openerp-server
@@ -220,8 +220,8 @@ install -m 644 server/bin/addons/base/security/* $RPM_BUILD_ROOT%{python_sitelib
 
 #temp fixes for alpha builds
 pushd $RPM_BUILD_ROOT%{python_sitelib}
-	mv openerp_client-5.0.0_rc1-py2.5.egg-info openerp_client-%{version}-py2.5.egg-info
-	mv openerp_server-5.0.0_rc1-py2.5.egg-info openerp_server-%{version}-py2.5.egg-info
+	mv openerp_client-%{verstr}-py2.5.egg-info openerp_client-%{version}-py2.5.egg-info
+	mv openerp_server-%{verstr}-py2.5.egg-info openerp_server-%{version}-py2.5.egg-info
 popd
 
 #some files for the web-client
