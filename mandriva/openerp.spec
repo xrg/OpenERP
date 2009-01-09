@@ -8,6 +8,13 @@
 %{?!pyver: %define pyver %(python -c 'import sys;print(sys.version[0:3])')}
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
+%define build_kde	1
+%{?_without_kde:	%global build_kde 0}
+%{?_with_kde:		%global build_kde 1}
+
+%define build_web	0
+%{?_without_web:	%global build_web 0}
+%{?_with_web:		%global build_web 1}
 
 Name:		%name
 Version:	%{git_get_ver}
@@ -42,6 +49,7 @@ Requires(postun): desktop-file-utils
 %description client
 Client components for Open ERP.
 
+%if %{build_kde}
 %package client-kde
 Group:		Databases
 Summary:	ERP Client (KDE)
@@ -52,7 +60,9 @@ Requires(postun): desktop-file-utils
 
 %description client-kde
 KDE client components for Open ERP.
+%endif
 
+%if %{build_web}
 %package client-web
 Group:		Databases
 Summary:	Web Client of OpenERP, the Enterprise Management Software
@@ -62,6 +72,7 @@ Requires:       python-pytz
 %description client-web
 OpenERP Web is the web client of the OpenERP, a free enterprise management 
 software: accounting, stock, manufacturing, project mgt...
+%endif
 
 %package server
 Group:		System/Servers
@@ -102,18 +113,20 @@ echo "Prepared addons"
 %build
 cd %{name}-%{version}
 pushd client
-# %{_xvfb} :69 -nolisten tcp -ac -terminate &
-DISPLAY= python ./setup.py build
+	DISPLAY= python ./setup.py build
 popd
 
+%if %{build_kde}
 pushd client-kde
-# %{_xvfb} :69 -nolisten tcp -ac -terminate &
-DISPLAY= python ./setup.py build
+	DISPLAY= python ./setup.py build
 popd
+%endif
 
+%if %{build_web}
 pushd client-web
 	DISPLAY= python ./setup.py build
 popd
+%endif
 
 pushd server
 DISPLAY= python ./setup.py build
@@ -126,17 +139,22 @@ pushd client
 	DISPLAY= python ./setup.py install --root=$RPM_BUILD_ROOT
 popd
 
+%if %{build_kde}
 pushd client-kde
 	DISPLAY= python ./setup.py install --root=$RPM_BUILD_ROOT
 popd
+%endif
 
+mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}
+
+%if %{build_web}
 pushd client-web
 	DISPLAY= python ./setup.py install --root=$RPM_BUILD_ROOT
 popd
 	#remove the default init script
 rm $RPM_BUILD_ROOT/usr/scripts/openerp-web
+
 mv $RPM_BUILD_ROOT/%{python_sitelib}/openerp  $RPM_BUILD_ROOT/%{python_sitelib}/openerp-web
-mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}
 mv $RPM_BUILD_ROOT/usr/config/default.cfg $RPM_BUILD_ROOT/%{_sysconfdir}/openerp-web.cfg
 mkdir -p $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-web-%{version}/
 mv $RPM_BUILD_ROOT/usr/doc/CHANGES.txt $RPM_BUILD_ROOT/usr/doc/README.txt $RPM_BUILD_ROOT/usr/doc/LICENSE.txt \
@@ -152,6 +170,7 @@ pushd $RPM_BUILD_ROOT/%{python_sitelib}/locales
 		mv $LOCFI $RPM_BUILD_ROOT/%{_prefix}/share/locale/$LFF/openerp-web.mo
 	done
 popd
+%endif
 
 pushd server
 	DISPLAY= python ./setup.py install --root=$RPM_BUILD_ROOT
@@ -168,9 +187,14 @@ pushd $RPM_BUILD_ROOT/%{_bindir}/
 popd
 
 %find_lang %{name}-client
-%find_lang %{name}-web
 
+%if %{build_web}
+%find_lang %{name}-web
+%endif
+
+%if %{build_kde}
 %find_lang koo
+%endif
 
 mv $RPM_BUILD_ROOT/%{_datadir}/openerp-client/* $RPM_BUILD_ROOT/%{python_sitelib}/openerp-client
 rm -rf $RPM_BUILD_ROOT/%{_datadir}/openerp-client
@@ -190,6 +214,7 @@ StartupNotify=true
 Categories=Office;GNOME;GTK;
 EOF
 
+%if %{build_kde}
 cat > $RPM_BUILD_ROOT%{_datadir}/applications/mandriva-koo.desktop << EOF
 [Desktop Entry]
 Name=Open ERP
@@ -201,6 +226,7 @@ Type=Application
 StartupNotify=true
 Categories=Office;KDE;
 EOF
+%endif
 
 mkdir -p $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-%{version}
 mv $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-server-%{verstr} $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-server-%{version}
@@ -224,8 +250,8 @@ pushd $RPM_BUILD_ROOT%{python_sitelib}
 	mv openerp_server-%{verstr}-py2.5.egg-info openerp_server-%{version}-py2.5.egg-info
 popd
 
-#some files for the web-client
-install -D client-web/openerp-web.mdv $RPM_BUILD_ROOT/%{_initrddir}/%{name}-web
+ #some files for the web-client
+#install -D client-web/openerp-web.mdv $RPM_BUILD_ROOT/%{_initrddir}/%{name}-web
 
 mkdir -p $RPM_BUILD_ROOT/var/log/openerp
 mkdir -p $RPM_BUILD_ROOT/var/spool/openerp
@@ -233,10 +259,12 @@ mkdir -p $RPM_BUILD_ROOT/var/run/openerp
 
 %clean
 rm -rf $RPM_BUILD_ROOT
+
 %files
 %defattr(-,root,root)
 %{_defaultdocdir}/%{name}-%{version}/README.urpmi
 
+%if %{build_web}
 %files client-web -f %{name}-%{version}/%{name}-web.lang
 %doc
 %defattr(-,root,root)
@@ -246,6 +274,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/openerp-web/
 %{_defaultdocdir}/%{name}-client-web-%{version}/
 %{py_puresitedir}/openerp_web-*-py2.5.egg-info
+%endif
 
 %files client -f %{name}-%{version}/%{name}-client.lang
 %doc
@@ -258,6 +287,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/applications/mandriva-openerp-client.desktop
 %{py_puresitedir}/openerp_client-%{version}-py2.5.egg-info
 
+%if %{build_kde}
 %files client-kde -f %{name}-%{version}/koo.lang
 %doc
 %defattr(-,root,root)
@@ -268,6 +298,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/Koo/
 %{_datadir}/applications/mandriva-koo.desktop
 %{py_puresitedir}/koo-*-py2.5.egg-info
+%endif
 
 %post client
 %{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null

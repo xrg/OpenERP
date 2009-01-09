@@ -55,7 +55,7 @@ class release:
 			if re.match('g.*',resc[len(resc)-1]) :
 				resc.pop()
 			if len(resc)>1 :
-				self.release = resc.pop()
+				self.release = resc.pop().strip()
 			else:
 				self.release = '0'
 			self.version = "-".join(resc).lstrip('v')
