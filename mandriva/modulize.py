@@ -172,7 +172,7 @@ info_dirs = []
 no_dirs = []
 
 if ( options.onlyver):
-	print rel.version.rsplit('.', 1)[0]
+	print rel.version.rsplit('.', 1)[0]+rel.subver
 	exit(0)
 
 for tdir in args:
