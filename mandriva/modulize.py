@@ -58,8 +58,9 @@ class release:
 				self.release = resc.pop().strip()
 			else:
 				self.release = '0'
-			self.version = "-".join(resc).lstrip('v')
-			sys.stderr.write("Got version from git: v: %s , r: %s \n" %(self.version,self.release))
+			self.version = resc[0].lstrip('v')
+			self.subver ="-".join(resc[1:])
+			sys.stderr.write("Got version from git: v: %s (%s) , r: %s \n" %(self.version,self.subver,self.release))
 		except:
 			sys.stderr.write("Get release exception: %s \n " % str(sys.exc_info()))
 
@@ -89,7 +90,7 @@ cd %%{name}-%%{version}
 %%build
 cd %%{name}-%%{version}
 
-""" % (rel.version.rsplit('.', 1)[0],rel.release)
+""" % (rel.version.rsplit('.', 1)[0]+rel.subver,rel.release)
 
 inst_str = """
 %install
@@ -106,7 +107,7 @@ def get_module_info(name):
 		data = f.read()
 		info = eval(data)
 		if 'version' in info:
-			info['version'] = rel.version.rsplit('.', 1)[0] + '.' + info['version']
+			info['version'] = rel.version.rsplit('.', 1)[0] + '.' + info['version']+rel.subver
 		f.close()
 	except IOError:
 		sys.stderr.write("Dir at %s may not be an OpenERP module.\n" % name)
