@@ -18,7 +18,7 @@
 
 Name:		%name
 Version:	%{git_get_ver}
-Release:	%{git_get_rel}xrg
+Release:	%mkrel %{git_get_rel}
 License:	GPLv2+
 Group:		Databases
 Summary:	ERP Client
