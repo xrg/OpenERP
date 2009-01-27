@@ -72,7 +72,7 @@ knight = """
 
 Name:	openerp-addons
 Version:	%s
-Release:	%sxrg
+Release:	%%mkrel %s
 License:	GPLv2+
 Group:		Databases
 Summary:	ERP Client
