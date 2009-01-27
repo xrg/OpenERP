@@ -246,8 +246,8 @@ install -m 644 server/bin/addons/base/security/* $RPM_BUILD_ROOT%{python_sitelib
 
 #temp fixes for alpha builds
 pushd $RPM_BUILD_ROOT%{python_sitelib}
-	mv openerp_client-%{verstr}-py2.5.egg-info openerp_client-%{version}-py2.5.egg-info
-	mv openerp_server-%{verstr}-py2.5.egg-info openerp_server-%{version}-py2.5.egg-info
+	mv openerp_client-%{verstr}-py%{pyver}.egg-info openerp_client-%{version}-py%{pyver}.egg-info
+	mv openerp_server-%{verstr}-py%{pyver}.egg-info openerp_server-%{version}-py%{pyver}.egg-info
 popd
 
  #some files for the web-client
@@ -273,7 +273,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0644,tinyerp,tinyerp) %config(noreplace) %{_sysconfdir}/openerp-web.cfg
 %{python_sitelib}/openerp-web/
 %{_defaultdocdir}/%{name}-client-web-%{version}/
-%{py_puresitedir}/openerp_web-*-py2.5.egg-info
+%{py_puresitedir}/openerp_web-*-py%{pyver}.egg-info
 %endif
 
 %files client -f %{name}-%{version}/%{name}-client.lang
@@ -285,7 +285,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/openerp-client.*
 %{_datadir}/pixmaps/openerp-client/
 %{_datadir}/applications/mandriva-openerp-client.desktop
-%{py_puresitedir}/openerp_client-%{version}-py2.5.egg-info
+%{py_puresitedir}/openerp_client-%{version}-py%{pyver}.egg-info
 
 %if %{build_kde}
 %files client-kde -f %{name}-%{version}/koo.lang
@@ -297,7 +297,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/koo.*
 %{_datadir}/Koo/
 %{_datadir}/applications/mandriva-koo.desktop
-%{py_puresitedir}/koo-*-py2.5.egg-info
+%{py_puresitedir}/koo-*-py%{pyver}.egg-info
 %endif
 
 %post client
@@ -320,7 +320,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %{python_sitelib}/openerp-server/
 %{_defaultdocdir}/%{name}-server-%{version}/
 %{_mandir}/man1/openerp-server.*
-%{py_puresitedir}/openerp_server-%{version}-py2.5.egg-info
+%{py_puresitedir}/openerp_server-%{version}-py%{pyver}.egg-info
 %{_mandir}/man5/openerp_serverrc.5*
 
 %pre server
