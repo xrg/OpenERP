@@ -2,7 +2,8 @@
 %define git_head HEAD
 
 %define name openerp
-%define verstr 5.0.0_rc3
+%define verstr 5.0.0-0_rc3
+%define verstr2 5.0.0_0_rc3
 #define release %{git_get_rel}
 
 %{?!pyver: %define pyver %(python -c 'import sys;print(sys.version[0:3])')}
@@ -246,8 +247,8 @@ install -m 644 server/bin/addons/base/security/* $RPM_BUILD_ROOT%{python_sitelib
 
 #temp fixes for alpha builds
 pushd $RPM_BUILD_ROOT%{python_sitelib}
-	mv openerp_client-%{verstr}-py%{pyver}.egg-info openerp_client-%{version}-py%{pyver}.egg-info
-	mv openerp_server-%{verstr}-py%{pyver}.egg-info openerp_server-%{version}-py%{pyver}.egg-info
+	mv openerp_client-%{verstr2}-py%{pyver}.egg-info openerp_client-%{version}-py%{pyver}.egg-info
+	mv openerp_server-%{verstr2}-py%{pyver}.egg-info openerp_server-%{version}-py%{pyver}.egg-info
 popd
 
  #some files for the web-client
