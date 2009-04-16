@@ -2,18 +2,26 @@
 %define git_head HEAD
 
 %define name openerp
-%define verstr 5.0.0-0_rc3
-%define verstr2 5.0.0_0_rc3
+%define verstr 5.0.0-3
+%define verstr2 5.0.0_3
 #define release %{git_get_rel}
+
+%define release_class pub
 
 %{?!pyver: %define pyver %(python -c 'import sys;print(sys.version[0:3])')}
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
+%if %mdkver > 200900
 %define build_kde	1
+%define build_web	0
+%else
+%define build_kde	0
+%define build_web	0
+%endif
+
 %{?_without_kde:	%global build_kde 0}
 %{?_with_kde:		%global build_kde 1}
 
-%define build_web	0
 %{?_without_web:	%global build_web 0}
 %{?_with_web:		%global build_web 1}
 
