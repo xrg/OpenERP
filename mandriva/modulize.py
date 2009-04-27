@@ -38,6 +38,21 @@ import re
 
 from optparse import OptionParser
 
+parser = OptionParser()
+parser.add_option("-q", "--quiet",
+                  action="store_false", dest="verbose", default=True,
+                  help="don't print status messages to stdout")
+
+parser.add_option("-r", "--onlyver",
+                  action="store_true", dest="onlyver", default=False,
+                  help="Generates the version string and exits.")
+
+parser.add_option("-C", "--rclass", dest="rclass",
+                  help="use RCLASS release class", metavar="RCLASS")
+
+
+(options, args) = parser.parse_args()
+
 class release:
 	version = '4.3.x'
 	release = '1'
@@ -66,9 +81,13 @@ class release:
 
 rel = release()
 
+release_class = options.rclass or 'pub'
+
 knight = """
 %%{?!pyver: %%define pyver %%(python -c 'import sys;print(sys.version[0:3])')}
 %%{!?python_sitelib: %%define python_sitelib %%(%%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+
+%%define release_class %s
 
 Name:	openerp-addons
 Version:	%s
@@ -90,7 +109,7 @@ cd %%{name}-%%{version}
 %%build
 cd %%{name}-%%{version}
 
-""" % (rel.version.rsplit('.', 1)[0]+rel.subver,rel.release)
+""" % ( release_class,rel.version.rsplit('.', 1)[0]+rel.subver,rel.release)
 
 inst_str = """
 %install
@@ -157,16 +176,6 @@ Requires: openerp-server >= %s
 """ % (name, name)
 	return nii
 
-parser = OptionParser()
-parser.add_option("-q", "--quiet",
-                  action="store_false", dest="verbose", default=True,
-                  help="don't print status messages to stdout")
-
-parser.add_option("-r", "--onlyver",
-                  action="store_true", dest="onlyver", default=False,
-                  help="Generates the version string and exits.")
-
-(options, args) = parser.parse_args()
 
 info_dirs = []
 no_dirs = []
