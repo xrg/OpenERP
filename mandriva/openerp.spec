@@ -1,5 +1,5 @@
 %define git_repo openerp
-%define git_head HEAD
+%define git_head gpl3
 
 %define name openerp
 %define verstr 5.0.0-3
