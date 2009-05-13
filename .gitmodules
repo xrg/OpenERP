@@ -16,3 +16,6 @@
 [submodule "client-web"]
 	path = client-web
 	url = http://members.hellug.gr/xrg/repos/openobject-client-web
+[submodule "doc"]
+	path = doc
+	url = http://members.hellug.gr/xrg/repos/openobject-doc
