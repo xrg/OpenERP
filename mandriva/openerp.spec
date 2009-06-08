@@ -2,8 +2,8 @@
 %define git_head gpl3
 
 %define name openerp
-%define verstr 5.0.0-3
-%define verstr2 5.0.0_3
+%define verstr 5.0.1-0
+%define verstr2 5.0.1_0
 #define release %{git_get_rel}
 
 %define release_class pub
