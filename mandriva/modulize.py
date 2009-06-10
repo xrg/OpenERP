@@ -50,6 +50,10 @@ parser.add_option("-r", "--onlyver",
 parser.add_option("-C", "--rclass", dest="rclass",
                   help="use RCLASS release class", metavar="RCLASS")
 
+parser.add_option("-x", "--exclude-from",
+                  dest="exclude",
+                  help="Reads the file FROM_LIST and excludes those modules",
+                  metavar = "FROM_LIST")
 
 (options, args) = parser.parse_args()
 
@@ -184,9 +188,22 @@ if ( options.onlyver):
 	print rel.version.rsplit('.', 1)[0]+rel.subver
 	exit(0)
 
+exclude_modules = []
+if len(options.exclude):
+    f = open(options.exclude,'r')
+    mods = f.readlines()
+    for mname in mods:
+        mname = mname.strip()
+        if not mname:
+            continue
+        exclude_modules.append(mname)
+    f.close()
+
 for tdir in args:
+        bdir = os.path.basename(tdir)
+        if bdir in exclude_modules:
+            continue
 	info = get_module_info(tdir)
-	bdir = os.path.basename(tdir)
 	if (info == {}) :
 		no_dirs.append(bdir)
 	else :
