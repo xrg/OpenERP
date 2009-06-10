@@ -202,6 +202,7 @@ if len(options.exclude):
 for tdir in args:
         bdir = os.path.basename(tdir)
         if bdir in exclude_modules:
+            no_dirs.append(bdir)
             continue
 	info = get_module_info(tdir)
 	if (info == {}) :
