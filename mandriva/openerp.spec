@@ -244,6 +244,7 @@ install -m 644 -D server/doc/openerp-server.conf $RPM_BUILD_ROOT%{_sysconfdir}/o
 install -m 755 -D server/doc/openerp-server.init $RPM_BUILD_ROOT%{_initrddir}/openerp-server
 install -m 644 -D server/doc/openerp-server.logrotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/openerp-server
 install -m 755 -D server/doc/README.urpmi $RPM_BUILD_ROOT%{_defaultdocdir}/%{name}-%{version}/README.urpmi
+install -m 755 -D server/doc/README.userchange $RPM_BUILD_ROOT%{_defaultdocdir}/%{name}-%{version}/README.userchange
 
 install -m 750 -D server/bin/ssl/cert.cfg $RPM_BUILD_ROOT%{_sysconfdir}/openerp/cert.cfg
 
@@ -279,7 +280,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 %{_bindir}/start-openerp-web
 %attr(0755,root,root) %{_initrddir}/openerp-web
-%attr(0644,tinyerp,tinyerp) %config(noreplace) %{_sysconfdir}/openerp-web.cfg
+%attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp-web.cfg
 %{python_sitelib}/openerp-web/
 %{_defaultdocdir}/%{name}-client-web-%{version}/
 %{py_puresitedir}/openerp_web-*-py%{pyver}.egg-info
@@ -317,14 +318,14 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 
 %files server
 %defattr(-,root,root)
-%attr(0755,tinyerp,tinyerp) %dir /var/log/openerp
-%attr(0755,tinyerp,tinyerp) %dir /var/spool/openerp
-%attr(0755,tinyerp,tinyerp) %dir /var/run/openerp
-%attr(0750,tinyerp,tinyerp) %dir %{_sysconfdir}/openerp
-%attr(0755,tinyerp,tinyerp) %config(noreplace) %{_sysconfdir}/openerp/cert.cfg
+%attr(0755,openerp,openerp) %dir /var/log/openerp
+%attr(0755,openerp,openerp) %dir /var/spool/openerp
+%attr(0755,openerp,openerp) %dir /var/run/openerp
+%attr(0750,openerp,openerp) %dir %{_sysconfdir}/openerp
+%attr(0755,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp/cert.cfg
 %{_initrddir}/openerp-server
-%attr(0644,tinyerp,tinyerp) %config(noreplace) %{_sysconfdir}/openerp-server.conf
-%attr(0644,tinyerp,tinyerp) %config(noreplace) %{_sysconfdir}/logrotate.d/openerp-server
+%attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp-server.conf
+%attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/logrotate.d/openerp-server
 %{_bindir}/openerp-server
 %{python_sitelib}/openerp-server/
 %{_defaultdocdir}/%{name}-server-%{version}/
@@ -333,7 +334,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %{_mandir}/man5/openerp_serverrc.5*
 
 %pre server
-%_pre_useradd tinyerp /var/spool/openerp /sbin/nologin
+%_pre_useradd openerp /var/spool/openerp /sbin/nologin
 
 %post server
 if [ ! -r "%{_sysconfdir}/openerp/server.cert" ] ; then
@@ -346,10 +347,25 @@ if [ ! -r "%{_sysconfdir}/openerp/server.cert" ] ; then
 		fi
 		certtool -s --load-privkey server.key --outfile server.cert --template cert.cfg
 		echo "Created a self-signed SSL certificate for OpenERP. You may want to revise it or get a real one."
-		chown tinyerp:tinyerp server.cert server.key
+		chown openerp:openerp server.cert server.key
 		popd
 	fi
 fi
+
+cat '-' <<EOF
+
+Important NOTE:
+
+As of this version, the OpenERP user has changed
+ from "tinyerp" to "openerp" !
+
+
+If you are upgrading from a previous build, please read 
+%{_defaultdocdir}/%{name}-%{version}/README.userchange
+and carefully follow those instructions to migrate your system!
+
+EOF
+
 %_post_service openerp-server
 
 %preun server
@@ -357,4 +373,4 @@ fi
 
 %postun server
 %_postun_service openerp-server
-%_postun_userdel tinyerp
+%_postun_userdel openerp
