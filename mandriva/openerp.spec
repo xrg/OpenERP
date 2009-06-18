@@ -244,7 +244,7 @@ install -m 644 -D server/doc/openerp-server.conf $RPM_BUILD_ROOT%{_sysconfdir}/o
 install -m 755 -D server/doc/openerp-server.init $RPM_BUILD_ROOT%{_initrddir}/openerp-server
 install -m 644 -D server/doc/openerp-server.logrotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/openerp-server
 install -m 755 -D server/doc/README.urpmi $RPM_BUILD_ROOT%{_defaultdocdir}/%{name}-%{version}/README.urpmi
-install -m 755 -D server/doc/README.userchange $RPM_BUILD_ROOT%{_defaultdocdir}/%{name}-%{version}/README.userchange
+install -m 755 -D server/doc/README.userchange $RPM_BUILD_ROOT%{_defaultdocdir}/%{name}-server-%{version}/README.userchange
 
 install -m 750 -D server/bin/ssl/cert.cfg $RPM_BUILD_ROOT%{_sysconfdir}/openerp/cert.cfg
 
@@ -329,6 +329,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %{_bindir}/openerp-server
 %{python_sitelib}/openerp-server/
 %{_defaultdocdir}/%{name}-server-%{version}/
+%{_defaultdocdir}/%{name}-server-%{version}/README.userchange
 %{_mandir}/man1/openerp-server.*
 %{py_puresitedir}/openerp_server-%{version}-py%{pyver}.egg-info
 %{_mandir}/man5/openerp_serverrc.5*
