@@ -362,7 +362,7 @@ As of this version, the OpenERP user has changed
 
 
 If you are upgrading from a previous build, please read 
-%{_defaultdocdir}/%{name}-%{version}/README.userchange
+%{_defaultdocdir}/%{name}-server-%{version}/README.userchange
 and carefully follow those instructions to migrate your system!
 
 EOF
