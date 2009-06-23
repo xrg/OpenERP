@@ -25,7 +25,7 @@
 %{?_without_web:	%global build_web 0}
 %{?_with_web:		%global build_web 1}
 
-%__python_provides      %{_builddir}/%{?buildsubdir}/mandriva/python_provides.sh
+%define __find_provides   %{u2p:%{_builddir}}/%{name}-%{git_get_ver}/mandriva/find-provides.sh
 
 
 Name:		%name
