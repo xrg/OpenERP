@@ -25,6 +25,9 @@
 %{?_without_web:	%global build_web 0}
 %{?_with_web:		%global build_web 1}
 
+%__python_provides      %{_builddir}/%{?buildsubdir}/mandriva/python_provides.sh
+
+
 Name:		%name
 Version:	%{git_get_ver}
 Release:	%mkrel %{git_get_rel}
