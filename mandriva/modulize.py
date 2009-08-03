@@ -149,6 +149,25 @@ def get_depends(deps):
 	if not ret : return ""
 	return "Requires: %s \n" % (", ".join(ret))
 
+# Write down dependencies for non-openerp python modules
+# The format can either be a string, or a tuple, with the version required
+def get_ext_depends(deps):
+	ret = []
+	ret_ver = []
+	str_ret = ''
+	for dep in deps:
+		if type(dep) == type(tuple()):
+			ret_ver.append(dep[0]+' '+ dep[1] + ' ' + dep[2])
+		else:
+			ret.append(dep)
+	ret = set(ret)
+	ret_ver = set(ret_ver)
+	if ret:
+		str_ret += "Requires: %s \n" % (", ".join(ret))
+	if ret_ver:
+		str_ret += "\n".join(map(lambda a: "Requires: %s" % a, ret_ver))
+	return str_ret
+
 def fmt_spec(name,info):
 	""" Format the info object fields into a SPEC submodule section
 	"""
@@ -163,6 +182,8 @@ Requires: openerp-server >= %s
 """ % (info['name'], rel.version.rsplit('.', 1)[0])
 	if 'depends' in info:
 		nii += get_depends(info['depends'])
+	if 'ext_depends' in info:
+		nii += get_ext_depends(info['ext_depends'])
 	if 'author' in info:
 		nii+= "Vendor: %s\n" % info['author']
 	if 'website' in info  and info['website'] != '' :
@@ -189,7 +210,7 @@ if ( options.onlyver):
 	exit(0)
 
 exclude_modules = []
-if len(options.exclude):
+if options.exclude and len(options.exclude):
     f = open(options.exclude,'r')
     mods = f.readlines()
     for mname in mods:
