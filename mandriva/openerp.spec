@@ -26,6 +26,7 @@
 %{?_with_web:		%global build_web 1}
 
 %define __find_provides   %{u2p:%{_builddir}}/%{name}-%{git_get_ver}/mandriva/find-provides.sh
+%define __find_requires   %{u2p:%{_builddir}}/%{name}-%{git_get_ver}/mandriva/find-requires.sh
 
 
 Name:		%name
