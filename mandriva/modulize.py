@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 
 #
-# Copyright P. Christeas <p_christ@hol.gr> 2008
+# Copyright P. Christeas <p_christ@hol.gr> 2008,2009
 #
 #
 # WARNING: This program as such is intended to be used by professional
@@ -55,6 +55,11 @@ parser.add_option("-x", "--exclude-from",
                   help="Reads the file FROM_LIST and excludes those modules",
                   metavar = "FROM_LIST")
 
+parser.add_option("-n", "--name",
+                  dest="name",
+                  help="The name of the base package (openerp-addons)",
+                  metavar = "NAME")
+
 (options, args) = parser.parse_args()
 
 class release:
@@ -86,6 +91,7 @@ class release:
 rel = release()
 
 release_class = options.rclass or 'pub'
+oname = options.name or 'openerp-addons'
 
 knight = """
 %%{?!pyver: %%define pyver %%(python -c 'import sys;print(sys.version[0:3])')}
@@ -93,13 +99,13 @@ knight = """
 
 %%define release_class %s
 
-Name:	openerp-addons
+Name:	%s
 Version:	%s
 Release:	%%mkrel %s
 License:	GPLv2+
 Group:		Databases
 Summary:	ERP Client
-#Source0:	openerp-addons-%%{version}.tar.gz
+#Source0:	%%{name}-%%{version}.tar.gz
 URL:		http://www.openerp.com
 BuildArch:	noarch
 
@@ -113,7 +119,7 @@ cd %%{name}-%%{version}
 %%build
 cd %%{name}-%%{version}
 
-""" % ( release_class,rel.version.rsplit('.', 1)[0]+rel.subver,rel.release)
+""" % ( release_class,oname, rel.version.rsplit('.', 1)[0]+rel.subver,rel.release)
 
 inst_str = """
 %install
@@ -140,11 +146,14 @@ def get_module_info(name):
 		return {}
 	return info
 
-def get_depends(deps):
+def get_depends(deps,allnames):
 	ret = []
 	for dep in deps:
 		if dep == "base" : continue
-		ret.append("openerp-addons-"+dep)
+		if dep in allnames:
+			ret.append(oname+"-"+dep)
+		else:
+			ret.append('openerp-addons-'+dep)
 	ret = set(ret)
 	if not ret : return ""
 	return "Requires: %s \n" % (", ".join(ret))
@@ -168,8 +177,9 @@ def get_ext_depends(deps):
 		str_ret += "\n".join(map(lambda a: "Requires: %s" % a, ret_ver))
 	return str_ret
 
-def fmt_spec(name,info):
+def fmt_spec(name,info,allnames):
 	""" Format the info object fields into a SPEC submodule section
+	    allnames is a list with all supplied names
 	"""
 	if ('name' not in info) : return ""
 	nii = "\n"
@@ -181,7 +191,7 @@ Summary: %s
 Requires: openerp-server >= %s
 """ % (info['name'], rel.version.rsplit('.', 1)[0])
 	if 'depends' in info:
-		nii += get_depends(info['depends'])
+		nii += get_depends(info['depends'],allnames)
 	if 'ext_depends' in info:
 		nii += get_ext_depends(info['ext_depends'])
 	if 'author' in info:
@@ -241,8 +251,10 @@ if no_dirs != [] :
 		print "\trm -rf %s" % tdir
 	print "popd\n"
 
+allnames = set(map(lambda i: i['dir'], info_dirs))
+
 for tinf in info_dirs:
-	print fmt_spec(tinf['dir'],tinf['info'])
+	print fmt_spec(tinf['dir'],tinf['info'],allnames)
 
 sys.stderr.write("Modules created: %d\n"% len(info_dirs))
 #sys.stderr.write("Don't forget to create the archive, with:\n" \

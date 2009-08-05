@@ -116,12 +116,20 @@ instead of the "pychart" package.
 %prep
 %git_clone_source
 %git_prep_submodules
+%git_gen_changelog -n 100
 
 echo "Preparing for addons build.."
 ./mandriva/modulize.py -C %{release_class} -x addons/server_modules.list addons/* > %{_specdir}/openerp-addons.spec
 rm -f %{_builddir}/openerp-addons-$(./mandriva/modulize.py --onlyver)
 ln -sf $(pwd)/addons %{_builddir}/openerp-addons-$(./mandriva/modulize.py --onlyver)
 echo "Prepared addons"
+
+echo "Preparing koo addons.."
+./mandriva/modulize.py -n openerp-addons-koo -C %{release_class} -x addons/server_modules.list client-kde/server-modules/* > %{_specdir}/openerp-addons-koo.spec
+rm -f %{_builddir}/openerp-addons-koo-$(./mandriva/modulize.py --onlyver)
+ln -sf $(pwd)/client-kde/server-modules %{_builddir}/openerp-addons-koo-$(./mandriva/modulize.py --onlyver)
+
+echo "Prepared koo addons."
 
 %build
 cd %{name}-%{version}
@@ -379,3 +387,5 @@ EOF
 %postun server
 %_postun_service openerp-server
 %_postun_userdel openerp
+
+%changelog -f %{name}-%{version}/Changelog.git.txt
