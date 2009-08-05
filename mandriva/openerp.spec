@@ -66,13 +66,20 @@ Client components for Open ERP.
 %package client-kde
 Group:		Databases
 Summary:	ERP Client (KDE)
-Requires:       python-dot, python-pytz, python-kde
+Requires:       python-dot, python-pytz, python-kde4
 Obsoletes:	ktiny
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 
 %description client-kde
 KDE client components for Open ERP.
+
+%package client-kde-apidoc
+Group:		Documentation
+Summary:	API documentation for ERP Client (KDE)
+
+%description client-kde-apidoc
+Technical documentation for the API of OpenERP KDE client (koo).
 %endif
 
 %if %{build_web}
@@ -316,10 +323,15 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/koo
 %{python_sitelib}/Koo/
 %{_defaultdocdir}/koo/
+%exclude %{_defaultdocdir}/koo/api/
 %{_mandir}/man1/koo.*
 %{_datadir}/Koo/
 %{_datadir}/applications/mandriva-koo.desktop
 %{py_puresitedir}/koo-*-py%{pyver}.egg-info
+
+%files client-kde-apidoc
+%defattr(-,root,root)
+%{_defaultdocdir}/koo/api/
 %endif
 
 %post client
