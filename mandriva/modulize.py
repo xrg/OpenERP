@@ -174,7 +174,7 @@ def get_ext_depends(deps):
 	if ret:
 		str_ret += "Requires: %s \n" % (", ".join(ret))
 	if ret_ver:
-		str_ret += "\n".join(map(lambda a: "Requires: %s" % a, ret_ver))
+		str_ret += "".join(map(lambda a: "Requires: %s\n" % a, ret_ver))
 	return str_ret
 
 def fmt_spec(name,info,allnames):
