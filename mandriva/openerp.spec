@@ -2,8 +2,8 @@
 %define git_head gpl3
 
 %define name openerp
-%define verstr 5.0.3-0
-%define verstr2 5.0.3_0
+#define verstr 5.0.3-0
+#define verstr2 5.0.3_0
 #define release %{git_get_rel}
 
 %define release_class pub
@@ -257,8 +257,8 @@ EOF
 %endif
 
 mkdir -p $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-%{version}
-mv $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-server-%{verstr} $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-server-%{version}
-mv $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-%{verstr} $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-%{version}
+mv $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-server-5.0.* $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-server-%{version}
+mv $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-5.0.* $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-%{version}
 install -m 644 -D server/doc/openerp-server.conf $RPM_BUILD_ROOT%{_sysconfdir}/openerp-server.conf
 install -m 755 -D server/doc/openerp-server.init $RPM_BUILD_ROOT%{_initrddir}/openerp-server
 install -m 644 -D server/doc/openerp-server.logrotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/openerp-server
@@ -275,8 +275,8 @@ install -m 644 server/bin/addons/base/security/* $RPM_BUILD_ROOT%{python_sitelib
 
 #temp fixes for alpha builds
 pushd $RPM_BUILD_ROOT%{python_sitelib}
-	mv openerp_client-%{verstr2}-py%{pyver}.egg-info openerp_client-%{version}-py%{pyver}.egg-info
-	mv openerp_server-%{verstr2}-py%{pyver}.egg-info openerp_server-%{version}-py%{pyver}.egg-info
+	mv openerp_client-5.0.*-py%{pyver}.egg-info openerp_client-%{version}-py%{pyver}.egg-info
+	mv openerp_server-5.0.*-py%{pyver}.egg-info openerp_server-%{version}-py%{pyver}.egg-info
 popd
 
  #some files for the web-client
