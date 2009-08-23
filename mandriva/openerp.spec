@@ -257,8 +257,14 @@ EOF
 %endif
 
 mkdir -p $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-%{version}
-mv $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-server-5.0.* $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-server-%{version}
-mv $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-5.0.* $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-%{version}
+pushd $RPM_BUILD_ROOT/%{_defaultdocdir}
+	if [ -d %{name}-server-5.0.*-* ] ; then
+		mv %{name}-server-5.0.*-* %{name}-server-%{version}
+	fi
+	if [ -d %{name}-client-5.0.*-* ] ; then
+		mv %{name}-client-5.0.*-* %{name}-client-%{version}
+	fi
+popd
 install -m 644 -D server/doc/openerp-server.conf $RPM_BUILD_ROOT%{_sysconfdir}/openerp-server.conf
 install -m 755 -D server/doc/openerp-server.init $RPM_BUILD_ROOT%{_initrddir}/openerp-server
 install -m 644 -D server/doc/openerp-server.logrotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/openerp-server
@@ -275,8 +281,12 @@ install -m 644 server/bin/addons/base/security/* $RPM_BUILD_ROOT%{python_sitelib
 
 #temp fixes for alpha builds
 pushd $RPM_BUILD_ROOT%{python_sitelib}
-	mv openerp_client-5.0.*-py%{pyver}.egg-info openerp_client-%{version}-py%{pyver}.egg-info
-	mv openerp_server-5.0.*-py%{pyver}.egg-info openerp_server-%{version}-py%{pyver}.egg-info
+	if [ -f openerp_client-5.0.*-*-py%{pyver}.egg-info ] ; then
+		mv openerp_client-5.0.*-*-py%{pyver}.egg-info openerp_client-%{version}-py%{pyver}.egg-info
+	fi
+	if [ -f openerp_server-5.0.*-*-py%{pyver}.egg-info ] ; then
+		mv openerp_server-5.0.*-*-py%{pyver}.egg-info openerp_server-%{version}-py%{pyver}.egg-info
+	fi
 popd
 
  #some files for the web-client
