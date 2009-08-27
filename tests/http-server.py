@@ -128,6 +128,7 @@ class MultiHTTPHandler(BaseHTTPRequestHandler):
         method = getattr(fore, mname)
         method()
 	if fore.close_connection:
+		# print "Closing connection because of handler"
 		self.close_connection = fore.close_connection
 
     def parse_rawline(self):
@@ -171,7 +172,7 @@ class MultiHTTPHandler(BaseHTTPRequestHandler):
             except (ValueError, IndexError):
                 self.send_error(400, "Bad request version (%r)" % version)
                 return False
-            if version_number >= (1, 1) and self.protocol_version >= "HTTP/1.1":
+            if version_number >= (1, 1):
                 self.close_connection = 0
             if version_number >= (2, 0):
                 self.send_error(505,
@@ -221,6 +222,7 @@ class MultiHTTPHandler(BaseHTTPRequestHandler):
 		if not npath.startswith('/'):
 			npath = '/' + npath
 		self._handle_one_foreign(hnd,npath)
+		#print "Handled, closing = ", self.close_connection
 		return
 	# if no match:
         self.send_error(404, "Path not found: %s" % self.path)
@@ -228,7 +230,7 @@ class MultiHTTPHandler(BaseHTTPRequestHandler):
 
 def server_run(options):
 	httpd = HTTPServer((options.host,options.port),MultiHTTPHandler )
-	httpd.vdirs =[ HTTPDir('/dir',HTTPHandler), ]
+	httpd.vdirs =[ HTTPDir('/dir/',HTTPHandler), HTTPDir('/dir2/',HTTPHandler)]
 	httpd.serve_forever()
 
 server_run(options)

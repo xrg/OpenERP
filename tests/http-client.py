@@ -79,10 +79,27 @@ def simple_get(args):
 	print "\nConnection:",conn
 	conn.close()
 
+def multi_get(args):
+	print "Getting http://%s" % args[0]
+	conn = httplib.HTTPConnection(args[0])
+	if len(args)>1:
+		paths = args[1:]
+	else:
+		paths = ["/index.html"]
+		
+	for path in paths:
+		print "getting ", path
+		conn.request("GET", path, [], { 'Connection': 'keep-alive' } )
+		r1 = conn.getresponse()
+		print r1.status, r1.reason
+		data1 = r1.read()
+		print data1
+	conn.close()
+
 
 cmd = args[0]
 args = args[1:]
-commands = { 'get' : simple_get , }
+commands = { 'get' : simple_get , 'mget' : multi_get }
 
 if not commands.has_key(cmd):
 	print "No such command: %s" % cmd
