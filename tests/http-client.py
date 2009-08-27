@@ -67,7 +67,11 @@ import httplib
 def simple_get(args):
 	print "Getting http://%s" % args[0]
 	conn = httplib.HTTPConnection(args[0])
-	conn.request("GET", "/index.html")
+	if len(args)>1:
+		path = args[1]
+	else:
+		path = "/index.html"
+	conn.request("GET", path )
 	r1 = conn.getresponse()
 	print r1.status, r1.reason
 	data1 = r1.read()
