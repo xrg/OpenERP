@@ -250,6 +250,18 @@ def rpc_listdb(args):
 		print "Fault:",f.faultCode
 		print f.faultString
 
+def rpc_generic(args):
+	import xmlrpclib
+
+	try:
+		srv = xmlrpclib.ServerProxy(args[0]+'/xmlrpc/'+args[1])
+		method = getattr(srv,args[2])
+		li = method(*args[3:])
+		print "Result:",li
+	except xmlrpclib.Fault, f:
+		print "Fault:",f.faultCode
+		print f.faultString
+
 def rpc_login(args):
 	import xmlrpclib
 	import getpass
@@ -268,7 +280,8 @@ cmd = args[0]
 args = args[1:]
 commands = { 'get' : simple_get , 'mget' : multi_get, 'aget': auth_get,
 	'agets': auth_get_s,
-	'rabout': rpc_about, 'listdb': rpc_listdb, 'login': rpc_login  }
+	'rabout': rpc_about, 'listdb': rpc_listdb, 'login': rpc_login,
+	'rpc': rpc_generic }
 
 if not commands.has_key(cmd):
 	print "No such command: %s" % cmd
