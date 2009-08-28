@@ -97,9 +97,46 @@ def multi_get(args):
 	conn.close()
 
 
+def rpc_about(args):
+	import xmlrpclib
+	
+	try:
+		srv = xmlrpclib.ServerProxy(args[0]+'/xmlrpc/common');
+		s = srv.about()
+		print s
+	except xmlrpclib.Fault, f:
+		print "Fault:",f.faultCode
+		print f.faultString
+	
+def rpc_listdb(args):
+	import xmlrpclib
+	
+	try:
+		srv = xmlrpclib.ServerProxy(args[0]+'/xmlrpc/db');
+		li = srv.list()
+		print "List db:",li
+	except xmlrpclib.Fault, f:
+		print "Fault:",f.faultCode
+		print f.faultString
+
+def rpc_login(args):
+	import xmlrpclib
+	import getpass
+	try:
+		srv = xmlrpclib.ServerProxy(args[0]+'/xmlrpc/common')
+		passwd =getpass.getpass("Password for %s@%s: " %(args[2],args[1]) )
+		if srv.login(args[1], args[2],passwd):
+			print "Login OK"
+		else:
+			print "Login Failed"
+	except xmlrpclib.Fault, f:
+		print "Fault:",f.faultCode
+		print f.faultString
+
 cmd = args[0]
 args = args[1:]
-commands = { 'get' : simple_get , 'mget' : multi_get }
+commands = { 'get' : simple_get , 'mget' : multi_get,
+	'rabout': rpc_about, 'listdb': rpc_listdb, 'login': rpc_login  }
 
 if not commands.has_key(cmd):
 	print "No such command: %s" % cmd
