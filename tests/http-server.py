@@ -321,8 +321,21 @@ class MultiHTTPHandler(BaseHTTPRequestHandler):
         self.send_error(404, "Path not found: %s" % self.path)
         return
 
+
+class SecureMultiHTTPHandler(MultiHTTPHandler):
+    def setup(self):
+	import ssl
+        self.connection = ssl.wrap_socket(self.request,
+				server_side=True,
+				certfile="server.cert",
+				keyfile="server.key",
+				ssl_version=ssl.PROTOCOL_SSLv23)
+        self.rfile = self.connection.makefile('rb', self.rbufsize)
+        self.wfile = self.connection.makefile('wb', self.wbufsize)
+	self.log_message("Secure %s connection from %s",self.connection.cipher(),self.client_address)
+
 def server_run(options):
-	httpd = HTTPServer((options.host,options.port),MultiHTTPHandler )
+	httpd = HTTPServer((options.host,options.port),SecureMultiHTTPHandler )
 	httpd.vdirs =[ HTTPDir('/dir/',HTTPHandler), HTTPDir('/dir2/',HTTPHandler),
 			HTTPDir('/dirs/',HTTPHandler,BasicAuthProvider('/'))]
 	httpd.serve_forever()

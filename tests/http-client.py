@@ -145,6 +145,89 @@ def auth_get(args):
 		print "End of body\n"
 	conn.close()
 
+class HTTPSConnection(httplib.HTTPSConnection):
+	certs_file = None
+        def connect(self):
+            "Connect to a host on a given (SSL) port. check the certificate"
+	    import socket, ssl
+
+	    if HTTPSConnection.certs_file:
+		ca_certs = HTTPSConnection.certs_file
+		cert_reqs = ssl.CERT_REQUIRED
+	    else:
+		ca_certs = None
+		cert_reqs = ssl.CERT_NONE
+            sock = socket.create_connection((self.host, self.port), self.timeout)
+            self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file,
+				ca_certs=ca_certs,
+				cert_reqs=cert_reqs)
+	
+
+	def getpeercert(self):
+		import ssl
+		cert = None
+		if self.sock:
+			cert =  self.sock.getpeercert()
+		else:
+			cert = ssl.get_server_certificate((self.host,self.port),
+				ssl_version=ssl.PROTOCOL_SSLv23 )
+			lf = (len(ssl.PEM_FOOTER)+1)
+			if cert[0-lf] != '\n':
+				cert = cert[:0-lf]+'\n'+cert[0-lf:]
+			print lf, cert[0-lf]
+		
+		return cert
+
+def auth_get_s(args):
+	import base64,ssl
+	print "Getting https://%s" % args[0]
+	conn = HTTPSConnection(args[0],strict=True)
+	try:
+		conn.connect()
+	except ssl.SSLError,e:
+		print "SSL Error: ",e.errno, e.strerror, e.args
+		print conn.getpeercert()
+		return
+	if len(args)>1:
+		paths = args[1:]
+	else:
+		paths = ["/index.html"]
+		
+	for path in paths:
+		print "getting ", path
+		conn.request("GET", path, [], { 'Connection': 'keep-alive' } )
+		try:
+			r1 = conn.getresponse()
+		except httplib.BadStatusLine, bsl:
+			print "Bad status line:", bsl.line
+			break
+		if r1.status == 401: # and r1.headers:
+			if 'www-authenticate' in r1.msg:
+				(atype,realm) = r1.msg.getheader('www-authenticate').split(' ')
+				data1 = r1.read()
+				print r1.version,r1.isclosed(), r1.will_close
+				print "Want to do auth %s for realm %s" % (atype, realm)
+				if atype == 'Basic' :
+					auths = base64.encodestring('user' + ':' + 'password')
+					if auths[-1] == "\n":
+						auths = auths[:-1]
+					connhs = { 'Connection': 'keep-alive',
+						'Authorization': 'Basic '+ auths }
+					conn.request("GET",path,[], connhs)
+					r1 = conn.getresponse()
+				else:
+					raise Exception("Unknown auth type %s" %atype)
+			else:
+				print "Got 401, cannot auth"
+				raise Exception('No auth')
+			
+		print "Reponse:",r1.status, r1.reason
+		data1 = r1.read()
+		print "Body:"
+		print data1
+		print "End of body\n"
+	conn.close()
+
 def rpc_about(args):
 	import xmlrpclib
 	
@@ -184,6 +267,7 @@ def rpc_login(args):
 cmd = args[0]
 args = args[1:]
 commands = { 'get' : simple_get , 'mget' : multi_get, 'aget': auth_get,
+	'agets': auth_get_s,
 	'rabout': rpc_about, 'listdb': rpc_listdb, 'login': rpc_login  }
 
 if not commands.has_key(cmd):
