@@ -73,10 +73,11 @@ def simple_get(args):
 		path = "/index.html"
 	conn.request("GET", path )
 	r1 = conn.getresponse()
-	print r1.status, r1.reason
+	print "Reponse:",r1.status, r1.reason
 	data1 = r1.read()
+	print "Body:"
 	print data1
-	print "\nConnection:",conn
+	print "End of body\n"
 	conn.close()
 
 def multi_get(args):
@@ -91,11 +92,58 @@ def multi_get(args):
 		print "getting ", path
 		conn.request("GET", path, [], { 'Connection': 'keep-alive' } )
 		r1 = conn.getresponse()
-		print r1.status, r1.reason
+		print "Reponse:",r1.status, r1.reason
 		data1 = r1.read()
+		print "Body:"
 		print data1
+		print "End of body\n"
 	conn.close()
 
+def auth_get(args):
+	import base64
+	from time import sleep
+	print "Getting http://%s" % args[0]
+	conn = httplib.HTTPConnection(args[0])
+	if len(args)>1:
+		paths = args[1:]
+	else:
+		paths = ["/index.html"]
+		
+	for path in paths:
+		print "getting ", path
+		conn.request("GET", path, [], { 'Connection': 'keep-alive' } )
+		try:
+			r1 = conn.getresponse()
+		except httplib.BadStatusLine, bsl:
+			print "Bad status line:", bsl.line
+			break
+		if r1.status == 401: # and r1.headers:
+			if 'www-authenticate' in r1.msg:
+				(atype,realm) = r1.msg.getheader('www-authenticate').split(' ')
+				data1 = r1.read()
+				print r1.version,r1.isclosed(), r1.will_close
+				print "Want to do auth %s for realm %s" % (atype, realm)
+				if atype == 'Basic' :
+					auths = base64.encodestring('user' + ':' + 'password')
+					if auths[-1] == "\n":
+						auths = auths[:-1]
+					connhs = { 'Connection': 'keep-alive',
+						'Authorization': 'Basic '+ auths }
+					sleep(1)
+					conn.request("GET",path,[], connhs)
+					r1 = conn.getresponse()
+				else:
+					raise Exception("Unknown auth type %s" %atype)
+			else:
+				print "Got 401, cannot auth"
+				raise Exception('No auth')
+			
+		print "Reponse:",r1.status, r1.reason
+		data1 = r1.read()
+		print "Body:"
+		print data1
+		print "End of body\n"
+	conn.close()
 
 def rpc_about(args):
 	import xmlrpclib
@@ -135,7 +183,7 @@ def rpc_login(args):
 
 cmd = args[0]
 args = args[1:]
-commands = { 'get' : simple_get , 'mget' : multi_get,
+commands = { 'get' : simple_get , 'mget' : multi_get, 'aget': auth_get,
 	'rabout': rpc_about, 'listdb': rpc_listdb, 'login': rpc_login  }
 
 if not commands.has_key(cmd):
