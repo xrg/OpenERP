@@ -79,6 +79,34 @@ class HTTPHandler(SimpleHTTPRequestHandler):
 	def setup(self):
 		pass
 
+class HTTPHandler2(HTTPHandler):
+    def do_POST(self):
+        """Serve a GET request."""
+        f = self.send_head()
+        try:
+            # Get arguments by reading body of request.
+            # We read this in chunks to avoid straining
+            # socket.read(); around the 10 or 15Mb mark, some platforms
+            # begin to have problems (bug #792570).
+            max_chunk_size = 10*1024*1024
+            size_remaining = int(self.headers["content-length"])
+            L = []
+            while size_remaining:
+                chunk_size = min(size_remaining, max_chunk_size)
+                L.append(self.rfile.read(chunk_size))
+                size_remaining -= len(L[-1])
+            data = ''.join(L)
+
+        except Exception, e: # This should only happen if the module is buggy
+            # internal error, report as HTTP server error
+	    print "Error:",e
+            self.send_error(500)
+	    return
+
+        if f:
+            self.copyfile(f, self.wfile)
+            f.close()
+
 class HTTPDir:
 	""" A dispatcher class, like a virtual folder in httpd
 	"""
@@ -335,9 +363,51 @@ class SecureMultiHTTPHandler(MultiHTTPHandler):
         self.wfile = self.connection.makefile('wb', self.wbufsize)
 	self.log_message("Secure %s connection from %s",self.connection.cipher(),self.client_address)
 
+import threading
+class ConnThreadingMixIn:
+    """Mix-in class to handle each _connection_ in a new thread.
+    
+	This is necessary for persistent connections, where multiple
+	requests should be handled synchronously at each connection, but
+	multiple connections can run in parallel.
+	"""
+
+    # Decides how threads will act upon termination of the
+    # main process
+    daemon_threads = False
+
+    def _handle_request_noblock(self):
+        """Start a new thread to process the request."""
+        t = threading.Thread(target = self._handle_request2)
+	print "request came, handling in new thread",t
+        if self.daemon_threads:
+            t.setDaemon (1)
+        t.start()
+	
+    def _handle_request2(self):
+        """Handle one request, without blocking.
+
+        I assume that select.select has returned that the socket is
+        readable before this function was called, so there should be
+        no risk of blocking in get_request().
+        """
+        try:
+            request, client_address = self.get_request()
+        except socket.error:
+            return
+        if self.verify_request(request, client_address):
+            try:
+                self.process_request(request, client_address)
+            except:
+                self.handle_error(request, client_address)
+                self.close_request(request)
+
+
+class TServer(ConnThreadingMixIn,HTTPServer): pass
+
 def server_run(options):
-	httpd = HTTPServer((options.host,options.port),MultiHTTPHandler )
-	httpd.vdirs =[ HTTPDir('/dir/',HTTPHandler), HTTPDir('/dir2/',HTTPHandler),
+	httpd = TServer((options.host,options.port),MultiHTTPHandler )
+	httpd.vdirs =[ HTTPDir('/dir/',HTTPHandler), HTTPDir('/xmlrpc/',HTTPHandler2),
 			HTTPDir('/dirs/',HTTPHandler,BasicAuthProvider('/'))]
 	httpd.serve_forever()
 
