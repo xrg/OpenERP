@@ -282,6 +282,7 @@ class MultiHTTPHandler(BaseHTTPRequestHandler):
         else:
             self.send_error(400, "Bad request syntax (%r)" % requestline)
             return False
+	self.request_version = version
 	self.command, self.path, self.version = command, path, version
 	return True
 
@@ -335,7 +336,7 @@ class SecureMultiHTTPHandler(MultiHTTPHandler):
 	self.log_message("Secure %s connection from %s",self.connection.cipher(),self.client_address)
 
 def server_run(options):
-	httpd = HTTPServer((options.host,options.port),SecureMultiHTTPHandler )
+	httpd = HTTPServer((options.host,options.port),MultiHTTPHandler )
 	httpd.vdirs =[ HTTPDir('/dir/',HTTPHandler), HTTPDir('/dir2/',HTTPHandler),
 			HTTPDir('/dirs/',HTTPHandler,BasicAuthProvider('/'))]
 	httpd.serve_forever()
