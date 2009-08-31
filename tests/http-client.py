@@ -151,6 +151,14 @@ class PersistentTransport(Transport):
 
         return self._parse_response(h.getfile(), sock, resp)
 
+class SafePersistentTransport(PersistentTransport):
+    def make_connection(self, host):
+        # create a HTTP connection object from a host descriptor
+	if not self._http.has_key(host):
+		host, extra_headers, x509 = self.get_host_info(host)
+		self._http[host] = httplib.HTTPS(host, None, **(x509 or {}))
+		print "New connection to",host
+	return self._http[host]
 
 def simple_get(args):
 	print "Getting http://%s" % args[0]
@@ -385,12 +393,25 @@ def rpc_login(args):
 		print "Fault:",f.faultCode
 		print f.faultString
 
+def rpc_generic_s(args):
+	import xmlrpclib
+
+	try:
+		srv = ServerProxy(args[0]+'/xmlrpc/'+args[1], transport= SafePersistentTransport())
+		method = getattr(srv,args[2])
+		li = method(*args[3:])
+		print "Result:",li
+	except Fault, f:
+		print "Fault:",f.faultCode
+		print f.faultString
+
 cmd = args[0]
 args = args[1:]
 commands = { 'get' : simple_get , 'mget' : multi_get, 'aget': auth_get,
 	'agets': auth_get_s,
 	'rabout': rpc_about, 'listdb': rpc_listdb, 'login': rpc_login,
-	'rpc': rpc_generic, 'rabout_m': rpc_about_m }
+	'rpc': rpc_generic, 'rabout_m': rpc_about_m,
+	'rpc-s': rpc_generic_s}
 
 if not commands.has_key(cmd):
 	print "No such command: %s" % cmd
