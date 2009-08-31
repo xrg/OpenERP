@@ -196,6 +196,10 @@ class noconnection:
 		return None
 
 import SocketServer
+def _quote_html(html):
+    return html.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
 class MultiHTTPHandler(BaseHTTPRequestHandler):
     """ this is a multiple handler, that will dispatch each request
         to a nested handler, iff it matches
@@ -350,6 +354,35 @@ class MultiHTTPHandler(BaseHTTPRequestHandler):
         self.send_error(404, "Path not found: %s" % self.path)
         return
 
+    def send_error2(self, code, message=None):
+        import socket
+	print "Sending error",code
+	BaseHTTPRequestHandler.send_error(self,code,message)
+	print "after send"
+	self.wfile.flush()
+	print "pending:", self.connection.pending(), self.connection._makefile_refs
+	self.connection.shutdown(socket.SHUT_RDWR)
+
+    def send_error(self, code, message=None):
+        try:
+            short, long = self.responses[code]
+        except KeyError:
+            short, long = '???', '???'
+        if message is None:
+            message = short
+        explain = long
+        self.log_error("code %d, message %s", code, message)
+        # using _quote_html to prevent Cross Site Scripting attacks (see bug #1100201)
+        content = (self.error_message_format %
+                   {'code': code, 'message': _quote_html(message), 'explain': explain})
+        self.send_response(code, message)
+        self.send_header("Content-Type", self.error_content_type)
+        self.send_header('Connection', 'close')
+	self.send_header('Content-Length', len(content) or 0)
+        self.end_headers()
+        if self.command != 'HEAD' and code >= 200 and code not in (204, 304):
+            self.wfile.write(content)
+
 
 class SecureMultiHTTPHandler(MultiHTTPHandler):
     def setup(self):
@@ -406,7 +439,7 @@ class ConnThreadingMixIn:
 class TServer(ConnThreadingMixIn,HTTPServer): pass
 
 def server_run(options):
-	httpd = TServer((options.host,options.port),MultiHTTPHandler )
+	httpd = TServer((options.host,options.port),SecureMultiHTTPHandler )
 	httpd.vdirs =[ HTTPDir('/dir/',HTTPHandler), HTTPDir('/xmlrpc/',HTTPHandler2),
 			HTTPDir('/dirs/',HTTPHandler,BasicAuthProvider('/'))]
 	httpd.serve_forever()
