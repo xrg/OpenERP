@@ -1,12 +1,12 @@
 %define git_repo openerp
-%define git_head gpl3
+%define git_head tests
 
 %define name openerp
 #define verstr 5.0.3-0
 #define verstr2 5.0.3_0
 #define release %{git_get_rel}
 
-%define release_class pub
+%define release_class experimental
 
 %{?!pyver: %define pyver %(python -c 'import sys;print(sys.version[0:3])')}
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
@@ -31,7 +31,7 @@
 
 Name:		%name
 Version:	%{git_get_ver}
-Release:	%mkrel %{git_get_rel}
+Release:	%mkrel t%{git_get_rel}
 License:	GPLv2+
 Group:		Databases
 Summary:	ERP Client
