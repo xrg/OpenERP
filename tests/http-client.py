@@ -215,7 +215,7 @@ def auth_get(args):
 			break
 		if r1.status == 401: # and r1.headers:
 			if 'www-authenticate' in r1.msg:
-				(atype,realm) = r1.msg.getheader('www-authenticate').split(' ')
+				(atype,realm) = r1.msg.getheader('www-authenticate').split(' ',1)
 				data1 = r1.read()
 				print r1.version,r1.isclosed(), r1.will_close
 				print "Want to do auth %s for realm %s" % (atype, realm)
