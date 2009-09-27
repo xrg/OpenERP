@@ -198,10 +198,13 @@ def multi_get(args):
 def auth_get(args):
 	import base64
 	from time import sleep
+	import getpass
 	print "Getting http://%s" % args[0]
 	conn = httplib.HTTPConnection(args[0])
-	if len(args)>1:
-		paths = args[1:]
+	username = args[1]
+	passwd = getpass.getpass("Password for %s@%s: " %(args[1],args[0]))
+	if len(args) > 2 :
+		paths = args[2:]
 	else:
 		paths = ["/index.html"]
 		
@@ -220,12 +223,12 @@ def auth_get(args):
 				print r1.version,r1.isclosed(), r1.will_close
 				print "Want to do auth %s for realm %s" % (atype, realm)
 				if atype == 'Basic' :
-					auths = base64.encodestring('user' + ':' + 'password')
+					auths = base64.encodestring(username + ':' + passwd)
 					if auths[-1] == "\n":
 						auths = auths[:-1]
 					connhs = { 'Connection': 'keep-alive',
 						'Authorization': 'Basic '+ auths }
-					sleep(1)
+					#sleep(1)
 					conn.request("GET",path,[], connhs)
 					r1 = conn.getresponse()
 				else:
@@ -405,13 +408,108 @@ def rpc_generic_s(args):
 		print "Fault:",f.faultCode
 		print f.faultString
 
+def http_request(host, path, user=None, method='GET', hdrs=None, body=None, dbg=2):
+	if not hdrs:
+	    hdrs = {}
+	passwd=None
+	if user:
+	    import getpass
+	    passwd = getpass.getpass("Password for %s@%s: " %(user,host))
+	import base64
+	print "Getting %s http://%s/%s" % (method, host , path)
+	conn = httplib.HTTPConnection(host)
+	conn.set_debuglevel(dbg)
+	username = args[1]
+	if not path:
+	    path = "/index.html"
+	if not hdrs.has_key('Connection'):
+		hdrs['Connection']= 'keep-alive'
+	conn.request(method, path, body, hdrs )
+	try:
+		r1 = conn.getresponse()
+	except httplib.BadStatusLine, bsl:
+		print "Bad status line:", bsl.line
+		return
+	if r1.status == 401: # and r1.headers:
+		if 'www-authenticate' in r1.msg:
+			(atype,realm) = r1.msg.getheader('www-authenticate').split(' ',1)
+			data1 = r1.read()
+			if not user:
+				raise Exception('Must auth, have no user/pass!')
+			print r1.version,r1.isclosed(), r1.will_close
+			print "Want to do auth %s for realm %s" % (atype, realm)
+			if atype == 'Basic' :
+				auths = base64.encodestring(user + ':' + passwd)
+				if auths[-1] == "\n":
+					auths = auths[:-1]
+				hdrs['Authorization']= 'Basic '+ auths 
+				#sleep(1)
+				conn.request(method, path, body, hdrs )
+				r1 = conn.getresponse()
+			else:
+				raise Exception("Unknown auth type %s" %atype)
+		else:
+			print "Got 401, cannot auth"
+			raise Exception('No auth')
+			
+	print "Reponse:",r1.status, r1.reason
+	data1 = r1.read()
+	print "Body:"
+	print data1
+	print "End of body\n"
+	conn.close()
+	
+
+def gd_propfind(args):
+	host = args[0]
+	user = args[1]
+	path = args[2]
+	body="""<?xml version="1.0" encoding="utf-8"?>
+	    <propfind xmlns="DAV:"><allprop/></propfind>"""
+        hdrs = { 'Content-Type': 'text/xml; charset=utf-8',
+		'Accept': 'text/xml',
+		'Depth': 0
+		}
+
+	http_request(host,path,user,method='PROPFIND',hdrs=hdrs, body=body)
+
+def gd_propname(args):
+	host = args[0]
+	user = args[1]
+	path = args[2]
+	body="""<?xml version="1.0" encoding="utf-8"?>
+	    <propfind xmlns="DAV:"><propname/></propfind>"""
+        hdrs = { 'Content-Type': 'text/xml; charset=utf-8',
+		'Accept': 'text/xml',
+		'Depth': 1
+		}
+
+	http_request(host,path,user,method='PROPFIND',hdrs=hdrs, body=body)
+
+def gd_getetag(args):
+	host = args[0]
+	user = args[1]
+	path = args[2]
+	body="""<?xml version="1.0" encoding="utf-8"?>
+	    <propfind xmlns="DAV:"><prop><getetag/></prop></propfind>"""
+        hdrs = { 'Content-Type': 'text/xml; charset=utf-8',
+		'Accept': 'text/xml',
+		'Depth': 1
+		}
+
+	http_request(host,path,user,method='PROPFIND',hdrs=hdrs, body=body)
+
+
 cmd = args[0]
 args = args[1:]
 commands = { 'get' : simple_get , 'mget' : multi_get, 'aget': auth_get,
 	'agets': auth_get_s,
 	'rabout': rpc_about, 'listdb': rpc_listdb, 'login': rpc_login,
 	'rpc': rpc_generic, 'rabout_m': rpc_about_m,
-	'rpc-s': rpc_generic_s}
+	'rpc-s': rpc_generic_s, 
+	'gd_propfind': gd_propfind, 'gd_propname': gd_propname, 
+	'gd_getetag': gd_getetag
+	}
 
 if not commands.has_key(cmd):
 	print "No such command: %s" % cmd
