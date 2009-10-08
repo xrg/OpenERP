@@ -68,6 +68,7 @@ Group:		Databases
 Summary:	ERP Client (KDE)
 Requires:       python-dot, python-pytz, python-kde4
 Obsoletes:	ktiny
+BuildRequires:	python-qt4
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 
