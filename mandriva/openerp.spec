@@ -11,6 +11,9 @@
 %{?!pyver: %define pyver %(python -c 'import sys;print(sys.version[0:3])')}
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
+%if %{_target_vendor} == mandriva
+%define NoDisplay	DISPLAY=
+
 %if %mdkver > 200900
 %define build_kde	1
 %define build_web	0
@@ -18,6 +21,13 @@
 %define build_kde	0
 %define build_web	0
 %endif
+
+%else
+%define NoDisplay	NODISPLAY=n
+%define build_kde	0
+%define build_web	0
+%endif
+
 
 %{?_without_kde:	%global build_kde 0}
 %{?_with_kde:		%global build_kde 1}
@@ -39,11 +49,20 @@ URL:		http://www.openerp.com
 Obsoletes:	tinyerp
 # BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch:	noarch
-BuildRequires:	python, pygtk2.0-devel, pygtk2.0-libglade, python-libxslt
-BuildRequires:	python-psycopg2, python-dot, python-pychart
+BuildRequires:	python
 BuildRequires:	desktop-file-utils
-Requires:       pygtk2.0, pygtk2.0-libglade
 Requires:	openerp-client, openerp-server
+%if %{_target_vendor} == mandriva
+BuildRequires:	 pygtk2.0-devel, pygtk2.0-libglade, python-libxslt
+BuildRequires:	python-psycopg2, python-dot, python-pychart
+Requires:       pygtk2.0, pygtk2.0-libglade
+%else 
+%if %{_target_vendor} == redhat
+BuildRequires:	 pygtk2-devel, libxslt-python, mx
+Requires:       pygtk2, mx
+%endif
+%endif
+
 
 %description
 Open ERP is a free enterprise management software package. It
@@ -142,35 +161,35 @@ echo "Prepared koo addons."
 %build
 cd %{name}-%{version}
 pushd client
-	DISPLAY= python ./setup.py build
+	%{NoDisplay} python ./setup.py build
 popd
 
 %if %{build_kde}
 pushd client-kde
-	DISPLAY= python ./setup.py build
+	%{NoDisplay} python ./setup.py build
 popd
 %endif
 
 %if %{build_web}
 pushd client-web
-	DISPLAY= python ./setup.py build
+	%{NoDisplay} python ./setup.py build
 popd
 %endif
 
 pushd server
-DISPLAY= python ./setup.py build
+%{NoDisplay} python ./setup.py build
 popd
 
 %install
 cd %{name}-%{version}
 rm -rf $RPM_BUILD_ROOT
 pushd client
-	DISPLAY= python ./setup.py install --root=$RPM_BUILD_ROOT
+	%{NoDisplay} python ./setup.py install --root=$RPM_BUILD_ROOT
 popd
 
 %if %{build_kde}
 pushd client-kde
-	DISPLAY= python ./setup.py install --root=$RPM_BUILD_ROOT
+	%{NoDisplay} python ./setup.py install --root=$RPM_BUILD_ROOT
 popd
 %endif
 
@@ -178,7 +197,7 @@ mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}
 
 %if %{build_web}
 pushd client-web
-	DISPLAY= python ./setup.py install --root=$RPM_BUILD_ROOT
+	%{NoDisplay} python ./setup.py install --root=$RPM_BUILD_ROOT
 popd
 	#remove the default init script
 rm $RPM_BUILD_ROOT/usr/scripts/openerp-web
@@ -202,7 +221,7 @@ popd
 %endif
 
 pushd server
-	DISPLAY= python ./setup.py install --root=$RPM_BUILD_ROOT
+	%{NoDisplay} python ./setup.py install --root=$RPM_BUILD_ROOT
 popd
 
 # the Python installer plants the RPM_BUILD_ROOT inside the launch scripts, fix that:
