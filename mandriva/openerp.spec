@@ -166,6 +166,7 @@ popd
 
 %if %{build_kde}
 pushd client-kde
+	make
 	%{NoDisplay} python ./setup.py build
 popd
 %endif
