@@ -55,11 +55,9 @@ Requires:	openerp-client, openerp-server
 %if %{_target_vendor} == mandriva
 BuildRequires:	 pygtk2.0-devel, pygtk2.0-libglade, python-libxslt
 BuildRequires:	python-psycopg2, python-dot, python-pychart
-Requires:       pygtk2.0, pygtk2.0-libglade
 %else 
 %if %{_target_vendor} == redhat
 BuildRequires:	 pygtk2-devel, libxslt-python, mx
-Requires:       pygtk2, mx
 %endif
 %endif
 
@@ -77,6 +75,13 @@ Requires:       pygtk2.0, pygtk2.0-libglade, python-dot
 Requires:	python-matplotlib, python-egenix-mx-base
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
+%if %{_target_vendor} == mandriva
+Requires:       pygtk2.0, pygtk2.0-libglade
+%else 
+%if %{_target_vendor} == redhat
+Requires:       pygtk2, mx
+%endif
+%endif
 
 %description client
 Client components for Open ERP.
@@ -123,7 +128,7 @@ Requires:	postgresql-plpython >= 8.2
 Requires:	python-imaging
 Requires:	python-psycopg2, python-reportlab
 Requires:       python-parsing
-Requires:	postgresql-server >= 8.2
+Suggests:	postgresql-server >= 8.2
 Requires:	ghostscript
 # perhaps the matplotlib could yield for pytz, in Mdv >=2009.0
 Requires:	python-pyxml, python-matplotlib
@@ -139,6 +144,29 @@ the first time run.
 
 Note: at Mandriva 2008.1, python-pychart is needed from backports,
 instead of the "pychart" package.
+
+%package alldemo
+Group:		Databases/Demo
+Summary:	Demo Metapackage for OpenERP
+Requires:       %{name}-serverinit, %{name}-client
+
+%description alldemo
+With this demo, all necessary packages and modules for a complete OpenERP server
+and client are installed. The server also has a default database with some data.
+
+%package serverinit
+Group:		Databases/Demo
+Summary:	Demo Metapackage for OpenERP
+Requires:       %{name}-server
+Requires:	postgresql-server >= 8.2
+Requires:	postgresql-plpgsql
+
+
+%description serverinit
+With this demo, all necessary packages and modules for a complete OpenERP server
+and client are installed. The server also has a default database with some data.
+
+
 
 %prep
 %git_clone_source
@@ -317,6 +345,10 @@ mkdir -p $RPM_BUILD_ROOT/var/log/openerp
 mkdir -p $RPM_BUILD_ROOT/var/spool/openerp
 mkdir -p $RPM_BUILD_ROOT/var/run/openerp
 
+install -d %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/demo/
+install -m 744 mandriva/build_database.sh %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/demo/
+install -m 644 mandriva/demodb.sql %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/demo/
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -364,6 +396,17 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 %{_defaultdocdir}/koo/api/
 %endif
+
+%files serverinit
+%defattr(-,root,root)
+%dir %{_defaultdocdir}/%{name}-server-%{version}/demo/
+%{_defaultdocdir}/%{name}-server-%{version}/demo/build-database.sh
+
+
+%files alldemo
+%defattr(-,root,root)
+%{_defaultdocdir}/%{name}-server-%{version}/demo/demodb.sql
+# todo: a few readme files, perhaps..
 
 %post client
 %{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null
@@ -430,5 +473,19 @@ EOF
 %postun server
 %_postun_service openerp-server
 %_postun_userdel openerp
+
+%post serverinit
+pushd %{_defaultdocdir}/%{name}-server-%{version}/demo/
+    ./prep_database.sh
+popd
+chkconfig openerp-server on
+service openerp start
+
+%post alldemo
+pushd %{_defaultdocdir}/%{name}-server-%{version}/demo/
+    psql -U openerp -f demodb.sql openerp
+popd
+# service openerp restart
+
 
 %changelog -f %{name}-%{version}/Changelog.git.txt
