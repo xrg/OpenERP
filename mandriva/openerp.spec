@@ -2,10 +2,6 @@
 %define git_head tests
 
 %define name openerp
-#define verstr 5.0.3-0
-#define verstr2 5.0.3_0
-#define release %{git_get_rel}
-
 %define release_class experimental
 
 %{?!pyver: %define pyver %(python -c 'import sys;print(sys.version[0:3])')}
@@ -171,7 +167,6 @@ and client are installed. The server also has a default database with some data.
 %prep
 %git_clone_source
 %git_prep_submodules
-%git_gen_changelog -n 100
 
 echo "Preparing for addons build.."
 ./mandriva/modulize.py -C %{release_class} -x addons/server_modules.list addons/* > %{_specdir}/openerp-addons.spec
@@ -211,53 +206,54 @@ popd
 
 %install
 cd %{name}-%{version}
-rm -rf $RPM_BUILD_ROOT
+[ -n "%{buildroot}" -a "%{buildroot}" != / ] && rm -rf %{buildroot}
+
 pushd client
-	%{NoDisplay} python ./setup.py install --root=$RPM_BUILD_ROOT
+	%{NoDisplay} python ./setup.py install --root=%{buildroot}
 popd
 
 %if %{build_kde}
 pushd client-kde
-	%{NoDisplay} python ./setup.py install --root=$RPM_BUILD_ROOT
+	%{NoDisplay} python ./setup.py install --root=%{buildroot}
 popd
 %endif
 
-mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}
+mkdir -p %{buildroot}/%{_sysconfdir}
 
 %if %{build_web}
 pushd client-web
-	%{NoDisplay} python ./setup.py install --root=$RPM_BUILD_ROOT
+	%{NoDisplay} python ./setup.py install --root=%{buildroot}
 popd
 	#remove the default init script
-rm $RPM_BUILD_ROOT/usr/scripts/openerp-web
+rm %{buildroot}/usr/scripts/openerp-web
 
-mv $RPM_BUILD_ROOT/%{python_sitelib}/openerp  $RPM_BUILD_ROOT/%{python_sitelib}/openerp-web
-mv $RPM_BUILD_ROOT/usr/config/default.cfg $RPM_BUILD_ROOT/%{_sysconfdir}/openerp-web.cfg
-mkdir -p $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-web-%{version}/
-mv $RPM_BUILD_ROOT/usr/doc/CHANGES.txt $RPM_BUILD_ROOT/usr/doc/README.txt $RPM_BUILD_ROOT/usr/doc/LICENSE.txt \
-	 $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-client-web-%{version}/
+mv %{buildroot}/%{python_sitelib}/openerp  %{buildroot}/%{python_sitelib}/openerp-web
+mv %{buildroot}/usr/config/default.cfg %{buildroot}/%{_sysconfdir}/openerp-web.cfg
+mkdir -p %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
+mv %{buildroot}/usr/doc/CHANGES.txt %{buildroot}/usr/doc/README.txt %{buildroot}/usr/doc/LICENSE.txt \
+	 %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
 
-pushd $RPM_BUILD_ROOT/%{python_sitelib}/locales
+pushd %{buildroot}/%{python_sitelib}/locales
 	rm -f messages.pot
 	for LOCFI in */LC_MESSAGES/messages.mo ; do
 		LFF=$(dirname "$LOCFI")
-		if [ ! -d $RPM_BUILD_ROOT/%{_prefix}/share/locale/$LFF ] ; then
-			mkdir $RPM_BUILD_ROOT/%{_prefix}/share/locale/$LFF
+		if [ ! -d %{buildroot}/%{_prefix}/share/locale/$LFF ] ; then
+			mkdir %{buildroot}/%{_prefix}/share/locale/$LFF
 		fi
-		mv $LOCFI $RPM_BUILD_ROOT/%{_prefix}/share/locale/$LFF/openerp-web.mo
+		mv $LOCFI %{buildroot}/%{_prefix}/share/locale/$LFF/openerp-web.mo
 	done
 popd
 %endif
 
 pushd server
-	%{NoDisplay} python ./setup.py install --root=$RPM_BUILD_ROOT
+	%{NoDisplay} python ./setup.py install --root=%{buildroot}
 popd
 
 # the Python installer plants the RPM_BUILD_ROOT inside the launch scripts, fix that:
-pushd $RPM_BUILD_ROOT/%{_bindir}/
+pushd %{buildroot}/%{_bindir}/
 	for BIN in %{name}-server %{name}-client ; do
 		mv $BIN $BIN.old
-		cat $BIN.old | sed "s|$RPM_BUILD_ROOT||" > $BIN
+		cat $BIN.old | sed "s|%{buildroot}||" > $BIN
 		chmod a+x $BIN
 		rm $BIN.old
 	done
@@ -273,11 +269,11 @@ popd
 %find_lang koo
 %endif
 
-mv $RPM_BUILD_ROOT/%{_datadir}/openerp-client/* $RPM_BUILD_ROOT/%{python_sitelib}/openerp-client
-rm -rf $RPM_BUILD_ROOT/%{_datadir}/openerp-client
+mv %{buildroot}/%{_datadir}/openerp-client/* %{buildroot}/%{python_sitelib}/openerp-client
+rm -rf %{buildroot}/%{_datadir}/openerp-client
 
-mkdir $RPM_BUILD_ROOT%{_datadir}/applications
-cat > $RPM_BUILD_ROOT%{_datadir}/applications/mandriva-openerp-client.desktop << EOF
+mkdir %{buildroot}%{_datadir}/applications
+cat > %{buildroot}%{_datadir}/applications/mandriva-openerp-client.desktop << EOF
 [Desktop Entry]
 Encoding=UTF-8
 Name=Open ERP
@@ -292,7 +288,7 @@ Categories=Office;GNOME;GTK;
 EOF
 
 %if %{build_kde}
-cat > $RPM_BUILD_ROOT%{_datadir}/applications/mandriva-koo.desktop << EOF
+cat > %{buildroot}%{_datadir}/applications/mandriva-koo.desktop << EOF
 [Desktop Entry]
 Name=Open ERP
 Comment=Open Source ERP Client (KDE)
@@ -305,8 +301,8 @@ Categories=Office;KDE;
 EOF
 %endif
 
-mkdir -p $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-%{version}
-pushd $RPM_BUILD_ROOT/%{_defaultdocdir}
+mkdir -p %{buildroot}/%{_defaultdocdir}/%{name}-%{version}
+pushd %{buildroot}/%{_defaultdocdir}
 	if [ -d %{name}-server-5.0.*-* ] ; then
 		mv %{name}-server-5.0.*-* %{name}-server-%{version}
 	fi
@@ -314,22 +310,22 @@ pushd $RPM_BUILD_ROOT/%{_defaultdocdir}
 		mv %{name}-client-5.0.*-* %{name}-client-%{version}
 	fi
 popd
-install -m 644 -D server/doc/openerp-server.conf $RPM_BUILD_ROOT%{_sysconfdir}/openerp-server.conf
-install -m 755 -D server/doc/openerp-server.init $RPM_BUILD_ROOT%{_initrddir}/openerp-server
-install -m 644 -D server/doc/openerp-server.logrotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/openerp-server
-install -m 755 -D server/doc/README.urpmi $RPM_BUILD_ROOT%{_defaultdocdir}/%{name}-%{version}/README.urpmi
-install -m 755 -D server/doc/README.userchange $RPM_BUILD_ROOT%{_defaultdocdir}/%{name}-server-%{version}/README.userchange
+install -m 644 -D server/doc/openerp-server.conf %{buildroot}%{_sysconfdir}/openerp-server.conf
+install -m 755 -D server/doc/openerp-server.init %{buildroot}%{_initrddir}/openerp-server
+install -m 644 -D server/doc/openerp-server.logrotate %{buildroot}%{_sysconfdir}/logrotate.d/openerp-server
+install -m 755 -D server/doc/README.urpmi %{buildroot}%{_defaultdocdir}/%{name}-%{version}/README.urpmi
+install -m 755 -D server/doc/README.userchange %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/README.userchange
 
-install -m 750 -D server/bin/ssl/cert.cfg $RPM_BUILD_ROOT%{_sysconfdir}/openerp/cert.cfg
+install -m 750 -D server/bin/ssl/cert.cfg %{buildroot}%{_sysconfdir}/openerp/cert.cfg
 
-install -m 644 server/bin/import_xml.rng $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/
-# mv $RPM_BUILD_ROOT%{_prefix}/import_xml.rng $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/
+install -m 644 server/bin/import_xml.rng %{buildroot}%{python_sitelib}/openerp-server/
+# mv %{buildroot}%{_prefix}/import_xml.rng %{buildroot}%{python_sitelib}/openerp-server/
 
-install -d $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/addons/base/security/
-install -m 644 server/bin/addons/base/security/* $RPM_BUILD_ROOT%{python_sitelib}/openerp-server/addons/base/security/
+install -d %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
+install -m 644 server/bin/addons/base/security/* %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 
 #temp fixes for alpha builds
-pushd $RPM_BUILD_ROOT%{python_sitelib}
+pushd %{buildroot}%{python_sitelib}
 	if [ -f openerp_client-5.0.*-*-py%{pyver}.egg-info ] ; then
 		mv openerp_client-5.0.*-*-py%{pyver}.egg-info openerp_client-%{version}-py%{pyver}.egg-info
 	fi
@@ -339,18 +335,18 @@ pushd $RPM_BUILD_ROOT%{python_sitelib}
 popd
 
  #some files for the web-client
-#install -D client-web/openerp-web.mdv $RPM_BUILD_ROOT/%{_initrddir}/%{name}-web
+#install -D client-web/openerp-web.mdv %{buildroot}/%{_initrddir}/%{name}-web
 
-mkdir -p $RPM_BUILD_ROOT/var/log/openerp
-mkdir -p $RPM_BUILD_ROOT/var/spool/openerp
-mkdir -p $RPM_BUILD_ROOT/var/run/openerp
+mkdir -p %{buildroot}/var/log/openerp
+mkdir -p %{buildroot}/var/spool/openerp
+mkdir -p %{buildroot}/var/run/openerp
 
 install -d %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/demo/
-install -m 744 mandriva/build_database.sh %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/demo/
+install -m 744 mandriva/prep_database.sh %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/demo/
 install -m 644 mandriva/demodb.sql %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/demo/
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root)
@@ -400,7 +396,7 @@ rm -rf $RPM_BUILD_ROOT
 %files serverinit
 %defattr(-,root,root)
 %dir %{_defaultdocdir}/%{name}-server-%{version}/demo/
-%{_defaultdocdir}/%{name}-server-%{version}/demo/build-database.sh
+%{_defaultdocdir}/%{name}-server-%{version}/demo/prep_database.sh
 
 
 %files alldemo
@@ -479,13 +475,13 @@ pushd %{_defaultdocdir}/%{name}-server-%{version}/demo/
     ./prep_database.sh
 popd
 chkconfig openerp-server on
-service openerp start
+service openerp-server start
 
 %post alldemo
 pushd %{_defaultdocdir}/%{name}-server-%{version}/demo/
-    psql -U openerp -f demodb.sql openerp
+    DB_NAME=dbdemo DB_RESTORESCRIPT=demodb.sql ./prep_database.sh
 popd
 # service openerp restart
 
 
-%changelog -f %{name}-%{version}/Changelog.git.txt
+%changelog -f %{_sourcedir}/%{name}-changelog.gitrpm.txt

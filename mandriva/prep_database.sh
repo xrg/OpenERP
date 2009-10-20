@@ -62,5 +62,9 @@ if ! (psql -qt -U $PG_ROOT -c "SELECT lanname FROM pg_language WHERE lanname = '
 	fi
 fi
 
+if [ -n "$DB_RESTORESCRIPT" ] ; then
+	psql -U $DB_USER -q -f "$DB_RESTORESCRIPT" "$DB_NAME" || exit $?
+fi
+
 echo "Database prepared successfully!"
 #eof
