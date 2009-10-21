@@ -329,6 +329,7 @@ rm -rf %{buildroot}/%{_datadir}/openerp-client
 mkdir %{buildroot}%{_datadir}/applications
 cat > %{buildroot}%{_datadir}/applications/mandriva-openerp-client.desktop << EOF
 [Desktop Entry]
+Version=1.0
 Encoding=UTF-8
 Name=Open ERP
 GenericName=Open Source ERP
@@ -338,12 +339,13 @@ Icon=%{name}
 Terminal=false
 Type=Application
 StartupNotify=true
-Categories=Office;GNOME;GTK;
+Categories=Office;GNOME;GTK;X-MandrivaLinux-CrossDesktop;
 EOF
 
 %if %{build_kde}
 cat > %{buildroot}%{_datadir}/applications/mandriva-koo.desktop << EOF
 [Desktop Entry]
+Version=1.0
 Name=Open ERP
 Comment=Open Source ERP Client (KDE)
 Exec=%{_bindir}/ktiny
@@ -351,7 +353,7 @@ Icon=%{name}
 Terminal=false
 Type=Application
 StartupNotify=true
-Categories=Office;KDE;
+Categories=Office;KDE;X-MandrivaLinux-CrossDesktop;
 EOF
 %endif
 
@@ -525,10 +527,16 @@ EOF
 %_postun_userdel openerp
 
 %post serverinit
+# If we install too early (Live CD), 
+# there won't be a network file for the postgresql server.
+[ -e /etc/sysconfig/network ] || touch /etc/sysconfig/network
 service postgresql status || service postgresql start
+
 pushd %{_defaultdocdir}/%{name}-server-%{version}/demo/
     ./prep_database.sh
 popd
+
+chkconfig postgresql on
 chkconfig openerp-server on
 service openerp-server start
 
