@@ -141,6 +141,19 @@ the first time run.
 Note: at Mandriva 2008.1, python-pychart is needed from backports,
 instead of the "pychart" package.
 
+%package serverinit
+Group:		Databases/Demo
+Summary:	Full server Metapackage for OpenERP
+Requires:       %{name}-server
+Requires:	postgresql-server >= 8.2
+Requires:	postgresql-plpgsql
+Requires:	run-parts
+
+
+%description serverinit
+With this, all necessary packages and modules for a complete OpenERP server
+are installed.
+
 %package alldemo
 Group:		Databases/Demo
 Summary:	Demo Metapackage for OpenERP
@@ -203,19 +216,6 @@ Requires: openerp-addons-thunderbird
 %description alldemo
 With this demo, all necessary packages and modules for a complete OpenERP server
 and client are installed. The server also has a default database with some data.
-
-%package serverinit
-Group:		Databases/Demo
-Summary:	Demo Metapackage for OpenERP
-Requires:       %{name}-server
-Requires:	postgresql-server >= 8.2
-Requires:	postgresql-plpgsql
-
-
-%description serverinit
-With this demo, all necessary packages and modules for a complete OpenERP server
-and client are installed. The server also has a default database with some data.
-
 
 
 %prep
@@ -372,6 +372,9 @@ install -m 644 -D server/doc/openerp-server.logrotate %{buildroot}%{_sysconfdir}
 install -m 755 -D server/doc/README.urpmi %{buildroot}%{_defaultdocdir}/%{name}-%{version}/README.urpmi
 install -m 755 -D server/doc/README.userchange %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/README.userchange
 
+install -d %{buildroot}%{_sysconfdir}/openerp/start.d
+install -d %{buildroot}%{_sysconfdir}/openerp/stop.d
+
 install -m 750 -D server/bin/ssl/cert.cfg %{buildroot}%{_sysconfdir}/openerp/cert.cfg
 
 install -m 644 server/bin/import_xml.rng %{buildroot}%{python_sitelib}/openerp-server/
@@ -400,6 +403,20 @@ mkdir -p %{buildroot}/var/run/openerp
 install -d %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/demo/
 install -m 744 mandriva/prep_database.sh %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/demo/
 install -m 644 mandriva/demodb.sql %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/demo/
+
+pushd %{buildroot}%{_sysconfdir}/openerp/start.d
+cat >30start-demo <<EOF 
+#!/bin/bash
+
+# service postgresql start
+
+pushd %{_defaultdocdir}/%{name}-server-%{version}/demo/
+    DB_NAME=dbdemo DB_RESTORESCRIPT=demodb.sql ./prep_database.sh
+popd > /dev/null
+# service openerp restart
+
+EOF
+popd
 
 %clean
 rm -rf %{buildroot}
@@ -451,13 +468,15 @@ rm -rf %{buildroot}
 
 %files serverinit
 %defattr(-,root,root)
-%dir %{_defaultdocdir}/%{name}-server-%{version}/demo/
-%{_defaultdocdir}/%{name}-server-%{version}/demo/prep_database.sh
-
+	%dir 		%{_sysconfdir}/openerp/start.d/
+	%dir 		%{_sysconfdir}/openerp/stop.d/
 
 %files alldemo
 %defattr(-,root,root)
-%{_defaultdocdir}/%{name}-server-%{version}/demo/demodb.sql
+	%dir		%{_defaultdocdir}/%{name}-server-%{version}/demo/
+			%{_defaultdocdir}/%{name}-server-%{version}/demo/demodb.sql
+			%{_defaultdocdir}/%{name}-server-%{version}/demo/prep_database.sh
+%attr(0755,root,root)	%{_sysconfdir}/openerp/start.d/30start-demo
 # todo: a few readme files, perhaps..
 
 %post client
@@ -507,7 +526,7 @@ cat '-' <<EOF
 
 Important NOTE:
 
-As of this version, the OpenERP user has changed
+Recently, the OpenERP user has changed
  from "tinyerp" to "openerp" !
 
 
@@ -527,25 +546,7 @@ EOF
 %_postun_userdel openerp
 
 %post serverinit
-# If we install too early (Live CD), 
-# there won't be a network file for the postgresql server.
-[ -e /etc/sysconfig/network ] || touch /etc/sysconfig/network
-service postgresql status || service postgresql start
-
-pushd %{_defaultdocdir}/%{name}-server-%{version}/demo/
-    ./prep_database.sh
-popd
-
 chkconfig postgresql on
 chkconfig openerp-server on
-service openerp-server start
-
-%post alldemo
-service postgresql status || service postgresql start
-pushd %{_defaultdocdir}/%{name}-server-%{version}/demo/
-    DB_NAME=dbdemo DB_RESTORESCRIPT=demodb.sql ./prep_database.sh
-popd
-# service openerp restart
-
 
 %changelog -f %{_sourcedir}/%{name}-changelog.gitrpm.txt
