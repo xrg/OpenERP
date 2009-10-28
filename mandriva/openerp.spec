@@ -73,6 +73,9 @@ Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 %if %{_target_vendor} == mandriva
 Requires:       pygtk2.0, pygtk2.0-libglade
+%if %mdkver > 200900
+Requires:	python-hippo-canvas
+%endif
 %else 
 %if %{_target_vendor} == redhat
 Requires:       pygtk2, mx
@@ -264,11 +267,13 @@ cd %{name}-%{version}
 
 pushd client
 	%{NoDisplay} python ./setup.py install --root=%{buildroot}
+	install -D bin/pixmaps/openerp-icon.png %{buildroot}%{_iconsdir}/openerp-icon.png
 popd
 
 %if %{build_kde}
 pushd client-kde
 	%{NoDisplay} python ./setup.py install --root=%{buildroot}
+	install -D Koo/ui/images/koo-icon.png %{buildroot}%{_kde_iconsdir}/koo-icon.png
 popd
 %endif
 
@@ -332,10 +337,10 @@ cat > %{buildroot}%{_datadir}/applications/mandriva-openerp-client.desktop << EO
 Version=1.0
 Encoding=UTF-8
 Name=Open ERP
-GenericName=Open Source ERP
-Comment=Open Source ERP Client
+GenericName=GTK ERP Client
+Comment=A gtk client for the open source ERP
 Exec=%{_bindir}/openerp-client
-Icon=%{name}
+Icon=openerp-icon
 Terminal=false
 Type=Application
 StartupNotify=true
@@ -347,9 +352,10 @@ cat > %{buildroot}%{_datadir}/applications/mandriva-koo.desktop << EOF
 [Desktop Entry]
 Version=1.0
 Name=Open ERP
-Comment=Open Source ERP Client (KDE)
-Exec=%{_bindir}/ktiny
-Icon=%{name}
+GenericName=OpenERP KDE Client
+Comment=The KDE client for the open source ERP
+Exec=%{_bindir}/koo
+Icon=koo-icon
 Terminal=false
 Type=Application
 StartupNotify=true
@@ -441,6 +447,7 @@ rm -rf %{buildroot}
 %doc
 %defattr(-,root,root)
 %{_bindir}/openerp-client
+%{_iconsdir}/openerp-icon.png
 %{python_sitelib}/openerp-client/
 %{_defaultdocdir}/%{name}-client-%{version}/
 %{_mandir}/man1/openerp-client.*
@@ -453,6 +460,7 @@ rm -rf %{buildroot}
 %doc
 %defattr(-,root,root)
 %{_bindir}/koo
+%{_kde_iconsdir}/koo-icon.png
 %{python_sitelib}/Koo/
 %{_defaultdocdir}/koo/
 %exclude %{_defaultdocdir}/koo/api/
