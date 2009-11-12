@@ -112,10 +112,14 @@ Group:		Databases
 Summary:	Web Client of OpenERP, the Enterprise Management Software
 #BuildRequires: ....
 Requires:       python-pytz
+Requires:       python-cherrypy, python-formencode
+Requires:       python-simplejson, python-mako
+Requires:	python-Babel
 
 %description client-web
 OpenERP Web is the web client of the OpenERP, a free enterprise management 
 software: accounting, stock, manufacturing, project mgt...
+
 %endif
 
 %package server
