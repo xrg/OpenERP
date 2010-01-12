@@ -92,6 +92,8 @@ Summary:	ERP Client (KDE)
 Requires:       python-dot, python-pytz, python-kde4
 Obsoletes:	ktiny
 BuildRequires:	python-qt4
+BuildRequires:	qt4-devel, kde4-macros
+BuildRequires:  python-lxml
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 
