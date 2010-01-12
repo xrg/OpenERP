@@ -9,7 +9,7 @@ cat '-' <<EOF
 
 Usage:
 	$0 -h
-	$0 [-l <lang>] [<addons-path> ...]
+	$0 [-f] [-l <lang>] [<addons-path> ...]
 	
 Description:
 	Update the .po files for some language in (all) addons paths.
@@ -19,6 +19,7 @@ Description:
 Parameters:
 	-h         Display this help
 	-l <lang>  Operate only for language <lang>
+	-f	   Force update, even when .po is newer than .pot
 	<addons-path>  Manually specify addons path(s)
 
 EOF
@@ -34,6 +35,12 @@ if [ "$1" == "-h" ] ; then
 fi
 
 USE_LANG='*'
+FORCE=no
+
+if [ "$1" == "-f" ] ; then
+	FORCE=yes
+	shift 1
+fi
 
 if [ "$1" == "-l" ] ; then
 	USE_LANG="$2"
@@ -68,9 +75,9 @@ for ADDON_PATH in ${ADDONS_PATH[@]} ; do pushd "$ADDON_PATH"
 				continue
 			fi
 			
-			if [ "$DIR/i18n/$DIR.pot" -nt "$POFILE" ] ; then
+			if [ "$DIR/i18n/$DIR.pot" -nt "$POFILE" ] || [ "$FORCE" == 'yes' ] ; then
 				echo "Updating $POFILE"
-				msgmerge -U "$POFILE" "$DIR/i18n/$DIR.pot"
+				msgmerge -U -F "$POFILE" "$DIR/i18n/$DIR.pot"
 			fi
 		done
 	done

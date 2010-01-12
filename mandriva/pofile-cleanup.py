@@ -313,7 +313,10 @@ def parse_body(inf, outf):
 
         nline = inf.nextlike(reli)
         if not nline:
-            raise Exception('strange line delimit')
+            nline = inf.next()
+            if not nline:
+                break
+            raise Exception('strange line delimit: %s' % nline)
         outf.write(nline)
 
     pass
