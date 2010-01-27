@@ -295,7 +295,8 @@ rm %{buildroot}/usr/scripts/openerp-web
 mv %{buildroot}/%{python_sitelib}/openerp  %{buildroot}/%{python_sitelib}/openerp-web
 mv %{buildroot}/usr/config/openerp-web.cfg %{buildroot}/%{_sysconfdir}/openerp-web.cfg
 mkdir -p %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
-mv %{buildroot}/usr/doc/ChangeLog \
+mv %{buildroot}/usr/doc/ChangeLog %{buildroot}/usr/doc/LICENSE.txt \
+	%{buildroot}/usr/doc/README.txt \
 	 %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
 
 pushd %{buildroot}/%{python_sitelib}/locales
@@ -512,7 +513,6 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %{_bindir}/openerp-server
 %{python_sitelib}/openerp-server/
 %{_defaultdocdir}/%{name}-server-%{version}/
-%{_defaultdocdir}/%{name}-server-%{version}/README.userchange
 %{_mandir}/man1/openerp-server.*
 %{py_puresitedir}/openerp_server-%{version}-py%{pyver}.egg-info
 %{_mandir}/man5/openerp_serverrc.5*
