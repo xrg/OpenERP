@@ -293,9 +293,9 @@ popd
 rm %{buildroot}/usr/scripts/openerp-web
 
 mv %{buildroot}/%{python_sitelib}/openerp  %{buildroot}/%{python_sitelib}/openerp-web
-mv %{buildroot}/usr/config/default.cfg %{buildroot}/%{_sysconfdir}/openerp-web.cfg
+mv %{buildroot}/usr/config/openerp-web.cfg %{buildroot}/%{_sysconfdir}/openerp-web.cfg
 mkdir -p %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
-mv %{buildroot}/usr/doc/CHANGES.txt %{buildroot}/usr/doc/README.txt %{buildroot}/usr/doc/LICENSE.txt \
+mv %{buildroot}/usr/doc/ChangeLog \
 	 %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
 
 pushd %{buildroot}/%{python_sitelib}/locales
@@ -303,7 +303,7 @@ pushd %{buildroot}/%{python_sitelib}/locales
 	for LOCFI in */LC_MESSAGES/messages.mo ; do
 		LFF=$(dirname "$LOCFI")
 		if [ ! -d %{buildroot}/%{_prefix}/share/locale/$LFF ] ; then
-			mkdir %{buildroot}/%{_prefix}/share/locale/$LFF
+			mkdir -p %{buildroot}/%{_prefix}/share/locale/$LFF
 		fi
 		mv $LOCFI %{buildroot}/%{_prefix}/share/locale/$LFF/openerp-web.mo
 	done
@@ -406,7 +406,7 @@ pushd %{buildroot}%{python_sitelib}
 popd
 
  #some files for the web-client
-#install -D client-web/openerp-web.mdv %{buildroot}/%{_initrddir}/%{name}-web
+install -D client-web/openerp-web.mdv %{buildroot}/%{_initrddir}/%{name}-web
 
 mkdir -p %{buildroot}/var/log/openerp
 mkdir -p %{buildroot}/var/spool/openerp
@@ -441,7 +441,7 @@ rm -rf %{buildroot}
 %files client-web -f %{name}-%{version}/%{name}-web.lang
 %doc
 %defattr(-,root,root)
-%{_bindir}/start-openerp-web
+%{_bindir}/openerp-web
 %attr(0755,root,root) %{_initrddir}/openerp-web
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp-web.cfg
 %{python_sitelib}/openerp-web/
