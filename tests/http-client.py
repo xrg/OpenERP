@@ -160,6 +160,114 @@ class SafePersistentTransport(PersistentTransport):
 		print "New connection to",host
 	return self._http[host]
 
+class AuthClient(object):
+    def getAuth(self, atype, realm):
+        raise NotImplementedError("Cannot authenticate for %s" % atype)
+	
+    def resolveFailedRealm(self, realm):
+        """ Called when, using a known auth type, the realm is not in cache
+	"""
+        raise NotImplementedError("Cannot authenticate for realm %s" % realm)
+
+class BasicAuthClient(AuthClient):
+    def __init__(self):
+        self._realm_dict = {}
+
+    def getAuth(self, atype, realm):
+        if atype != 'Basic' :
+	    return super(BasicAuthClient,self).getAuth(atype, realm)
+
+	if not self._realm_dict.has_key(realm):
+	    print "realm dict:", self._realm_dict
+	    print "missing key: \"%s\"" % realm
+	    self.resolveFailedRealm(realm)
+	return 'Basic '+ self._realm_dict[realm]
+	
+    def addLogin(self, realm, username, passwd):
+        """ Add some known username/password for a specific login.
+	    This function should be called once, for each realm
+	    that we want to authenticate against
+	"""
+	assert realm
+	auths = base64.encodestring(username + ':' + passwd)
+	if auths[-1] == "\n":
+	    auths = auths[:-1]
+	self._realm_dict[realm] = auths
+
+class addAuthTransport:
+    """ Intermediate class that authentication algorithm to http transport
+    """
+    
+    def setAuthClient(self, authobj):
+        """ Set the authentication client object.
+	    This method must be called before any request is issued, that
+	    would require http authentication
+	"""
+	assert isinstance(authobj, AuthClient)
+        self._auth_client = authobj
+	
+
+    def request(self, host, handler, request_body, verbose=0):
+        # issue XML-RPC request
+
+        h = self.make_connection(host)
+        if verbose:
+            h.set_debuglevel(1)
+	
+	tries = 0
+	atype = None
+	realm = None
+
+	while(tries < 3):
+            self.send_request(h, handler, request_body)
+            self.send_host(h, host)
+            self.send_user_agent(h)
+	    if atype:
+	        # This line will bork if self.setAuthClient has not
+		# been issued. That is a programming error, fix your code!
+	        auths = self._auth_client.getAuth(atype, realm)
+		print "sending authorization:", auths
+		h.putheader('Authorization', auths)
+            self.send_content(h, request_body)
+
+            resp = h._conn.getresponse()
+            #  except BadStatusLine, e:
+	    tries += 1
+    
+	    if resp.status == 401:
+		if 'www-authenticate' in resp.msg:
+		    (atype,realm) = resp.msg.getheader('www-authenticate').split(' ',1)
+		    data1 = resp.read()
+		    if realm.startswith('realm="') and realm.endswith('"'):
+		        realm = realm[7:-1]
+		    print "Resp:", resp.version,resp.isclosed(), resp.will_close
+		    print "Want to do auth %s for realm %s" % (atype, realm)
+		    if atype != 'Basic':
+		        raise ProtocolError(host+handler, 403, 
+					"Unknown authentication method: %s" % atype, resp.msg)
+		    continue # with the outer while loop
+		else:
+		    raise ProtocolError(host+handler, 403,
+				'Server-incomplete authentication', resp.msg)
+
+            if resp.status != 200:
+                raise ProtocolError( host + handler,
+                    resp.status, resp.reason, resp.msg )
+    
+            self.verbose = verbose
+    
+            try:
+                sock = h._conn.sock
+            except AttributeError:
+                sock = None
+    
+            return self._parse_response(h.getfile(), sock, resp)
+
+	raise ProtocolError(host+handler, 403, "No authentication",'')
+
+class PersistentAuthTransport(addAuthTransport,PersistentTransport):
+    pass
+
 
 def simple_get(args):
 	print "Getting http://%s" % args[0]
@@ -387,8 +495,12 @@ def rpc2_generic(args):
 	import xmlrpclib
 
 	try:
-		srv = ServerAuthProxy(args[0]+'/xmlrpc2/'+args[1],
-			transport=PersistentTransport(), verbose=1)
+		trn = PersistentAuthTransport()
+		bac = BasicAuthClient()
+		bac.addLogin("OpenERP Admin", 'root', 'admins')
+		trn.setAuthClient(bac)
+		srv = ServerProxy(args[0]+'/xmlrpc2/'+args[1],
+			transport=trn, verbose=1)
 		method = getattr(srv,args[2])
 		li = method(*args[3:])
 		print "Result:",li
