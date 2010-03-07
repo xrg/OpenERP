@@ -160,6 +160,7 @@ class SafePersistentTransport(PersistentTransport):
 		print "New connection to",host
 	return self._http[host]
 
+
 def simple_get(args):
 	print "Getting http://%s" % args[0]
 	conn = httplib.HTTPConnection(args[0])
@@ -382,6 +383,19 @@ def rpc_generic(args):
 		print "Fault:",f.faultCode
 		print f.faultString
 
+def rpc2_generic(args):
+	import xmlrpclib
+
+	try:
+		srv = ServerAuthProxy(args[0]+'/xmlrpc2/'+args[1],
+			transport=PersistentTransport(), verbose=1)
+		method = getattr(srv,args[2])
+		li = method(*args[3:])
+		print "Result:",li
+	except Fault, f:
+		print "Fault:",f.faultCode
+		print f.faultString
+
 def rpc_login(args):
 	import xmlrpclib
 	import getpass
@@ -407,6 +421,9 @@ def rpc_generic_s(args):
 	except Fault, f:
 		print "Fault:",f.faultCode
 		print f.faultString
+
+def rpc2_about(args):
+	rpc2_generic( [args[0], 'pub/common', 'about'] )
 
 def http_request(host, path, user=None, method='GET', hdrs=None, body=None, dbg=2):
 	if not hdrs:
@@ -506,6 +523,7 @@ commands = { 'get' : simple_get , 'mget' : multi_get, 'aget': auth_get,
 	'agets': auth_get_s,
 	'rabout': rpc_about, 'listdb': rpc_listdb, 'login': rpc_login,
 	'rpc': rpc_generic, 'rabout_m': rpc_about_m,
+	'rpc2': rpc2_generic, 'rpc2_about': rpc2_about,
 	'rpc-s': rpc_generic_s, 
 	'gd_propfind': gd_propfind, 'gd_propname': gd_propname, 
 	'gd_getetag': gd_getetag
