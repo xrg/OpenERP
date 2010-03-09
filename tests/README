@@ -1,0 +1,5 @@
+# Sample commands using the http_client:
+
+./http_client.py rpc2_about http://localhost:8069
+
+./http-client.py rpc2 http://localhost:8069 root/common set_loglevel 10
