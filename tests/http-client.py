@@ -497,7 +497,7 @@ def rpc2_generic(args):
 	try:
 		trn = PersistentAuthTransport()
 		bac = BasicAuthClient()
-		bac.addLogin("OpenERP Admin", 'root', 'admins')
+		bac.addLogin("OpenERP Admin", 'root', 'admin')
 		trn.setAuthClient(bac)
 		srv = ServerProxy(args[0]+'/xmlrpc2/'+args[1],
 			transport=trn, verbose=1)
