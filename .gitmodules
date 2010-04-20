@@ -19,3 +19,6 @@
 [submodule "doc"]
 	path = doc
 	url = http://members.hellug.gr/xrg/repos/openobject-doc
+[submodule "extra-addons"]
+	path = extra-addons
+	url = http://members.hellug.gr/xrg/repos/openobject-addons
