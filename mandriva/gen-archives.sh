@@ -25,7 +25,7 @@ echo "Version string: $VER_STR"
 
 [ -d 'archives' ] || mkdir ./archives
 
-for SDIR in server client client-kde client-web addons doc ; do
+for SDIR in server client client-kde client-web addons extra-addons doc ; do
         COMMIT=$(get_submodule_commit $SDIR)
         pushd $SDIR
             git archive --format=tar --prefix='openerp'-$SDIR/ $COMMIT | \
