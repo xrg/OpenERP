@@ -47,6 +47,15 @@ parser.add_option("-r", "--onlyver",
                   action="store_true", dest="onlyver", default=False,
                   help="Generates the version string and exits.")
 
+parser.add_option("-R", "--onlyrel",
+                  action="store_true", dest="onlyrel", default=False,
+                  help="Generates the release string and exits.")
+
+parser.add_option("-g", "--gitver",
+                  dest="gitver",
+                  help="Reads the version information from file",
+                  metavar = "GITVER_FILE")
+
 parser.add_option("-C", "--rclass", dest="rclass",
                   help="use RCLASS release class", metavar="RCLASS")
 
@@ -54,6 +63,7 @@ parser.add_option("-x", "--exclude-from",
                   dest="exclude",
                   help="Reads the file FROM_LIST and excludes those modules",
                   metavar = "FROM_LIST")
+
 
 parser.add_option("-n", "--name",
                   dest="name",
@@ -65,9 +75,33 @@ parser.add_option("-n", "--name",
 class release:
 	version = '4.3.x'
 	release = '1'
-	def __init__(self):
+	def __init__(self, gitver=None):
 		#sys.stderr.write("Init\n")
-		try:
+		self.version = ''
+		self.subver = ''
+		self.release = ''
+		self.extraver = None
+		self.mainver = ''
+		if gitver:
+		    try:
+		        f = open(gitver, 'rb')
+		        for line in f:
+			    if not ':' in line:
+				continue
+			    key, val = line.split(':',1)
+			    val = val.strip()
+			    if key == 'Version':
+				self.version = val
+			    elif key == 'Release':
+				self.release = val
+			    elif key == 'Extra':
+				self.extraver = val
+			f.close()
+			sys.stderr.write("Got version from git: v: %s (%s) , r: %s \n" %(self.version,self.subver,self.release))
+		    except:
+			sys.stderr.write("Get release exception: %s \n " % str(sys.exc_info()))
+		else:
+		    try:
 			p = subprocess.Popen(["git", "describe", "--tags"], bufsize=4096, \
 				stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
 			(child_stdout, child_stdin) = (p.stdout, p.stdin)
@@ -85,10 +119,17 @@ class release:
 			self.version = resc[0].lstrip('v')
 			self.subver ="-".join(resc[1:])
 			sys.stderr.write("Got version from git: v: %s (%s) , r: %s \n" %(self.version,self.subver,self.release))
-		except:
+		    except:
 			sys.stderr.write("Get release exception: %s \n " % str(sys.exc_info()))
+		
+		self.mainver = '.'.join(self.version.split('.')[:2])
+		self.extrarel = ''
+		if self.extraver:
+		    self.extrarel += self.extraver + '.'
+		self.extrarel += self.release
+		
 
-rel = release()
+rel = release(options.gitver)
 
 release_class = options.rclass or 'pub'
 oname = options.name or 'openerp-addons'
@@ -119,7 +160,7 @@ cd %%{name}-%%{version}
 %%build
 cd %%{name}-%%{version}
 
-""" % ( release_class,oname, rel.version.rsplit('.', 1)[0]+rel.subver,rel.release)
+""" % ( release_class,oname, rel.mainver+rel.subver,rel.extrarel)
 
 inst_str = """
 %install
@@ -132,11 +173,14 @@ cp -ar ./* $RPM_BUILD_ROOT/%{python_sitelib}/openerp-server/addons/
 
 def get_module_info(name):
 	try:
-		f = open(os.path.join(name, '__terp__.py'),"r")
+		mpath = os.path.join(name, '__openerp__.py')
+		if not os.path.exists(mpath):
+		    mpath = os.path.join(name, '__terp__.py')
+		f = open(mpath, "r")
 		data = f.read()
 		info = eval(data)
 		if 'version' in info:
-			info['version'] = rel.version.rsplit('.', 1)[0] + '.' + info['version']+rel.subver
+			info['version'] = rel.mainver + '.' + info['version']+rel.subver
 		f.close()
 	except IOError:
 		sys.stderr.write("Dir at %s may not be an OpenERP module.\n" % name)
@@ -216,7 +260,11 @@ info_dirs = []
 no_dirs = []
 
 if ( options.onlyver):
-	print rel.version.rsplit('.', 1)[0]+rel.subver
+	print rel.mainver+rel.subver
+	exit(0)
+
+if ( options.onlyrel):
+	print rel.extrarel
 	exit(0)
 
 exclude_modules = []
