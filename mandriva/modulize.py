@@ -102,7 +102,7 @@ knight = """
 Name:	%s
 Version:	%s
 Release:	%%mkrel %s
-License:	GPLv2+
+License:	AGPLv3
 Group:		Databases
 Summary:	ERP Client
 #Source0:	%%{name}-%%{version}.tar.gz

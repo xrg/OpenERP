@@ -37,10 +37,10 @@
 
 Name:		%name
 Version:	%{git_get_ver}
-Release:	%mkrel t%{git_get_rel}
-License:	GPLv2+
+Release:	%mkrel %{git_get_rel2}
+License:	AGPLv3+
 Group:		Databases
-Summary:	ERP Client
+Summary:	OpenERP Client and Server
 URL:		http://www.openerp.com
 Obsoletes:	tinyerp
 # BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root
@@ -66,7 +66,7 @@ project management...
 
 %package client
 Group:		Databases
-Summary:	ERP Client
+Summary:	OpenERP Client
 Requires:       pygtk2.0, pygtk2.0-libglade, python-dot
 Requires:	python-matplotlib, python-egenix-mx-base
 Requires(post): desktop-file-utils
@@ -88,7 +88,7 @@ Client components for Open ERP.
 %if %{build_kde}
 %package client-kde
 Group:		Databases
-Summary:	ERP Client (KDE)
+Summary:	OpenERP Client (KDE)
 Requires:       python-dot, python-pytz, python-kde4
 Obsoletes:	ktiny
 BuildRequires:	python-qt4
@@ -98,7 +98,7 @@ Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 
 %description client-kde
-KDE client components for Open ERP.
+KDE client (aka. koo) components for Open ERP.
 
 %package client-kde-apidoc
 Group:		Documentation
@@ -126,7 +126,7 @@ software: accounting, stock, manufacturing, project mgt...
 
 %package server
 Group:		System/Servers
-Summary:	ERP Server
+Summary:	OpenERP Server
 Requires:	pygtk2.0, pygtk2.0-libglade
 Requires:	python-psycopg, python-libxslt, python-lxml
 Requires:	postgresql-plpython >= 8.2
@@ -137,7 +137,7 @@ Suggests:	postgresql-server >= 8.2
 Requires:	ghostscript
 # perhaps the matplotlib could yield for pytz, in Mdv >=2009.0
 Requires:	python-pyxml, python-matplotlib
-Requires:	python-pychart
+Requires:	python-pychart, python-yaml, python-mako
 Requires(pre):	rpm-helper
 Requires(postun): rpm-helper
 
@@ -161,7 +161,7 @@ Requires:	run-parts
 
 %description serverinit
 With this, all necessary packages and modules for a complete OpenERP server
-are installed.
+are installed. This also triggers the installation of a PostgreSQL server.
 
 %package alldemo
 Group:		Databases/Demo
@@ -228,8 +228,7 @@ and client are installed. The server also has a default database with some data.
 
 
 %prep
-%git_clone_source
-%git_prep_submodules
+%git_get_source_sm
 
 echo "Preparing for addons build.."
 ./mandriva/modulize.py -C %{release_class} -x addons/server_modules.list addons/* > %{_specdir}/openerp-addons.spec
