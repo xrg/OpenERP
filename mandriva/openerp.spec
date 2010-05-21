@@ -1,5 +1,5 @@
 %define git_repo openerp
-%define git_head tests
+%define git_head tests-52
 
 %define name openerp
 %define release_class experimental
