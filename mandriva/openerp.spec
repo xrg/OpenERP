@@ -43,6 +43,7 @@ Group:		Databases
 Summary:	OpenERP Client and Server
 URL:		http://www.openerp.com
 Obsoletes:	tinyerp
+Source:		%git_bs_source %{name}-%{version}.tar.gz
 # BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch:	noarch
 BuildRequires:	python
@@ -229,12 +230,19 @@ and client are installed. The server also has a default database with some data.
 
 %prep
 %git_get_source_sm
+%setup -q
 
 echo "Preparing for addons build.."
 ./mandriva/modulize.py -C %{release_class} -x addons/server_modules.list addons/* > %{_specdir}/openerp-addons.spec
 rm -f %{_builddir}/openerp-addons-$(./mandriva/modulize.py --onlyver)
 ln -sf $(pwd)/addons %{_builddir}/openerp-addons-$(./mandriva/modulize.py --onlyver)
 echo "Prepared addons"
+
+echo "Preparing for extra addons build.."
+./mandriva/modulize.py -C %{release_class} -x extra-addons/server_modules.list extra-addons/* > %{_specdir}/openerp-extra-addons.spec
+rm -f %{_builddir}/openerp-extra-addons-$(./mandriva/modulize.py --onlyver)
+ln -sf $(pwd)/extra-addons %{_builddir}/openerp-extra-addons-$(./mandriva/modulize.py --onlyver)
+echo "Prepared extra addons"
 
 echo "Preparing koo addons.."
 ./mandriva/modulize.py -n openerp-addons-koo -C %{release_class} -x addons/server_modules.list client-kde/server-modules/* > %{_specdir}/openerp-addons-koo.spec
