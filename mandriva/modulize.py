@@ -234,6 +234,8 @@ def fmt_spec(name,info,allnames):
 	    allnames is a list with all supplied names
 	"""
 	if ('name' not in info) : return ""
+	if ('installable' in info) and not info['installable']:
+	    return ""
 	nii = "\n"
 	nii += '%%package %s\n' % name;
 	if 'version' in info:
