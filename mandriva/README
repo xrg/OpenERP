@@ -34,4 +34,11 @@ Hint: after "rpmbuild -bp SPECS/openerp.spec" (and before any further
 build), you can issue the "rpmbuild -b? SPECS/openerp-addons.spec" and
 shortcut to build the addons.
 
+At the addons (the main, only, so far), there is a "server_modules.list"
+file. This contains a plain list of modules that should be _included_
+in the server package, rather than be built into separate packages. 
+Please update that list with your choice of modules that any server rpm
+has to contain (but be strict in what you include there).
+
+
 
