@@ -238,6 +238,8 @@ def fmt_spec(name,info,allnames):
 	nii += '%%package %s\n' % name;
 	if 'version' in info:
 		nii+= "Version: %s\n" % info['version']
+	if not info['name']:
+	    raise Exception("Addon %s should specify a name for summary!" % name)
 	nii += """Group: Databases
 Summary: %s
 Requires: openerp-server >= %s
