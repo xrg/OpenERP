@@ -250,10 +250,11 @@ Requires: openerp-server >= %s
 		nii+= "Vendor: %s\n" % info['author']
 	if 'website' in info  and info['website'] != '' :
 		# we can only have one of the urls provided.
-		if ',' in info['website']:
-		    ws = info['website'].split(', ')[0].strip()
-		if '- ' in info['website']:
-		    ws = info['website'].split('- ')[0].strip()
+		ws = info['website']
+		if ',' in ws:
+		    ws = ws.split(', ')[0].strip()
+		if '- ' in ws:
+		    ws = ws.split('- ')[0].strip()
 		nii+= "URL: %s\n" % ws
 	if 'description' in info:
 		nii += "\n%%description %s\n%s\n" % (name, info['description'])
