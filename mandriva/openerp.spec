@@ -396,11 +396,11 @@ EOF
 
 mkdir -p %{buildroot}/%{_defaultdocdir}/%{name}-%{version}
 pushd %{buildroot}/%{_defaultdocdir}
-	if [ -d %{name}-server-5.0.*-* ] ; then
-		mv %{name}-server-5.0.*-* %{name}-server-%{version}
+	if [ -d %{name}-server-* ] ; then
+		mv %{name}-server-* %{name}-server-%{version}
 	fi
-	if [ -d %{name}-client-5.0.*-* ] ; then
-		mv %{name}-client-5.0.*-* %{name}-client-%{version}
+	if [ -d %{name}-client-* ] ; then
+		mv %{name}-client-* %{name}-client-%{version}
 	fi
 popd
 install -m 644 -D server/doc/openerp-server.conf %{buildroot}%{_sysconfdir}/openerp-server.conf
@@ -422,11 +422,11 @@ install -m 644 server/bin/addons/base/security/* %{buildroot}%{python_sitelib}/o
 
 #temp fixes for alpha builds
 pushd %{buildroot}%{python_sitelib}
-	if [ -f openerp_client-5.0.*-*-py%{pyver}.egg-info ] ; then
-		mv openerp_client-5.0.*-*-py%{pyver}.egg-info openerp_client-%{version}-py%{pyver}.egg-info
+	if [ -f openerp_client-*-py%{pyver}.egg-info ] ; then
+		mv openerp_client-*-py%{pyver}.egg-info openerp_client-%{version}-py%{pyver}.egg-info
 	fi
-	if [ -f openerp_server-5.0.*-*-py%{pyver}.egg-info ] ; then
-		mv openerp_server-5.0.*-*-py%{pyver}.egg-info openerp_server-%{version}-py%{pyver}.egg-info
+	if [ -f openerp_server-*-py%{pyver}.egg-info ] ; then
+		mv openerp_server-*-py%{pyver}.egg-info openerp_server-%{version}-py%{pyver}.egg-info
 	fi
 popd
 
