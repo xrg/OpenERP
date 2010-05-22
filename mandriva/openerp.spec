@@ -233,21 +233,21 @@ and client are installed. The server also has a default database with some data.
 %setup -q
 
 echo "Preparing for addons build.."
-./mandriva/modulize.py -C %{release_class} -x addons/server_modules.list addons/* > %{_specdir}/openerp-addons.spec
-rm -f %{_builddir}/openerp-addons-$(./mandriva/modulize.py --onlyver)
-ln -sf $(pwd)/addons %{_builddir}/openerp-addons-$(./mandriva/modulize.py --onlyver)
+./mandriva/modulize.py -C %{release_class} -g %{_sourcedir}/%{name}-gitrpm.version -x addons/server_modules.list addons/* > %{_specdir}/openerp-addons.spec
+rm -f %{_builddir}/openerp-addons-$(./mandriva/modulize.py -g %{_sourcedir}/%{name}-gitrpm.version --onlyver)
+ln -sf $(pwd)/addons %{_builddir}/openerp-addons-$(./mandriva/modulize.py -g %{_sourcedir}/%{name}-gitrpm.version --onlyver)
 echo "Prepared addons"
 
 echo "Preparing for extra addons build.."
-./mandriva/modulize.py -C %{release_class} -x extra-addons/server_modules.list extra-addons/* > %{_specdir}/openerp-extra-addons.spec
-rm -f %{_builddir}/openerp-extra-addons-$(./mandriva/modulize.py --onlyver)
-ln -sf $(pwd)/extra-addons %{_builddir}/openerp-extra-addons-$(./mandriva/modulize.py --onlyver)
+./mandriva/modulize.py -C %{release_class} -n openerp-extra-addons -g %{_sourcedir}/%{name}-gitrpm.version -x extra-addons/server_modules.list extra-addons/* > %{_specdir}/openerp-extra-addons.spec
+rm -f %{_builddir}/openerp-extra-addons-$(./mandriva/modulize.py -g %{_sourcedir}/%{name}-gitrpm.version --onlyver)
+ln -sf $(pwd)/extra-addons %{_builddir}/openerp-extra-addons-$(./mandriva/modulize.py -g %{_sourcedir}/%{name}-gitrpm.version --onlyver)
 echo "Prepared extra addons"
 
 echo "Preparing koo addons.."
-./mandriva/modulize.py -n openerp-addons-koo -C %{release_class} -x addons/server_modules.list client-kde/server-modules/* > %{_specdir}/openerp-addons-koo.spec
-rm -f %{_builddir}/openerp-addons-koo-$(./mandriva/modulize.py --onlyver)
-ln -sf $(pwd)/client-kde/server-modules %{_builddir}/openerp-addons-koo-$(./mandriva/modulize.py --onlyver)
+./mandriva/modulize.py -n openerp-addons-koo -g %{_sourcedir}/%{name}-gitrpm.version -C %{release_class} -x addons/server_modules.list client-kde/server-modules/* > %{_specdir}/openerp-addons-koo.spec
+rm -f %{_builddir}/openerp-addons-koo-$(./mandriva/modulize.py -g %{_sourcedir}/%{name}-gitrpm.version --onlyver)
+ln -sf $(pwd)/client-kde/server-modules %{_builddir}/openerp-addons-koo-$(./mandriva/modulize.py -g %{_sourcedir}/%{name}-gitrpm.version --onlyver)
 
 echo "Prepared koo addons."
 
