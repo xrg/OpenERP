@@ -300,7 +300,7 @@ for tdir in args:
             no_dirs.append(bdir)
             continue
 	info = get_module_info(tdir)
-	if (info == {}) :
+	if (not info ) or (not info.get('installable',True)) :
 		no_dirs.append(bdir)
 	else :
 		info_dirs.append({'dir': bdir, 'info': info})
