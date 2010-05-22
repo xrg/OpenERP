@@ -152,9 +152,10 @@ Version:	%s
 Release:	%%mkrel %s
 License:	AGPLv3
 Group:		Databases
-Summary:	ERP Client
+Summary:	Addons for OpenERP
 #Source0:	%%{name}-%%{version}.tar.gz
 URL:		http://www.openerp.com
+BuildRoot:	%%{_tmppath}/%%{name}-%%{version}-%%{release}
 BuildArch:	noarch
 
 %%description
@@ -249,7 +250,10 @@ Requires: openerp-server >= %s
 		nii+= "Vendor: %s\n" % info['author']
 	if 'website' in info  and info['website'] != '' :
 		# we can only have one of the urls provided.
-		ws = info['website'].split(', ')[0].strip()
+		if ',' in info['website']:
+		    ws = info['website'].split(', ')[0].strip()
+		if '- ' in info['website']:
+		    ws = info['website'].split('- ')[0].strip()
 		nii+= "URL: %s\n" % ws
 	if 'description' in info:
 		nii += "\n%%description %s\n%s\n" % (name, info['description'])

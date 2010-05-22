@@ -48,7 +48,7 @@ Obsoletes:	tinyerp
 %if ! %{use_git_clone}
 Source:		%git_bs_source %{name}-%{version}.tar.gz
 %endif
-# BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root
+BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
 BuildArch:	noarch
 BuildRequires:	python
 BuildRequires:	desktop-file-utils
