@@ -117,6 +117,13 @@ class release:
 			else:
 				self.release = '0'
 			self.version = resc[0].lstrip('v')
+			if self.version:
+			    ma = re.match(r'([0-9\.]+)([a-z][\w]+)?',
+					self.version)
+			    if ma:
+				self.version = ma.group(1)
+				self.extraver = ma.group(2)
+
 			self.subver ="-".join(resc[1:])
 			sys.stderr.write("Got version from git: v: %s (%s) , r: %s \n" %(self.version,self.subver,self.release))
 		    except:
