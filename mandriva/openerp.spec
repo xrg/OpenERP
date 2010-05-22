@@ -239,7 +239,7 @@ ln -sf $(pwd)/addons %{_builddir}/openerp-addons-$(./mandriva/modulize.py -g %{_
 echo "Prepared addons"
 
 echo "Preparing for extra addons build.."
-./mandriva/modulize.py -C %{release_class} -n openerp-extra-addons -g %{_sourcedir}/%{name}-gitrpm.version -x extra-addons/server_modules.list extra-addons/* > %{_specdir}/openerp-extra-addons.spec
+./mandriva/modulize.py -C %{release_class} -n openerp-extra-addons -g %{_sourcedir}/%{name}-gitrpm.version -x addons/server_modules.list extra-addons/* > %{_specdir}/openerp-extra-addons.spec
 rm -f %{_builddir}/openerp-extra-addons-$(./mandriva/modulize.py -g %{_sourcedir}/%{name}-gitrpm.version --onlyver)
 ln -sf $(pwd)/extra-addons %{_builddir}/openerp-extra-addons-$(./mandriva/modulize.py -g %{_sourcedir}/%{name}-gitrpm.version --onlyver)
 echo "Prepared extra addons"
