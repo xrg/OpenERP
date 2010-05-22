@@ -97,7 +97,7 @@ class release:
 			    elif key == 'Extra':
 				self.extraver = val
 			f.close()
-			sys.stderr.write("Got version from git: v: %s (%s) , r: %s \n" %(self.version,self.subver,self.release))
+			sys.stderr.write("Got version from file: v: %s (%s) , r: %s \n" %(self.version,self.subver,self.release))
 		    except:
 			sys.stderr.write("Get release exception: %s \n " % str(sys.exc_info()))
 		else:
@@ -125,7 +125,7 @@ class release:
 		self.mainver = '.'.join(self.version.split('.')[:2])
 		self.extrarel = ''
 		if self.extraver:
-		    self.extrarel += self.extraver + '.'
+		    self.extrarel += '0.'+ self.extraver + '.'
 		self.extrarel += self.release
 		
 
