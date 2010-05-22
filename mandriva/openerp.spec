@@ -252,7 +252,6 @@ ln -sf $(pwd)/client-kde/server-modules %{_builddir}/openerp-addons-koo-$(./mand
 echo "Prepared koo addons."
 
 %build
-cd %{name}-%{version}
 pushd client
 	%{NoDisplay} python ./setup.py build
 popd
@@ -275,7 +274,6 @@ pushd server
 popd
 
 %install
-cd %{name}-%{version}
 [ -n "%{buildroot}" -a "%{buildroot}" != / ] && rm -rf %{buildroot}
 
 pushd client
