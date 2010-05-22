@@ -430,8 +430,10 @@ pushd %{buildroot}%{python_sitelib}
 	fi
 popd
 
+%if %{build_web}
  #some files for the web-client
 install -D client-web/openerp-web.mdv %{buildroot}/%{_initrddir}/%{name}-web
+%endif
 
 mkdir -p %{buildroot}/var/log/openerp
 mkdir -p %{buildroot}/var/spool/openerp
