@@ -1,0 +1,37 @@
+Description of the Mandriva scripts for OpenERP RPM builds.
+
+Note: (before you make the question) These scripts have originally been
+written in order to build Mandriva RPMS. However, they could be reused
+for any RPM-based distro, or even a non-RPM-based one (parts of them).
+
+The scripts are based on git. This means they assume that you have your
+source code in git, somewhere. Still, they /could/ work for standalone
+archives, using the 'tar' method.
+These scripts need the pfn-gitbuild scripts. Even if not building
+directly from a git repo. 
+
+There are 2 source preparation methods: source archive (aka. tar) and 
+cloning. The first one tries to generate a tar.gz from the sources (one
+file that contains server, client, addons etc.), and then uses that
+file as the source for an ordinary RPM build. This way we can have a
+SRPM, too.
+With the 'clone' method, the scripts just git-clone the source and its
+submodules. Using that may not produce a SRPM (no real source archive),
+but is considerably faster (~3min at least, it's 700MB), because 
+successive builds will only update the cloned git repos.
+
+Theoretically, the archive method can be detached from git and build
+from the SRPM (still maybe some corners to fix).
+
+We handle the whole OpenERP build as one procedure, including server, 
+client, addons etc.
+However, the addons need a separate command. The reason is that after
+the openerp repo has been cloned/setup, special spec files are generated
+for the addons, extra-addons and koo-addons (and any other addons we
+may add in the future). So, these spec files will need us to re-issue
+the rpmbuild command for them.
+Hint: after "rpmbuild -bp SPECS/openerp.spec" (and before any further
+build), you can issue the "rpmbuild -b? SPECS/openerp-addons.spec" and
+shortcut to build the addons.
+
+
