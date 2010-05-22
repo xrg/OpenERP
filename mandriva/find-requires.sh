@@ -16,7 +16,7 @@ fi
 
 cat $TMP_STDIN | $RPM_FIND_REQUIRES || EXIT=$?
 
-NAMES=$(cat $TMP_STDIN | grep '__terp__\.py$')
+NAMES=$(cat $TMP_STDIN | grep '__\(open\|t\)erp__\.py$')
 
 $(dirname $0)/python-requires.py $NAMES || EXIT=$?
 

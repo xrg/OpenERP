@@ -72,7 +72,7 @@ def get_depends(deps):
 
 info_dirs = []
 for tfile in args:
-        if os.path.basename(tfile) != '__terp__.py':
+        if os.path.basename(tfile) not in ('__terp__.py', '__openerp__.py'):
             continue
 	info = get_module_info(tfile)
 	if (info == {}):
