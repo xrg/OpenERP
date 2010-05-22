@@ -53,7 +53,7 @@ def get_module_info(tname):
 		#	info['version'] = rel.version.rsplit('.', 1)[0] + '.' + info['version']+rel.subver
 		f.close()
 	except IOError:
-		sys.stderr.write("Dir at %s may not be an OpenERP module.\n" % name)
+		sys.stderr.write("Dir at %s may not be an OpenERP module.\n" % tname)
 		return {}
 	except:
 		sys.stderr.write(str( sys.exc_info()))
