@@ -24,6 +24,7 @@
 %define build_web	0
 %endif
 
+%define use_git_clone	0
 
 %{?_without_kde:	%global build_kde 0}
 %{?_with_kde:		%global build_kde 1}
@@ -34,6 +35,7 @@
 %define __find_provides   %{u2p:%{_builddir}}/%{name}-%{git_get_ver}/mandriva/find-provides.sh
 %define __find_requires   %{u2p:%{_builddir}}/%{name}-%{git_get_ver}/mandriva/find-requires.sh
 
+%{?_use_clone:	%global use_git_clone 1}
 
 Name:		%name
 Version:	%{git_get_ver}
@@ -43,7 +45,9 @@ Group:		Databases
 Summary:	OpenERP Client and Server
 URL:		http://www.openerp.com
 Obsoletes:	tinyerp
+%if ! %{use_git_clone}
 Source:		%git_bs_source %{name}-%{version}.tar.gz
+%endif
 # BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch:	noarch
 BuildRequires:	python
@@ -227,31 +231,43 @@ Requires: openerp-addons-thunderbird
 With this demo, all necessary packages and modules for a complete OpenERP server
 and client are installed. The server also has a default database with some data.
 
+%if %{use_git_clone}
+%define modulize_g    -g %{_sourcedir}/%{name}-gitrpm.version
+%endif
 
 %prep
+%if %{use_git_clone}
+%git_clone_source
+%git_prep_submodules
+%else
 %git_get_source_sm
 %setup -q
+%endif
 
 echo "Preparing for addons build.."
-./mandriva/modulize.py -C %{release_class} -g %{_sourcedir}/%{name}-gitrpm.version -x addons/server_modules.list addons/* > %{_specdir}/openerp-addons.spec
-rm -f %{_builddir}/openerp-addons-$(./mandriva/modulize.py -g %{_sourcedir}/%{name}-gitrpm.version --onlyver)
-ln -sf $(pwd)/addons %{_builddir}/openerp-addons-$(./mandriva/modulize.py -g %{_sourcedir}/%{name}-gitrpm.version --onlyver)
+./mandriva/modulize.py -C %{release_class} %modulize_g -x addons/server_modules.list addons/* > %{_specdir}/openerp-addons.spec
+rm -f %{_builddir}/openerp-addons-$(./mandriva/modulize.py %modulize_g --onlyver)
+ln -sf $(pwd)/addons %{_builddir}/openerp-addons-$(./mandriva/modulize.py %modulize_g --onlyver)
 echo "Prepared addons"
 
 echo "Preparing for extra addons build.."
-./mandriva/modulize.py -C %{release_class} -n openerp-extra-addons -g %{_sourcedir}/%{name}-gitrpm.version -x addons/server_modules.list extra-addons/* > %{_specdir}/openerp-extra-addons.spec
-rm -f %{_builddir}/openerp-extra-addons-$(./mandriva/modulize.py -g %{_sourcedir}/%{name}-gitrpm.version --onlyver)
-ln -sf $(pwd)/extra-addons %{_builddir}/openerp-extra-addons-$(./mandriva/modulize.py -g %{_sourcedir}/%{name}-gitrpm.version --onlyver)
+./mandriva/modulize.py -C %{release_class} -n openerp-extra-addons %modulize_g -x addons/server_modules.list extra-addons/* > %{_specdir}/openerp-extra-addons.spec
+rm -f %{_builddir}/openerp-extra-addons-$(./mandriva/modulize.py %modulize_g --onlyver)
+ln -sf $(pwd)/extra-addons %{_builddir}/openerp-extra-addons-$(./mandriva/modulize.py %modulize_g --onlyver)
 echo "Prepared extra addons"
 
 echo "Preparing koo addons.."
-./mandriva/modulize.py -n openerp-addons-koo -g %{_sourcedir}/%{name}-gitrpm.version -C %{release_class} -x addons/server_modules.list client-kde/server-modules/* > %{_specdir}/openerp-addons-koo.spec
-rm -f %{_builddir}/openerp-addons-koo-$(./mandriva/modulize.py -g %{_sourcedir}/%{name}-gitrpm.version --onlyver)
-ln -sf $(pwd)/client-kde/server-modules %{_builddir}/openerp-addons-koo-$(./mandriva/modulize.py -g %{_sourcedir}/%{name}-gitrpm.version --onlyver)
+./mandriva/modulize.py -n openerp-addons-koo %modulize_g -C %{release_class} -x addons/server_modules.list client-kde/server-modules/* > %{_specdir}/openerp-addons-koo.spec
+rm -f %{_builddir}/openerp-addons-koo-$(./mandriva/modulize.py %modulize_g --onlyver)
+ln -sf $(pwd)/client-kde/server-modules %{_builddir}/openerp-addons-koo-$(./mandriva/modulize.py %modulize_g --onlyver)
 
 echo "Prepared koo addons."
 
 %build
+%if %{use_git_clone}
+cd %{name}-%{version}
+%endif
+
 pushd client
 	%{NoDisplay} python ./setup.py build
 popd
@@ -274,6 +290,9 @@ pushd server
 popd
 
 %install
+%if %{use_git_clone}
+cd %{name}-%{version}
+%endif
 [ -n "%{buildroot}" -a "%{buildroot}" != / ] && rm -rf %{buildroot}
 
 pushd client
@@ -523,6 +542,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %{_mandir}/man5/openerp_serverrc.5*
 
 %pre server
+# todo: non-mandriva useradd
 %_pre_useradd openerp /var/spool/openerp /sbin/nologin
 
 %post server
