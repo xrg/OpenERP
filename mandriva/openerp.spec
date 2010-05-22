@@ -567,11 +567,8 @@ cat '-' <<EOF
 
 Important NOTE:
 
-Recently, the OpenERP user has changed
- from "tinyerp" to "openerp" !
-
-
-If you are upgrading from a previous build, please read 
+If you had ever installed the 5.0.1 version, the OpenERP user has
+changed from "tinyerp" to "openerp" ! Then, please read 
 %{_defaultdocdir}/%{name}-server-%{version}/README.userchange
 and carefully follow those instructions to migrate your system!
 
