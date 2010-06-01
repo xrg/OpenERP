@@ -231,9 +231,7 @@ Requires: openerp-addons-thunderbird
 With this demo, all necessary packages and modules for a complete OpenERP server
 and client are installed. The server also has a default database with some data.
 
-%if %{use_git_clone}
 %define modulize_g    -g %{_sourcedir}/%{name}-gitrpm.version
-%endif
 
 %prep
 %if %{use_git_clone}
