@@ -537,6 +537,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %{_bindir}/openerp-server
 %{python_sitelib}/openerp-server/
 %{_defaultdocdir}/%{name}-server-%{version}/
+%exclude %{_defaultdocdir}/%{name}-server-%{version}/demo
 %{_mandir}/man1/openerp-server.*
 %{py_puresitedir}/openerp_server-%{version}-py%{pyver}.egg-info
 %{_mandir}/man5/openerp_serverrc.5*
