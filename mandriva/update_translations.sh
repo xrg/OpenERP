@@ -7,7 +7,7 @@ fi
 
 EXPORT_DIR=$(mktemp -d) || exit $?
 OERP_CONF=~/openerp-server.conf
-OERP_DB=testdb
+OERP_DB=refdb
 
 declare -a ADDONS_PATH
 
@@ -37,6 +37,8 @@ pushd "$EXPORT_DIR"
 		MOD_FOUND=n
 		for ADDON_DIR in ${ADDONS_PATH[@]} ; do
 			if [ -d "$ADDON_DIR/$MODULE" ] ; then
+				[ -d "$ADDON_DIR/$MODULE/i18n/" ] || \
+				    mkdir -p "$ADDON_DIR/$MODULE/i18n/" || break
 				mv -f "$MODULE"/i18n/*.pot "$ADDON_DIR/$MODULE/i18n/"
 				MOD_FOUND=y
 				break
