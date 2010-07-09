@@ -36,6 +36,12 @@ import re
 
 from optparse import OptionParser
 
+def liget(lis, ind, default=None):
+    if len(lis) > ind:
+        return lis[ind]
+    else:
+        return default
+
 parser = OptionParser()
 parser.add_option("-q", "--quiet",
                   action="store_false", dest="verbose", default=True,
@@ -548,7 +554,6 @@ def http_request(host, path, user=None, method='GET', hdrs=None, body=None, dbg=
 	print "Getting %s http://%s/%s" % (method, host , path)
 	conn = httplib.HTTPConnection(host)
 	conn.set_debuglevel(dbg)
-	username = args[1]
 	if not path:
 	    path = "/index.html"
 	if not hdrs.has_key('Connection'):
@@ -628,6 +633,15 @@ def gd_getetag(args):
 
 	http_request(host,path,user,method='PROPFIND',hdrs=hdrs, body=body)
 
+def gd_options(args):
+	host = args[0]
+	user = liget(args, 1, None)
+	path = liget(args, 2, '*')
+        hdrs = { 'Content-Length': 0
+		}
+
+	http_request(host, path, user, method='OPTIONS', hdrs=hdrs)
+
 
 cmd = args[0]
 args = args[1:]
@@ -638,7 +652,7 @@ commands = { 'get' : simple_get , 'mget' : multi_get, 'aget': auth_get,
 	'rpc2': rpc2_generic, 'rpc2_about': rpc2_about,
 	'rpc-s': rpc_generic_s, 
 	'gd_propfind': gd_propfind, 'gd_propname': gd_propname, 
-	'gd_getetag': gd_getetag
+	'gd_getetag': gd_getetag, 'options': gd_options,
 	}
 
 if not commands.has_key(cmd):
