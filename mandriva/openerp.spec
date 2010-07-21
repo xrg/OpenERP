@@ -236,7 +236,7 @@ and client are installed. The server also has a default database with some data.
 %prep
 %if %{use_git_clone}
 %git_clone_source
-%git_prep_submodules
+%git_prep_submodules -f
 %else
 %git_get_source_sm
 %setup -q
