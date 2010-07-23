@@ -498,12 +498,20 @@ def rpc_generic(args):
 		print f.faultString
 
 def rpc2_generic(args):
+	""" Perform a generic call using xml-rpc2
+	
+	Examples:
+	    ./http-client.py rpc2 http://localhost:8069 db/refdb/object \
+		execute 'test_orm.virtual1' read 4
+	"""
+
 	import xmlrpclib
 
 	try:
 		trn = PersistentAuthTransport()
 		bac = BasicAuthClient()
 		bac.addLogin("OpenERP Admin", 'root', 'admin')
+		bac.addLogin("OpenERP User", 'admin', 'admin')
 		trn.setAuthClient(bac)
 		srv = ServerProxy(args[0]+'/xmlrpc2/'+args[1],
 			transport=trn, verbose=1)
