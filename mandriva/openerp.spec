@@ -1,5 +1,5 @@
 %define git_repo openerp
-%define git_head tests-52
+%define git_head xrg-60
 
 %define name openerp
 %define release_class experimental
@@ -12,7 +12,7 @@
 
 %if %mdkver > 200900
 %define build_kde	1
-%define build_web	0
+%define build_web	1
 %else
 %define build_kde	0
 %define build_web	0
