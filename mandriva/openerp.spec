@@ -312,15 +312,21 @@ pushd client-web
 	%{NoDisplay} python ./setup.py install --root=%{buildroot}
 popd
 	#remove the default init script
-rm %{buildroot}/usr/scripts/openerp-web
+rm %{buildroot}/usr/scripts/openobject-web
 
-mv %{buildroot}/%{python_sitelib}/openerp  %{buildroot}/%{python_sitelib}/openerp-web
-mv %{buildroot}/usr/config/openerp-web.cfg %{buildroot}/%{_sysconfdir}/openerp-web.cfg
+mv %{buildroot}/%{python_sitelib}/openobject  %{buildroot}/%{python_sitelib}/openerp-web
+mv %{buildroot}/usr/config/openobject-web.cfg %{buildroot}/%{_sysconfdir}/openerp-web.cfg
 mkdir -p %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
 mv %{buildroot}/usr/doc/ChangeLog %{buildroot}/usr/doc/LICENSE.txt \
 	%{buildroot}/usr/doc/README.txt \
 	 %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
 
+pushd %{buildroot}/%{_bindir}
+    mv openobject-web openerp-web
+popd
+
+%if 0 
+# FIXME: where are the web locales?
 pushd %{buildroot}/%{python_sitelib}/locales
 	rm -f messages.pot
 	for LOCFI in */LC_MESSAGES/messages.mo ; do
@@ -331,6 +337,8 @@ pushd %{buildroot}/%{python_sitelib}/locales
 		mv $LOCFI %{buildroot}/%{_prefix}/share/locale/$LFF/openerp-web.mo
 	done
 popd
+%endif
+
 %endif
 
 pushd server
@@ -397,9 +405,18 @@ pushd %{buildroot}/%{_defaultdocdir}
 	if [ -d %{name}-server-* ] ; then
 		mv %{name}-server-* %{name}-server-%{version}
 	fi
+	if [ -d %{name}-client-web-* ] ; then
+		# put it aside, first
+		mv %{name}-client-web-* %{name}-clientweb-%{version}
+	fi
 	if [ -d %{name}-client-* ] ; then
 		mv %{name}-client-* %{name}-client-%{version}
 	fi
+	if [ -d %{name}-clientweb-%{version} ] ; then
+		# now, move it to the right place
+		mv %{name}-clientweb-%{version} %{name}-client-web-%{version}
+	fi
+
 popd
 install -m 644 -D server/doc/openerp-server.conf %{buildroot}%{_sysconfdir}/openerp-server.conf
 install -m 755 -D server/doc/openerp-server.init %{buildroot}%{_initrddir}/openerp-server
@@ -422,6 +439,9 @@ install -m 644 server/bin/addons/base/security/* %{buildroot}%{python_sitelib}/o
 pushd %{buildroot}%{python_sitelib}
 	if [ -f openerp_client-*-py%{pyver}.egg-info ] ; then
 		mv openerp_client-*-py%{pyver}.egg-info openerp_client-%{version}-py%{pyver}.egg-info
+	fi
+	if [ -r openobject_web-*-py%{pyver}.egg-info ] ; then
+		mv openobject_web-*-py%{pyver}.egg-info openerp_web-%{version}-py%{pyver}.egg-info
 	fi
 	if [ -f openerp_server-*-py%{pyver}.egg-info ] ; then
 		mv openerp_server-*-py%{pyver}.egg-info openerp_server-%{version}-py%{pyver}.egg-info
