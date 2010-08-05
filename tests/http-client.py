@@ -33,6 +33,7 @@ import os
 import glob
 import subprocess
 import re
+import gzip
 
 from optparse import OptionParser
 
@@ -110,7 +111,22 @@ class PersistentTransport(Transport):
 
         p, u = self.getparser()
 
-	while not response.isclosed():
+	if response.msg.get('content-encoding') == 'gzip':
+	    gzdata = StringIO.StringIO()
+	    while not response.isclosed():
+		rdata = response.read(1024)
+		if not rdata:
+		    break
+		gzdata.write(rdata)
+	    gzdata.seek(0)
+	    rbuffer = gzip.GzipFile(mode='rb', fileobj=gzdata)
+	    while True:
+		respdata = rbuffer.read()
+		if not respdata:
+		    break
+		p.feed(respdata)
+	else:
+	    while not response.isclosed():
 		rdata = response.read(1024)
 		if not rdata:
 			break
@@ -156,6 +172,28 @@ class PersistentTransport(Transport):
             sock = None
 
         return self._parse_response(h.getfile(), sock, resp)
+
+class CompressedTransport(PersistentTransport):
+    def send_content(self, connection, request_body):
+        connection.putheader("Content-Type", "text/xml")
+        
+        if len(request_body) > 512 or True:
+            buffer = StringIO.StringIO()
+            output = gzip.GzipFile(mode='wb', fileobj=buffer)
+            output.write(request_body)
+            output.close()
+            buffer.seek(0)
+            request_body = buffer.getvalue()
+            connection.putheader('Content-Encoding', 'gzip')
+
+        connection.putheader("Content-Length", str(len(request_body)))
+        connection.putheader("Accept-Encoding",'gzip')
+        connection.endheaders()
+        if request_body:
+            connection.send(request_body)
+
+    def send_request(self, connection, handler, request_body):
+        connection.putrequest("POST", handler, skip_accept_encoding=1)
 
 class SafePersistentTransport(PersistentTransport):
     def make_connection(self, host):
@@ -274,6 +312,8 @@ class addAuthTransport:
 class PersistentAuthTransport(addAuthTransport,PersistentTransport):
     pass
 
+class PersistentAuthCTransport(addAuthTransport,CompressedTransport):
+    pass
 
 def simple_get(args):
 	print "Getting http://%s" % args[0]
@@ -497,7 +537,7 @@ def rpc_generic(args):
 		print "Fault:",f.faultCode
 		print f.faultString
 
-def rpc2_generic(args):
+def rpc2_generic(args, gzip=False):
 	""" Perform a generic call using xml-rpc2
 	
 	Examples:
@@ -508,7 +548,10 @@ def rpc2_generic(args):
 	import xmlrpclib
 
 	try:
-		trn = PersistentAuthTransport()
+		if gzip:
+		    trn = PersistentAuthCTransport()
+		else:
+		    trn = PersistentAuthTransport()
 		bac = BasicAuthClient()
 		bac.addLogin("OpenERP Admin", 'root', 'admin')
 		bac.addLogin("OpenERP User", 'admin', 'admin')
@@ -549,7 +592,10 @@ def rpc_generic_s(args):
 		print f.faultString
 
 def rpc2_about(args):
-	rpc2_generic( [args[0], 'pub/common', 'about'] )
+	rpc2_generic( [args[0], 'pub/common', 'about'], gzip=False)
+
+def rpc2_gabout(args):
+	rpc2_generic( [args[0], 'pub/common', 'about'], gzip=True)
 
 def http_request(host, path, user=None, method='GET', hdrs=None, body=None, dbg=2):
 	if not hdrs:
@@ -659,6 +705,7 @@ commands = { 'get' : simple_get , 'mget' : multi_get, 'aget': auth_get,
 	'rpc': rpc_generic, 'rabout_m': rpc_about_m,
 	'rpc2': rpc2_generic, 'rpc2_about': rpc2_about,
 	'rpc-s': rpc_generic_s, 
+	'rpc2_gabout': rpc2_gabout,
 	'gd_propfind': gd_propfind, 'gd_propname': gd_propname, 
 	'gd_getetag': gd_getetag, 'options': gd_options,
 	}
