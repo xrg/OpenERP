@@ -284,7 +284,7 @@ popd
 %endif
 
 pushd server
-%{NoDisplay} python ./setup.py build
+	NO_INSTALL_REQS=1 %{NoDisplay} python ./setup.py build
 popd
 
 %install
