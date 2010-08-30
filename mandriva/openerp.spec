@@ -312,17 +312,14 @@ pushd client-web
 	%{NoDisplay} python ./setup.py install --root=%{buildroot}
 popd
 	#remove the default init script
-rm %{buildroot}/usr/scripts/openobject-web
 
-mv %{buildroot}/%{python_sitelib}/openobject  %{buildroot}/%{python_sitelib}/openerp-web
-mv %{buildroot}/usr/config/openobject-web.cfg %{buildroot}/%{_sysconfdir}/openerp-web.cfg
+#mv %{buildroot}/%{python_sitelib}/openobject  %{buildroot}/%{python_sitelib}/openerp-web
 mkdir -p %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
-mv %{buildroot}/usr/doc/ChangeLog %{buildroot}/usr/doc/LICENSE.txt \
-	%{buildroot}/usr/doc/README.txt \
-	 %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
 
-pushd %{buildroot}/%{_bindir}
-    mv openobject-web openerp-web
+pushd %{buildroot}/%{python_sitelib}/openerp-web/
+	mv doc/ChangeLog doc/LICENSE.txt doc/README.txt \
+		%{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
+	mv doc/openerp-web.cfg %{buildroot}/%{_sysconfdir}/openerp-web.cfg
 popd
 
 %if 0 
@@ -440,10 +437,10 @@ pushd %{buildroot}%{python_sitelib}
 	if [ -f openerp_client-*-py%{pyver}.egg-info ] ; then
 		mv openerp_client-*-py%{pyver}.egg-info openerp_client-%{version}-py%{pyver}.egg-info
 	fi
-	if [ -r openobject_web-*-py%{pyver}.egg-info ] ; then
-		mv openobject_web-*-py%{pyver}.egg-info openerp_web-%{version}-py%{pyver}.egg-info
+	if [ -r openerp_web-*-py%{pyver}.egg-info ] ; then
+		mv openerp_web-*-py%{pyver}.egg-info openerp_web-%{version}-py%{pyver}.egg-info
 	fi
-	if [ -f openerp_server-*-py%{pyver}.egg-info ] ; then
+	if [ -r openerp_server-*-py%{pyver}.egg-info ] ; then
 		mv openerp_server-*-py%{pyver}.egg-info openerp_server-%{version}-py%{pyver}.egg-info
 	fi
 popd
