@@ -432,6 +432,8 @@ install -m 644 server/bin/import_xml.rng %{buildroot}%{python_sitelib}/openerp-s
 install -d %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 install -m 644 server/bin/addons/base/security/* %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 
+ln -sf %{python_sitelib}/openerp-server/pixmaps %{buildroot}/%{_datadir}/pixmaps/openerp-server
+
 #temp fixes for alpha builds
 pushd %{buildroot}%{python_sitelib}
 	if [ -f openerp_client-*-py%{pyver}.egg-info ] ; then
@@ -553,6 +555,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/logrotate.d/openerp-server
 %{_bindir}/openerp-server
 %{python_sitelib}/openerp-server/
+%{_datadir}/pixmaps/openerp-server/
 %{_defaultdocdir}/%{name}-server-%{version}/
 %exclude %{_defaultdocdir}/%{name}-server-%{version}/demo
 %{_mandir}/man1/openerp-server.*
