@@ -424,7 +424,7 @@ install -m 755 -D server/doc/README.userchange %{buildroot}%{_defaultdocdir}/%{n
 install -d %{buildroot}%{_sysconfdir}/openerp/start.d
 install -d %{buildroot}%{_sysconfdir}/openerp/stop.d
 
-install -m 750 -D server/bin/ssl/cert.cfg %{buildroot}%{_sysconfdir}/openerp/cert.cfg
+install -m 750 -D server/ssl-cert.cfg %{buildroot}%{_sysconfdir}/openerp/cert.cfg
 
 install -m 644 server/bin/import_xml.rng %{buildroot}%{python_sitelib}/openerp-server/
 # mv %{buildroot}%{_prefix}/import_xml.rng %{buildroot}%{python_sitelib}/openerp-server/
