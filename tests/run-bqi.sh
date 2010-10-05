@@ -17,12 +17,17 @@ if [ "$1" == '-n' ] ; then
     shift 1
 fi
 
+LAST_STEP=
 INST_CMD=install-module
 if  [ "$1" == '-u' ] ;then
     INST_CMD=upgrade-module
     shift 1
 fi
 
+if [ "$1" == '-C' ] ; then
+    INST_CMD="check-quality"
+    shift 1
+fi
 
 if [ -z "$1" ] ; then
     MODULES="hr sale purchase"
@@ -31,11 +36,10 @@ else
 fi
 
 
-
-./buildbot/openerp_buildbot_slave/base_quality_interrogation.py -p 8169 -d test_bqi \
+./buildbot/openerp_buildbot_slave/base_quality_interrogation.py -Wall -p 8169 -d test_bqi \
     --server-series=pg84 --homedir=./ $BQI_DEBUG \
     --machine-log=stdout --addons-path=./addons --root-path=./server/bin/ \
-    -- $RECREATE_DB $INST_CMD $MODULES  | \
+    -- $RECREATE_DB $INST_CMD $MODULES | \
     tee test-bqi.log
 
 #eof
