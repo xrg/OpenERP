@@ -34,6 +34,7 @@ import glob
 import subprocess
 import re
 import gzip
+import xml.dom.minidom
 
 from optparse import OptionParser
 
@@ -642,9 +643,23 @@ def http_request(host, path, user=None, method='GET', hdrs=None, body=None, dbg=
 			
 	print "Reponse:",r1.status, r1.reason
 	data1 = r1.read()
+	did_print = False
 	print "Body:"
 	print data1
 	print "End of body\n"
+	try:
+	    ctype = r1.msg.getheader('content-type')
+	    if ctype and ';' in ctype:
+		ctype, encoding = ctype.split(';',1)
+	    if ctype == 'text/xml':
+		doc = xml.dom.minidom.parseString(data1)
+		print "XML Body:"
+		print doc.toprettyxml(indent="\t")
+		print
+		did_print = True
+	except Exception, e:
+	    print "could not", e
+	    pass
 	conn.close()
 	
 
@@ -669,7 +684,7 @@ def gd_propname(args):
 	    <propfind xmlns="DAV:"><propname/></propfind>"""
         hdrs = { 'Content-Type': 'text/xml; charset=utf-8',
 		'Accept': 'text/xml',
-		'Depth': 1
+		'Depth': 0
 		}
 
 	http_request(host,path,user,method='PROPFIND',hdrs=hdrs, body=body)
@@ -696,6 +711,32 @@ def gd_options(args):
 
 	http_request(host, path, user, method='OPTIONS', hdrs=hdrs)
 
+def gd_report(args):
+	host = args[0]
+	user = args[1]
+	path = args[2]
+	body="""<?xml version="1.0" encoding="utf-8"?>
+<x0:calendar-query xmlns:x1="DAV:" xmlns:x0="urn:ietf:params:xml:ns:caldav">
+  <x1:prop>
+    <x1:getetag/>
+    <x1:resourcetype/>
+  </x1:prop>
+  <x0:filter>
+    <x0:comp-filter name="VCALENDAR">
+      <x0:comp-filter name="VEVENT">
+        <x0:time-range start="20100830T220000Z"/>
+      </x0:comp-filter>
+    </x0:comp-filter>
+  </x0:filter>
+</x0:calendar-query>
+"""
+        hdrs = { 'Content-Type': 'text/xml; charset=utf-8',
+		'Accept': 'text/xml',
+		'Depth': 1
+		}
+
+	http_request(host,path,user,method='REPORT',hdrs=hdrs, body=body)
+
 
 cmd = args[0]
 args = args[1:]
@@ -708,6 +749,7 @@ commands = { 'get' : simple_get , 'mget' : multi_get, 'aget': auth_get,
 	'rpc2_gabout': rpc2_gabout,
 	'gd_propfind': gd_propfind, 'gd_propname': gd_propname, 
 	'gd_getetag': gd_getetag, 'options': gd_options,
+	'gd_report': gd_report,
 	}
 
 if not commands.has_key(cmd):
