@@ -122,6 +122,7 @@ Requires:       python-pytz
 Requires:       python-cherrypy, python-formencode
 Requires:       python-simplejson, python-mako
 Requires:	python-Babel
+Requires:	python-pkg-resources
 
 %description client-web
 OpenERP Web is the web client of the OpenERP, a free enterprise management 
@@ -319,7 +320,7 @@ mkdir -p %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
 pushd %{buildroot}/%{python_sitelib}/openerp-web/
 	mv doc/ChangeLog doc/LICENSE.txt doc/README.txt \
 		%{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
-	mv doc/openerp-web.cfg %{buildroot}/%{_sysconfdir}/openerp-web.cfg
+	mv doc/openerp-web.mdv.cfg %{buildroot}/%{_sysconfdir}/openerp-web.cfg
 popd
 
 %if 0 
@@ -449,7 +450,7 @@ popd
 
 %if %{build_web}
  #some files for the web-client
-install -D client-web/openerp-web.mdv %{buildroot}/%{_initrddir}/%{name}-web
+install -D client-web/scripts/init.d/openerp-web %{buildroot}/%{_initrddir}/%{name}-web
 %endif
 
 mkdir -p %{buildroot}/var/log/openerp
