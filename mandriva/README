@@ -1,4 +1,4 @@
-Description of the Mandriva scripts for OpenERP RPM builds.
+Description of the Mandriva/Mageia scripts for OpenERP RPM builds.
 
 Note: (before you make the question) These scripts have originally been
 written in order to build Mandriva RPMS. However, they could be reused
@@ -32,7 +32,7 @@ may add in the future). So, these spec files will need us to re-issue
 the rpmbuild command for them.
 Hint: after "rpmbuild -bp SPECS/openerp.spec" (and before any further
 build), you can issue the "rpmbuild -b? SPECS/openerp-addons.spec" and
-shortcut to build the addons.
+shortcut to build the addons. Same for extra-addons, koo-addons.
 
 At the addons (the main, only, so far), there is a "server_modules.list"
 file. This contains a plain list of modules that should be _included_
