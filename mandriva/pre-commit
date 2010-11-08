@@ -1,0 +1,78 @@
+#!/bin/bash
+#
+
+if [ -n "$NO_LINT" ] ; then
+        exit 0
+fi
+
+#USAGE=cd_to_toplevel SUBDIRECTORY_OK=y . $(git --exec-path)/git-sh-setup  
+if [ -r $GIT_DIR/info/pre-commit.conf ] ; then
+    . $GIT_DIR/info/pre-commit.conf
+fi
+
+GITLINT_FAILED=$GIT_DIR/lint-failed
+
+git diff --cached --name-only  --diff-filter=AM | \
+while read FNAME ; do
+	case $(basename "$FNAME") in
+	*.py)
+		~/bin/pyflakes2.py "$FNAME" ; EXIT=$?
+		
+		if [ "$EXIT" == 1 ]; then
+			echo "Pyflakes failed for: $FNAME"
+			exit 1
+		elif [ "$EXIT" == 3 ] ; then
+			echo "Please correct $FNAME"
+			echo "$FNAME" >> $GITLINT_FAILED
+		fi
+		if grep -HnF -m 10 '*-*' "$FNAME" ; then
+		    echo "Not ready to commit"
+		    exit 1
+		fi
+		if [ "$ALLOW_PYTABS" != "y" ] && grep -HnP -m 10 '^ *\t' "$FNAME" ; then
+			echo "You used tabs in $FNAME. Please expand them"
+			exit 1
+		fi
+	;;
+	*.xml)
+		if grep -HnF -m 10 '*-*' "$FNAME" ; then
+		    echo "Not ready to commit"
+		    exit 1
+		fi
+		if ! xmllint --noout --nowarning "$FNAME" ; then
+			echo "XmlLint failed for: $FNAME"
+			exit 1
+		fi
+	;;
+	*.rml)
+		if ! xmllint --noout --nowarning "$FNAME" ; then
+			echo "XmlLint failed for: $FNAME"
+			exit 1
+		fi
+	;;
+	*.po)
+		msgfmt -c "$FNAME" -o /dev/null || exit $?
+	;;
+	*.pot)
+		msgfmt -c "$FNAME" -o /dev/null || exit $?
+	;;
+	*.yml)
+		if [ "$ALLOW_PYTABS" != "y" ] && grep -HnP -m 10 '^ *\t' "$FNAME" ; then
+			echo "You used tabs in $FNAME. Please expand them"
+			exit 1
+		fi
+	;;
+	*.png)
+		true
+	;;
+	*.zip)
+	    if ! unzip -t -q "$FNAME" ; then
+		exit $?
+	    fi
+	;;
+	*)
+		echo "No lint for $FNAME"
+		;;
+	esac
+	
+done

@@ -24,7 +24,7 @@
 %define build_web	0
 %endif
 
-%define use_git_clone	0
+%define use_git_clone	1
 
 %{?_without_kde:	%global build_kde 0}
 %{?_with_kde:		%global build_kde 1}
@@ -36,6 +36,14 @@
 %define __find_requires   %{u2p:%{_builddir}}/%{name}-%{git_get_ver}/mandriva/find-requires.sh
 
 %{?_use_clone:	%global use_git_clone 1}
+%{?_use_tarball: %global use_git_clone 0}
+
+%if %{use_git_clone}
+%define clone_prefixdir %{name}-%{version}/
+%else
+%define clone_prefixdir ./
+%endif
+
 
 Name:		%name
 Version:	%{git_get_ver}
@@ -61,7 +69,6 @@ BuildRequires:	python-psycopg2, python-dot, python-pychart
 BuildRequires:	 pygtk2-devel, libxslt-python, mx
 %endif
 %endif
-
 
 %description
 Open ERP is a free enterprise management software package. It
@@ -429,6 +436,7 @@ install -m 750 -D server/ssl-cert.cfg %{buildroot}%{_sysconfdir}/openerp/cert.cf
 
 install -m 644 server/bin/import_xml.rng %{buildroot}%{python_sitelib}/openerp-server/
 # mv %{buildroot}%{_prefix}/import_xml.rng %{buildroot}%{python_sitelib}/openerp-server/
+install -m 744 server/tools/server-check.sh %{buildroot}%{python_sitelib}/openerp-server/
 
 install -d %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 install -m 644 server/bin/addons/base/security/* %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
@@ -462,7 +470,7 @@ install -m 744 mandriva/prep_database.sh %{buildroot}%{_defaultdocdir}/%{name}-s
 install -m 644 mandriva/demodb.sql %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/demo/
 
 pushd %{buildroot}%{_sysconfdir}/openerp/start.d
-cat >30start-demo <<EOF 
+cat >30start-demo <<EOF
 #!/bin/bash
 
 # service postgresql start
@@ -473,6 +481,8 @@ popd > /dev/null
 # service openerp restart
 
 EOF
+
+ln -s %{python_sitelib}/openerp-server/server-check.sh ./10server-check
 popd
 
 %clean
@@ -483,7 +493,7 @@ rm -rf %{buildroot}
 %{_defaultdocdir}/%{name}-%{version}/README.urpmi
 
 %if %{build_web}
-%files client-web -f %{name}-%{version}/%{name}-web.lang
+%files client-web -f %{clone_prefixdir}%{name}-web.lang
 %doc
 %defattr(-,root,root)
 %{_bindir}/openerp-web
@@ -494,7 +504,7 @@ rm -rf %{buildroot}
 %{py_puresitedir}/openerp_web-*-py%{pyver}.egg-info
 %endif
 
-%files client -f %{name}-%{version}/%{name}-client.lang
+%files client -f %{clone_prefixdir}%{name}-client.lang
 %doc
 %defattr(-,root,root)
 %{_bindir}/openerp-client
@@ -507,7 +517,7 @@ rm -rf %{buildroot}
 %{py_puresitedir}/openerp_client-%{version}-py%{pyver}.egg-info
 
 %if %{build_kde}
-%files client-kde -f %{name}-%{version}/koo.lang
+%files client-kde -f %{clone_prefixdir}koo.lang
 %doc
 %defattr(-,root,root)
 %{_bindir}/koo
@@ -527,8 +537,6 @@ rm -rf %{buildroot}
 
 %files serverinit
 %defattr(-,root,root)
-	%dir 		%{_sysconfdir}/openerp/start.d/
-	%dir 		%{_sysconfdir}/openerp/stop.d/
 
 %files alldemo
 %defattr(-,root,root)
@@ -554,6 +562,9 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %{_initrddir}/openerp-server
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp-server.conf
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/logrotate.d/openerp-server
+	%dir 		%{_sysconfdir}/openerp/start.d/
+	%dir 		%{_sysconfdir}/openerp/stop.d/
+%attr(0755,root,root)	%{_sysconfdir}/openerp/start.d/10server-check
 %{_bindir}/openerp-server
 %{python_sitelib}/openerp-server/
 %{_datadir}/pixmaps/openerp-server/
@@ -583,16 +594,8 @@ if [ ! -r "%{_sysconfdir}/openerp/server.cert" ] ; then
 	fi
 fi
 
-cat '-' <<EOF
-
-Important NOTE:
-
-If you had ever installed the 5.0.1 version, the OpenERP user has
-changed from "tinyerp" to "openerp" ! Then, please read 
-%{_defaultdocdir}/%{name}-server-%{version}/README.userchange
-and carefully follow those instructions to migrate your system!
-
-EOF
+# Trigger the server-check.sh the next time openerp-server starts
+touch /var/run/openerp-server-check
 
 %_post_service openerp-server
 
