@@ -319,16 +319,28 @@ mkdir -p %{buildroot}/%{_sysconfdir}
 pushd client-web
 	%{NoDisplay} python ./setup.py install --root=%{buildroot}
 popd
-	#remove the default init script
 
-#mv %{buildroot}/%{python_sitelib}/openobject  %{buildroot}/%{python_sitelib}/openerp-web
-mkdir -p %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
+#remove the default init script
 
-pushd %{buildroot}/%{python_sitelib}/openerp-web/
-	mv doc/ChangeLog doc/LICENSE.txt doc/README.txt \
-		%{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
-	mv doc/openerp-web.mdv.cfg %{buildroot}/%{_sysconfdir}/openerp-web.cfg
+pushd %{buildroot}/%{python_sitelib}
+    if [ -d openobject ] ; then
+	mv openobject openerp-web
+    fi
+    mv addons openerp-web/addons
 popd
+
+if [ -d %{buildroot}/usr/doc/openerp-web ] ; then
+    mkdir -p %{buildroot}/%{_defaultdocdir}/
+    mv %{buildroot}/usr/doc/openerp-web/openerp-web.mdv.cfg %{buildroot}/%{_sysconfdir}/openerp-web.cfg
+    mv %{buildroot}/usr/doc/openerp-web  %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
+else
+    mkdir -p %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
+    pushd %{buildroot}/%{python_sitelib}/openerp-web/
+	    mv doc/ChangeLog doc/LICENSE.txt doc/README.txt \
+		    %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
+	    mv doc/openerp-web.mdv.cfg %{buildroot}/%{_sysconfdir}/openerp-web.cfg
+    popd
+fi
 
 %if 0 
 # FIXME: where are the web locales?
