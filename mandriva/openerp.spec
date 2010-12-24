@@ -2,7 +2,7 @@
 %define git_head xrg-60
 
 %define name openerp
-%define release_class experimental
+%define release_class pub
 
 %{?!pyver: %define pyver %(python -c 'import sys;print(sys.version[0:3])')}
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
@@ -317,6 +317,8 @@ mkdir -p %{buildroot}/%{_sysconfdir}
 
 %if %{build_web}
 pushd client-web
+# 	  First, compile all the i18n messages
+	%{NoDisplay} python ./admin.py i18n -c ALL
 	%{NoDisplay} python ./setup.py install --root=%{buildroot}
 popd
 
