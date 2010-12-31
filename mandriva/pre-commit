@@ -12,54 +12,58 @@ fi
 
 GITLINT_FAILED=$GIT_DIR/lint-failed
 
-git diff --cached --name-only  --diff-filter=AM | \
-while read FNAME ; do
+
+fparse() {
+    let -i ERRORS=0
+    let -i WARNINGS=0
+    while read FNAME ; do
 	case $(basename "$FNAME") in
 	*.py)
 		~/bin/pyflakes2.py "$FNAME" ; EXIT=$?
 		
 		if [ "$EXIT" == 1 ]; then
 			echo "Pyflakes failed for: $FNAME"
-			exit 1
+			(( ERRORS++ ))
 		elif [ "$EXIT" == 3 ] ; then
 			echo "Please correct $FNAME"
+			(( WARNINGS ++ ))
 			echo "$FNAME" >> $GITLINT_FAILED
 		fi
 		if grep -HnF -m 10 '*-*' "$FNAME" ; then
 		    echo "Not ready to commit"
-		    exit 1
+		    (( ERRORS++ ))
 		fi
 		if [ "$ALLOW_PYTABS" != "y" ] && grep -HnP -m 10 '^ *\t' "$FNAME" ; then
 			echo "You used tabs in $FNAME. Please expand them"
-			exit 1
+			(( ERRORS++ ))
 		fi
 	;;
 	*.xml)
 		if grep -HnF -m 10 '*-*' "$FNAME" ; then
 		    echo "Not ready to commit"
-		    exit 1
+		    (( ERRORS++ ))
 		fi
 		if ! xmllint --noout --nowarning "$FNAME" ; then
 			echo "XmlLint failed for: $FNAME"
-			exit 1
+			(( ERRORS++ ))
 		fi
 	;;
 	*.rml)
 		if ! xmllint --noout --nowarning "$FNAME" ; then
 			echo "XmlLint failed for: $FNAME"
-			exit 1
+			(( ERRORS++ ))
 		fi
 	;;
 	*.po)
-		msgfmt -c "$FNAME" -o /dev/null || exit $?
+		msgfmt -c "$FNAME" -o /dev/null || (( ERRORS++ ))
 	;;
 	*.pot)
-		msgfmt -c "$FNAME" -o /dev/null || exit $?
+		msgfmt -c "$FNAME" -o /dev/null || (( ERRORS++ ))
 	;;
 	*.yml)
 		if [ "$ALLOW_PYTABS" != "y" ] && grep -HnP -m 10 '^ *\t' "$FNAME" ; then
 			echo "You used tabs in $FNAME. Please expand them"
-			exit 1
+			(( ERRORS++ ))
 		fi
 	;;
 	*.png)
@@ -67,7 +71,12 @@ while read FNAME ; do
 	;;
 	*.zip)
 	    if ! unzip -t -q "$FNAME" ; then
-		exit $?
+		(( ERRORS++ ))
+	    fi
+	;;
+	*.jar)
+	    if ! unzip -t -q "$FNAME" ; then
+		(( ERRORS++ ))
 	    fi
 	;;
 	*)
@@ -75,4 +84,15 @@ while read FNAME ; do
 		;;
 	esac
 	
-done
+    done
+
+    if (( ERRORS > 0 )) ; then
+	echo "Found $ERRORS errors, $WARNINGS warnings"
+	exit 1
+    fi
+}
+
+git diff --cached --name-only  --diff-filter=AM | fparse
+
+
+#eof
