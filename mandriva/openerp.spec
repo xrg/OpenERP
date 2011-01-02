@@ -325,10 +325,7 @@ popd
 #remove the default init script
 
 pushd %{buildroot}/%{python_sitelib}
-    if [ -d openobject ] ; then
-	mv openobject openerp-web
-    fi
-    mv addons openerp-web/addons
+    mv addons openobject/addons
 popd
 
 if [ -d %{buildroot}/usr/doc/openerp-web ] ; then
@@ -337,7 +334,7 @@ if [ -d %{buildroot}/usr/doc/openerp-web ] ; then
     mv %{buildroot}/usr/doc/openerp-web  %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
 else
     mkdir -p %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
-    pushd %{buildroot}/%{python_sitelib}/openerp-web/
+    pushd %{buildroot}/%{python_sitelib}/openobject/
 	    mv doc/ChangeLog doc/LICENSE.txt doc/README.txt \
 		    %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
 	    mv doc/openerp-web.mdv.cfg %{buildroot}/%{_sysconfdir}/openerp-web.cfg
@@ -459,11 +456,8 @@ ln -sf %{python_sitelib}/openerp-server/pixmaps %{buildroot}/%{_datadir}/pixmaps
 
 #temp fixes for alpha builds
 pushd %{buildroot}%{python_sitelib}
-	if [ -f openerp_client-*-py%{pyver}.egg-info ] ; then
+	if [ -r openerp_client-*-py%{pyver}.egg-info ] ; then
 		mv openerp_client-*-py%{pyver}.egg-info openerp_client-%{version}-py%{pyver}.egg-info
-	fi
-	if [ -r openerp_web-*-py%{pyver}.egg-info ] ; then
-		mv openerp_web-*-py%{pyver}.egg-info openerp_web-%{version}-py%{pyver}.egg-info
 	fi
 	if [ -r openerp_server-*-py%{pyver}.egg-info ] ; then
 		mv openerp_server-*-py%{pyver}.egg-info openerp_server-%{version}-py%{pyver}.egg-info
@@ -510,10 +504,10 @@ rm -rf %{buildroot}
 %files client-web -f %{clone_prefixdir}%{name}-web.lang
 %doc
 %defattr(-,root,root)
-%{_bindir}/openerp-web
+%attr(0755,root, root) %{_bindir}/openerp-web
 %attr(0755,root,root) %{_initrddir}/openerp-web
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp-web.cfg
-%{python_sitelib}/openerp-web/
+%{python_sitelib}/openobject/
 %{_defaultdocdir}/%{name}-client-web-%{version}/
 %{py_puresitedir}/openerp_web-*-py%{pyver}.egg-info
 %endif
