@@ -69,6 +69,8 @@ parser.add_option("-n", "--name",
                   dest="name",
                   help="The name of the base package (openerp-addons)",
                   metavar = "NAME")
+parser.add_option("--skip-unnamed", dest="skip_unnamed", action="store_true", default=False,
+                  help="Relax checks and tolerate name errors, skipping addons")
 
 (options, args) = parser.parse_args()
 
@@ -234,6 +236,8 @@ def fmt_spec(name,info,allnames):
 	    allnames is a list with all supplied names
 	"""
 	if ('name' not in info) : return ""
+	if options.skip_unnamed and not info['name']:
+	    return ""
 	if ('installable' in info) and not info['installable']:
 	    return ""
 	nii = "\n"
