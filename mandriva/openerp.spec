@@ -141,7 +141,7 @@ software: accounting, stock, manufacturing, project mgt...
 Group:		System/Servers
 Summary:	OpenERP Server
 Requires:	pygtk2.0, pygtk2.0-libglade
-Requires:	python-psycopg, python-libxslt, python-lxml
+Requires:	python-libxslt, python-lxml
 Requires:	postgresql-plpython >= 8.2
 Requires:	python-imaging
 Requires:	python-psycopg2, python-reportlab
@@ -584,7 +584,14 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 
 %pre server
 # todo: non-mandriva useradd
+%if %{_target_vendor} == mandriva
 %_pre_useradd openerp /var/spool/openerp /sbin/nologin
+%else
+#getent group GROUPNAME >/dev/null || groupadd -r GROUPNAME
+    getent passwd openerp >/dev/null || \
+        useradd -r -d /var/spool/openerp -s /sbin/nologin \
+        -c "OpenERP Server" openerp
+%endif
 
 %post server
 if [ ! -r "%{_sysconfdir}/openerp/server.cert" ] ; then
@@ -605,14 +612,32 @@ fi
 # Trigger the server-check.sh the next time openerp-server starts
 touch /var/run/openerp-server-check
 
+%if %{_target_vendor} == mandriva
 %_post_service openerp-server
+%else
+/sbin/chkconfig --add openerp-server
+%endif
 
 %preun server
+%if %{_target_vendor} == mandriva
 %_preun_service openerp-server
+%else
+if [ $1 = 0 ] ; then
+    /sbin/service openerp-server stop >/dev/null 2>&1
+    /sbin/chkconfig --del openerp-server
+fi
+%endif
+
 
 %postun server
+%if %{_target_vendor} == mandriva
 %_postun_service openerp-server
 %_postun_userdel openerp
+%else
+if [ "$1" -ge "1" ] ; then
+    /sbin/service openerp-server condrestart >/dev/null 2>&1 || :
+fi
+%endif
 
 %post serverinit
 chkconfig postgresql on
