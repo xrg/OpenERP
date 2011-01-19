@@ -1,6 +1,5 @@
 %define git_repo openerp
-%define git_head xrg-60
-
+%define git_head official
 %define name openerp
 %define release_class pub
 
