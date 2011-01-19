@@ -250,23 +250,34 @@ and client are installed. The server also has a default database with some data.
 %endif
 
 echo "Preparing for addons build.."
+if [ ! -f addons/server_modules.list ] ; then
+	pushd addons
+		echo > server_modules.list
+		for ADD_DIR in * ; do
+		    [ -d "$ADD_DIR" ] && [ -r "$ADD_DIR"/__openerp__.py ] && echo "$ADD_DIR" >> server_modules.list
+		done
+	popd
+fi
+
 ./mandriva/modulize.py -C %{release_class} %modulize_g -x addons/server_modules.list addons/* > %{_specdir}/openerp-addons.spec
 rm -f %{_builddir}/openerp-addons-$(./mandriva/modulize.py %modulize_g --onlyver)
 ln -sf $(pwd)/addons %{_builddir}/openerp-addons-$(./mandriva/modulize.py %modulize_g --onlyver)
 echo "Prepared addons"
 
 echo "Preparing for extra addons build.."
-./mandriva/modulize.py -C %{release_class} -n openerp-extra-addons %modulize_g -x addons/server_modules.list extra-addons/* > %{_specdir}/openerp-extra-addons.spec
+./mandriva/modulize.py -C %{release_class} -n openerp-extra-addons %modulize_g -x addons/server_modules.list --skip-unnamed  extra-addons/* > %{_specdir}/openerp-extra-addons.spec
 rm -f %{_builddir}/openerp-extra-addons-$(./mandriva/modulize.py %modulize_g --onlyver)
 ln -sf $(pwd)/extra-addons %{_builddir}/openerp-extra-addons-$(./mandriva/modulize.py %modulize_g --onlyver)
 echo "Prepared extra addons"
 
+%if %{build_kde}
 echo "Preparing koo addons.."
-./mandriva/modulize.py -n openerp-addons-koo %modulize_g -C %{release_class} -x addons/server_modules.list client-kde/server-modules/* > %{_specdir}/openerp-addons-koo.spec
+./mandriva/modulize.py -n openerp-addons-koo %modulize_g -C %{release_class} -x addons/server_modules.list --skip-unnamed  client-kde/server-modules/* > %{_specdir}/openerp-addons-koo.spec
 rm -f %{_builddir}/openerp-addons-koo-$(./mandriva/modulize.py %modulize_g --onlyver)
 ln -sf $(pwd)/client-kde/server-modules %{_builddir}/openerp-addons-koo-$(./mandriva/modulize.py %modulize_g --onlyver)
 
 echo "Prepared koo addons."
+%endif
 
 %build
 %if %{use_git_clone}
@@ -446,7 +457,7 @@ install -m 750 -D server/ssl-cert.cfg %{buildroot}%{_sysconfdir}/openerp/cert.cf
 
 install -m 644 server/bin/import_xml.rng %{buildroot}%{python_sitelib}/openerp-server/
 # mv %{buildroot}%{_prefix}/import_xml.rng %{buildroot}%{python_sitelib}/openerp-server/
-install -m 744 server/tools/server-check.sh %{buildroot}%{python_sitelib}/openerp-server/
+# install -m 744 server/tools/server-check.sh %{buildroot}%{python_sitelib}/openerp-server/
 
 install -d %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 install -m 644 server/bin/addons/base/security/* %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
@@ -489,7 +500,7 @@ popd > /dev/null
 
 EOF
 
-ln -s %{python_sitelib}/openerp-server/server-check.sh ./10server-check
+# ln -s %{python_sitelib}/openerp-server/server-check.sh ./10server-check
 popd
 
 %clean
@@ -571,7 +582,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/logrotate.d/openerp-server
 	%dir 		%{_sysconfdir}/openerp/start.d/
 	%dir 		%{_sysconfdir}/openerp/stop.d/
-%attr(0755,root,root)	%{_sysconfdir}/openerp/start.d/10server-check
+# %attr(0755,root,root)	%{_sysconfdir}/openerp/start.d/10server-check
 %{_bindir}/openerp-server
 %{python_sitelib}/openerp-server/
 %{_datadir}/pixmaps/openerp-server/
