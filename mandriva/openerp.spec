@@ -418,14 +418,14 @@ EOF
 
 mkdir -p %{buildroot}/%{_defaultdocdir}/%{name}-%{version}
 pushd %{buildroot}/%{_defaultdocdir}
-	if [ -d %{name}-server-* ] ; then
+	if [ -d %{name}-server-* ] && [ %{name}-server-* != %{name}-server-%{version} ] ; then
 		mv %{name}-server-* %{name}-server-%{version}
 	fi
 	if [ -d %{name}-client-web-* ] ; then
 		# put it aside, first
 		mv %{name}-client-web-* %{name}-clientweb-%{version}
 	fi
-	if [ -d %{name}-client-* ] ; then
+	if [ -d %{name}-client-* ] && [ %{name}-client-* != %{name}-client-%{version} ] ; then
 		mv %{name}-client-* %{name}-client-%{version}
 	fi
 	if [ -d %{name}-clientweb-%{version} ] ; then
@@ -456,10 +456,12 @@ ln -sf %{python_sitelib}/openerp-server/pixmaps %{buildroot}/%{_datadir}/pixmaps
 
 #temp fixes for alpha builds
 pushd %{buildroot}%{python_sitelib}
-	if [ -r openerp_client-*-py%{pyver}.egg-info ] ; then
+	if [ -r openerp_client-*-py%{pyver}.egg-info ] && \
+	    [ openerp_client-*-py%{pyver}.egg-info != openerp_client-%{version}-py%{pyver}.egg-info ]; then
 		mv openerp_client-*-py%{pyver}.egg-info openerp_client-%{version}-py%{pyver}.egg-info
 	fi
-	if [ -r openerp_server-*-py%{pyver}.egg-info ] ; then
+	if [ -r openerp_server-*-py%{pyver}.egg-info ] && \
+	    [ openerp_server-*-py%{pyver}.egg-info openerp_server-%{version}-py%{pyver}.egg-info ]; then
 		mv openerp_server-*-py%{pyver}.egg-info openerp_server-%{version}-py%{pyver}.egg-info
 	fi
 popd
