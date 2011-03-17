@@ -24,4 +24,4 @@
 	url = http://members.hellug.gr/xrg/repos/openobject-addons
 [submodule "buildbot"]
 	path = buildbot
-	url = /home/panos/buildbot
+	url = http://members.hellug.gr/xrg/repos/openerp-buildbot
