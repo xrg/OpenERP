@@ -79,7 +79,7 @@ project management...
 %package client
 Group:		Databases
 Summary:	OpenERP Client
-Requires:       pygtk2.0, pygtk2.0-libglade, python-dot
+Requires:       pygtk2.0, pygtk2.0-libglade, python-dot, python-lxml
 Requires:	python-matplotlib, python-egenix-mx-base
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
