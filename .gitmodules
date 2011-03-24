@@ -25,3 +25,6 @@
 [submodule "buildbot"]
 	path = buildbot
 	url = http://members.hellug.gr/xrg/repos/openerp-buildbot
+[submodule "libcli"]
+	path = libcli
+	url = http://members.hellug.gr/xrg/repos/openerp-libcli/
