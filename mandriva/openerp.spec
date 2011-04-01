@@ -58,7 +58,7 @@ Source:		%git_bs_source %{name}-%{version}.tar.gz
 %endif
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
 BuildArch:	noarch
-BuildRequires:	python
+BuildRequires:	python, python-setuptools
 BuildRequires:	desktop-file-utils
 Requires:	openerp-client, openerp-server
 %if %{_target_vendor} == mandriva
@@ -105,7 +105,7 @@ Requires:       python-dot, python-pytz, python-kde4
 Obsoletes:	ktiny
 BuildRequires:	python-qt4
 BuildRequires:	qt4-devel, kde4-macros
-BuildRequires:  python-lxml
+BuildRequires:  python-lxml, python-qt4-devel
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 
