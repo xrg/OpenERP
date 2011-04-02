@@ -3,6 +3,7 @@
 
 %{?!pyver: %define pyver %(python -c 'import sys;print(sys.version[0:3])')}
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+%{?!py_puresitedir: %define py_puresitedir %(python -c 'import distutils.sysconfig; print distutils.sysconfig.get_python_lib()' 2>/dev/null || echo PYTHON-LIBDIR-NOT-FOUND)}
 
 %define NoDisplay	NODISPLAY=n
 %define build_kde	0
@@ -18,6 +19,10 @@
 
 %define clone_prefixdir ./
 
+%define _iconsdir %{_datadir}/icons
+%define _kde_iconsdir %_kde_prefix/share/icons
+
+
 Name:		%name
 Version:	6.0.1
 Release:	1
@@ -31,7 +36,7 @@ Source1:	http://www.openerp.com/download/stable/source/%{name}-client-%{version}
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
 BuildArch:	noarch
 BuildRequires:	python
-BuildRequires:	desktop-file-utils
+BuildRequires:	desktop-file-utils, python-setuptools
 Requires:	openerp-client, openerp-server
 BuildRequires:	 pygtk2-devel, libxslt-python
 
@@ -44,11 +49,12 @@ project management...
 %package client
 Group:		Databases
 Summary:	OpenERP Client
-Requires:       pygtk2.0, pygtk2.0-libglade, python-dot, python-lxml
-Requires:	python-matplotlib, python-egenix-mx-base
+Requires:       pygobject2, pygtk2-libglade, pydot, python-lxml
+Requires:	python-matplotlib
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
-Requires:	python-hippo-canvas
+Requires:	hippo-canvas-python
+Requires:	python-dateutil
 Requires:       pygtk2, mx
 
 %description client
@@ -97,19 +103,18 @@ software: accounting, stock, manufacturing, project management...
 %package server
 Group:		System/Servers
 Summary:	OpenERP Server
-Requires:	pygtk2.0, pygtk2.0-libglade
-Requires:	python-libxslt, python-lxml
+Requires:	pygtk2, pygtk2-libglade
+Requires:	python-lxml
 Requires:	postgresql-plpython >= 8.2
 Requires:	python-imaging
 Requires:	python-psycopg2, python-reportlab
-Requires:       python-parsing
-Suggests:	postgresql-server >= 8.2
+Requires:       pyparsing
+# Suggests:	postgresql-server >= 8.2
 Requires:	ghostscript
 # perhaps the matplotlib could yield for pytz, in Mdv >=2009.0
-Requires:	python-pyxml, python-matplotlib
-Requires:	python-pychart, python-yaml, python-mako
-Requires(pre):	rpm-helper
-Requires(postun): rpm-helper
+Requires:	PyXML, python-matplotlib
+Requires:	PyYAML, python-mako
+# Requires:	python-pychart # embedded, still
 
 %description server
 Server components for Open ERP.
@@ -122,8 +127,6 @@ Group:		Databases/Demo
 Summary:	Full server Metapackage for OpenERP
 Requires:       %{name}-server
 Requires:	postgresql-server >= 8.2
-Requires:	postgresql-plpgsql
-Requires:	run-parts
 
 
 %description serverinit
@@ -323,7 +326,7 @@ mkdir -p %{buildroot}/var/run/openerp
 
 pushd %{buildroot}%{_sysconfdir}/openerp/start.d
 
-ln -s %{python_sitelib}/openerp-server/server-check.sh ./10server-check
+# ln -s %{python_sitelib}/openerp-server/server-check.sh ./10server-check
 popd
 
 %clean
@@ -397,7 +400,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/logrotate.d/openerp-server
 	%dir 		%{_sysconfdir}/openerp/start.d/
 	%dir 		%{_sysconfdir}/openerp/stop.d/
-%attr(0755,root,root)	%{_sysconfdir}/openerp/start.d/10server-check
+# attr(0755,root,root)	%{_sysconfdir}/openerp/start.d/10server-check
 %{_bindir}/openerp-server
 %{python_sitelib}/openerp-server/
 %{_datadir}/pixmaps/openerp-server/
