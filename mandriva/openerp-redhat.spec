@@ -25,7 +25,7 @@
 
 Name:		%name
 Version:	6.0.1
-Release:	1
+Release:	2
 License:	AGPLv3+
 Group:		Databases
 Summary:	OpenERP Client and Server
@@ -33,6 +33,8 @@ URL:		http://www.openerp.com
 Obsoletes:	tinyerp
 Source0:	http://www.openerp.com/download/stable/source/%{name}-server-%{version}.tar.gz
 Source1:	http://www.openerp.com/download/stable/source/%{name}-client-%{version}.tar.gz
+Source2:	openerp-server-check.sh
+Patch0: 	openerp-server-init.patch
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
 BuildArch:	noarch
 BuildRequires:	python
@@ -138,6 +140,14 @@ are installed. This also triggers the installation of a PostgreSQL server.
 %setup -q -c -T -D -a1
 mv openerp-server-%{version} server
 mv openerp-client-%{version} client
+pushd server
+%patch -P0 -p1
+popd
+
+# Tmp, as long as server-check is not in official sources:
+mkdir server/tools/
+cp %{SOURCE2} server/tools/server-check.sh
+
 
 %build
 
@@ -287,7 +297,6 @@ popd
 install -m 644 -D server/doc/openerp-server.conf %{buildroot}%{_sysconfdir}/openerp-server.conf
 install -m 755 -D server/doc/openerp-server.init %{buildroot}%{_initrddir}/openerp-server
 install -m 644 -D server/doc/openerp-server.logrotate %{buildroot}%{_sysconfdir}/logrotate.d/openerp-server
-install -m 755 -D server/doc/README.userchange %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/README.userchange
 
 install -m 755 -D server/README %{buildroot}%{_defaultdocdir}/%{name}-%{version}/README
 
@@ -296,7 +305,8 @@ install -d %{buildroot}%{_sysconfdir}/openerp/stop.d
 
 install -m 644 server/bin/import_xml.rng %{buildroot}%{python_sitelib}/openerp-server/
 # mv %{buildroot}%{_prefix}/import_xml.rng %{buildroot}%{python_sitelib}/openerp-server/
-# install -m 744 server/tools/server-check.sh %{buildroot}%{python_sitelib}/openerp-server/
+
+install -m 744 server/tools/server-check.sh %{buildroot}%{python_sitelib}/openerp-server/
 
 install -d %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 install -m 644 server/bin/addons/base/security/* %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
@@ -325,8 +335,12 @@ mkdir -p %{buildroot}/var/spool/openerp
 mkdir -p %{buildroot}/var/run/openerp
 
 pushd %{buildroot}%{_sysconfdir}/openerp/start.d
+cat > 10server-check <<EOF
+#!/bin/sh
 
-# ln -s %{python_sitelib}/openerp-server/server-check.sh ./10server-check
+%{python_sitelib}/openerp-server/server-check.sh -s
+
+EOF
 popd
 
 %clean
@@ -400,7 +414,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/logrotate.d/openerp-server
 	%dir 		%{_sysconfdir}/openerp/start.d/
 	%dir 		%{_sysconfdir}/openerp/stop.d/
-# attr(0755,root,root)	%{_sysconfdir}/openerp/start.d/10server-check
+%attr(0755,root,root)	%{_sysconfdir}/openerp/start.d/10server-check
 %{_bindir}/openerp-server
 %{python_sitelib}/openerp-server/
 %{_datadir}/pixmaps/openerp-server/
