@@ -26,13 +26,16 @@
 Name:		%name
 Version:	6.0.1
 Release:	2
-License:	AGPLv3+
-Group:		Databases
-Summary:	OpenERP Client and Server
+License:	AGPLv3
+Group:		Other
+Summary:	Client and Server for the OpenERP suite
 URL:		http://www.openerp.com
 Obsoletes:	tinyerp
 Source0:	http://www.openerp.com/download/stable/source/%{name}-server-%{version}.tar.gz
 Source1:	http://www.openerp.com/download/stable/source/%{name}-client-%{version}.tar.gz
+#                   All non-official patches are contained in:
+#                   http://git.hellug.gr/?p=xrg/openerp  and referred submodules
+#                   look for the ./mandriva folder there, where this .spec file is held, also.
 Source2:	openerp-server-check.sh
 Patch0: 	openerp-server-init.patch
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
@@ -49,7 +52,8 @@ stock management, sales, customer relationship, purchases,
 project management...
 
 %package client
-Group:		Databases
+# note: we want the gtk client even w/o GNOME full desktop
+Group:		Office
 Summary:	OpenERP Client
 Requires:       pygobject2, pygtk2-libglade, pydot, python-lxml
 Requires:	python-matplotlib
@@ -64,7 +68,7 @@ Client components for Open ERP.
 
 %if %{build_kde}
 %package client-kde
-Group:		Databases
+Group:		Office
 Summary:	OpenERP Client (KDE)
 Requires:       python-dot, python-pytz, python-kde4
 Obsoletes:	ktiny
@@ -87,7 +91,7 @@ Technical documentation for the API of OpenERP KDE client (koo).
 
 %if %{build_web}
 %package client-web
-Group:		Databases
+Group:		Servers
 Summary:	Web Client of OpenERP, the Enterprise Management Software
 #BuildRequires: ....
 Requires:       python-pytz
@@ -103,7 +107,7 @@ software: accounting, stock, manufacturing, project management...
 %endif
 
 %package server
-Group:		System/Servers
+Group:		Servers
 Summary:	OpenERP Server
 Requires:	pygtk2, pygtk2-libglade
 Requires:	python-lxml
@@ -121,11 +125,8 @@ Requires:	PyYAML, python-mako
 %description server
 Server components for Open ERP.
 
-IMPORTANT: Please read the INSTALL file in /usr/share/doc/openerp-server for
-the first time run.
-
 %package serverinit
-Group:		Databases/Demo
+Group:		Servers
 Summary:	Full server Metapackage for OpenERP
 Requires:       %{name}-server
 Requires:	postgresql-server >= 8.2
@@ -142,6 +143,12 @@ mv openerp-server-%{version} server
 mv openerp-client-%{version} client
 pushd server
 %patch -P0 -p1
+popd
+
+# Remove prebuilt binaries
+pushd server/bin/addons
+    rm -f outlook/plugin/openerp-outlook-addin.exe \
+	thunderbird/plugin/openerp_plugin.xpi
 popd
 
 # Tmp, as long as server-check is not in official sources:
@@ -248,7 +255,6 @@ mkdir %{buildroot}%{_datadir}/applications
 cat > %{buildroot}%{_datadir}/applications/openerp-client.desktop << EOF
 [Desktop Entry]
 Version=1.0
-Encoding=UTF-8
 Name=Open ERP
 GenericName=GTK ERP Client
 Comment=A gtk client for the open source ERP
@@ -259,6 +265,8 @@ Type=Application
 StartupNotify=true
 Categories=Office;GNOME;GTK;
 EOF
+
+desktop-file-validate %{buildroot}%{_datadir}/applications/openerp-client.desktop
 
 %if %{build_kde}
 cat > %{buildroot}%{_datadir}/applications/openerp-koo.desktop << EOF
@@ -274,8 +282,10 @@ Type=Application
 StartupNotify=true
 Categories=Office;KDE;
 EOF
+desktop-file-validate %{buildroot}%{_datadir}/applications/openerp-koo.desktop
 %endif
 
+# Make sure that all doc directories are like %{name}-foo-%{version}
 mkdir -p %{buildroot}/%{_defaultdocdir}/%{name}-%{version}
 pushd %{buildroot}/%{_defaultdocdir}
 	if [ -d %{name}-server-* ] && [ %{name}-server-* != %{name}-server-%{version} ] ; then
@@ -292,13 +302,14 @@ pushd %{buildroot}/%{_defaultdocdir}
 		# now, move it to the right place
 		mv %{name}-clientweb-%{version} %{name}-client-web-%{version}
 	fi
-
 popd
+
+# Install the init scripts and conf
 install -m 644 -D server/doc/openerp-server.conf %{buildroot}%{_sysconfdir}/openerp-server.conf
 install -m 755 -D server/doc/openerp-server.init %{buildroot}%{_initrddir}/openerp-server
 install -m 644 -D server/doc/openerp-server.logrotate %{buildroot}%{_sysconfdir}/logrotate.d/openerp-server
 
-install -m 755 -D server/README %{buildroot}%{_defaultdocdir}/%{name}-%{version}/README
+install -m 644 -D server/README %{buildroot}%{_defaultdocdir}/%{name}-%{version}/README
 
 install -d %{buildroot}%{_sysconfdir}/openerp/start.d
 install -d %{buildroot}%{_sysconfdir}/openerp/stop.d
@@ -306,14 +317,15 @@ install -d %{buildroot}%{_sysconfdir}/openerp/stop.d
 install -m 644 server/bin/import_xml.rng %{buildroot}%{python_sitelib}/openerp-server/
 # mv %{buildroot}%{_prefix}/import_xml.rng %{buildroot}%{python_sitelib}/openerp-server/
 
-install -m 744 server/tools/server-check.sh %{buildroot}%{python_sitelib}/openerp-server/
+install -d %{buildroot}%{_libexecdir}/%{name}-server
+install -m 744 server/tools/server-check.sh %{buildroot}%{_libexecdir}/%{name}-server/
 
 install -d %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 install -m 644 server/bin/addons/base/security/* %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 
 ln -sf %{python_sitelib}/openerp-server/pixmaps %{buildroot}/%{_datadir}/pixmaps/openerp-server
 
-#temp fixes for alpha builds
+#temp fixes for alpha builds (rename the .egg files to remove extra version decorators)
 pushd %{buildroot}%{python_sitelib}
 	if [ -r openerp_client-*-py%{pyver}.egg-info ] && \
 	    [ openerp_client-*-py%{pyver}.egg-info != openerp_client-%{version}-py%{pyver}.egg-info ]; then
@@ -334,11 +346,14 @@ mkdir -p %{buildroot}/var/log/openerp
 mkdir -p %{buildroot}/var/spool/openerp
 mkdir -p %{buildroot}/var/run/openerp
 
+# A script that will install the Postgres User, but *after* the database
+# has started (even at %post it is too early, the cluster may not have started)
+# This will run at "/etc/init.d/openerp-server start" time
 pushd %{buildroot}%{_sysconfdir}/openerp/start.d
 cat > 10server-check <<EOF
 #!/bin/sh
 
-%{python_sitelib}/openerp-server/server-check.sh -s
+%{_libexecdir}/%{name}-server/server-check.sh -s
 
 EOF
 popd
@@ -411,12 +426,14 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 # attr(0755,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp/cert.cfg
 %{_initrddir}/openerp-server
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp-server.conf
-%attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/logrotate.d/openerp-server
+%config(noreplace)	%{_sysconfdir}/logrotate.d/openerp-server
 	%dir 		%{_sysconfdir}/openerp/start.d/
 	%dir 		%{_sysconfdir}/openerp/stop.d/
 %attr(0755,root,root)	%{_sysconfdir}/openerp/start.d/10server-check
 %{_bindir}/openerp-server
 %{python_sitelib}/openerp-server/
+%dir %{_libexecdir}/%{name}-server
+%attr(0755,root,root)	%{_libexecdir}/%{name}-server/server-check.sh
 %{_datadir}/pixmaps/openerp-server/
 %{_defaultdocdir}/%{name}-server-%{version}/
 # exclude %{_defaultdocdir}/%{name}-server-%{version}/demo
