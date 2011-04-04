@@ -56,7 +56,7 @@ project management...
 Group:		Office
 Summary:	OpenERP Client
 Requires:       pygobject2, pygtk2-libglade, pydot, python-lxml
-Requires:	python-matplotlib
+# Requires:	python-matplotlib
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 Requires:	hippo-canvas-python
@@ -118,7 +118,8 @@ Requires:       pyparsing
 # Suggests:	postgresql-server >= 8.2
 Requires:	ghostscript
 # perhaps the matplotlib could yield for pytz, in Mdv >=2009.0
-Requires:	PyXML, python-matplotlib
+Requires:	PyXML
+# Requires: python-matplotlib
 Requires:	PyYAML, python-mako
 # Requires:	python-pychart # embedded, still
 
@@ -323,7 +324,8 @@ install -m 744 server/tools/server-check.sh %{buildroot}%{_libexecdir}/%{name}-s
 install -d %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 install -m 644 server/bin/addons/base/security/* %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 
-ln -sf %{python_sitelib}/openerp-server/pixmaps %{buildroot}/%{_datadir}/pixmaps/openerp-server
+install -d %{buildroot}/%{_datadir}/pixmaps/openerp-server
+install -m 644 -D server/pixmaps/* %{buildroot}/%{_datadir}/pixmaps/openerp-server/
 
 #temp fixes for alpha builds (rename the .egg files to remove extra version decorators)
 pushd %{buildroot}%{python_sitelib}
