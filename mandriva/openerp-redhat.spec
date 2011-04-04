@@ -24,8 +24,8 @@
 
 
 Name:		%name
-Version:	6.0.1
-Release:	2
+Version:	6.0.2
+Release:	1
 License:	AGPLv3
 Group:		Other
 Summary:	Client and Server for the OpenERP suite
