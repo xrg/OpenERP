@@ -25,9 +25,9 @@
 
 Name:		%name
 Version:	6.0.2
-Release:	1
+Release:	2
 License:	AGPLv3
-Group:		Other
+Group:		Applications/Databases
 Summary:	Client and Server for the OpenERP suite
 URL:		http://www.openerp.com
 Obsoletes:	tinyerp
@@ -53,7 +53,7 @@ project management...
 
 %package client
 # note: we want the gtk client even w/o GNOME full desktop
-Group:		Office
+Group:		Applications/Databases
 Summary:	OpenERP Client
 Requires:       pygobject2, pygtk2-libglade, pydot, python-lxml
 # Requires:	python-matplotlib
@@ -68,7 +68,7 @@ Client components for Open ERP.
 
 %if %{build_kde}
 %package client-kde
-Group:		Office
+Group:		Applications/Databases
 Summary:	OpenERP Client (KDE)
 Requires:       python-dot, python-pytz, python-kde4
 Obsoletes:	ktiny
@@ -91,7 +91,7 @@ Technical documentation for the API of OpenERP KDE client (koo).
 
 %if %{build_web}
 %package client-web
-Group:		Servers
+Group:		System Environment/Daemons
 Summary:	Web Client of OpenERP, the Enterprise Management Software
 #BuildRequires: ....
 Requires:       python-pytz
@@ -107,7 +107,7 @@ software: accounting, stock, manufacturing, project management...
 %endif
 
 %package server
-Group:		Servers
+Group:		System Environment/Daemons
 Summary:	OpenERP Server
 Requires:	pygtk2, pygtk2-libglade
 Requires:	python-lxml
@@ -127,7 +127,7 @@ Requires:	PyYAML, python-mako
 Server components for Open ERP.
 
 %package serverinit
-Group:		Servers
+Group:		System Environment/Daemons
 Summary:	Full server Metapackage for OpenERP
 Requires:       %{name}-server
 Requires:	postgresql-server >= 8.2
@@ -444,22 +444,43 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %{_mandir}/man5/openerp_serverrc.5*
 
 %pre server
-#getent group GROUPNAME >/dev/null || groupadd -r GROUPNAME
+    getent group openerp >/dev/null || groupadd -r openerp
     getent passwd openerp >/dev/null || \
         useradd -r -d /var/spool/openerp -s /sbin/nologin \
         -c "OpenERP Server" openerp
+    exit 0
 
 %post server
-# *-*
 if [ ! -r "%{_sysconfdir}/openerp/server.cert" ] ; then
-	if [ ! -x "$(which certtool)" ] ; then
-		echo "OpenERP server: certtool is missing. Cannot create SSL certificates"
+	if [ ! -x "%{_bindir}/openssl" ] ; then
+		echo "OpenERP server: openssl is missing. Cannot create SSL certificates"
 	else
 		pushd %{_sysconfdir}/openerp/
-		if [ ! -r "server.key" ] ; then
-			certtool -p --outfile server.key
+
+		if [ ! -f server.key ] ; then
+		%{_bindir}/openssl genrsa -rand /proc/apm:/proc/cpuinfo:/proc/dma:/proc/filesystems:/proc/interrupts:/proc/ioports:/proc/pci:/proc/rtc:/proc/uptime \
+			1024 > server.key 2> /dev/null
 		fi
-		certtool -s --load-privkey server.key --outfile server.cert --template cert.cfg
+
+		FQDN=`hostname`
+		if [ "x${FQDN}" = "x" ]; then
+			FQDN=localhost.localdomain
+		fi
+
+		if [ ! -f server.cert ] ; then
+			cat << EOF | %{_bindir}/openssl req -new -key server.key \
+				-x509 -days 365 -set_serial $RANDOM -extensions v3_req \
+				-out server.cert 2>/dev/null
+--
+SomeState
+SomeCity
+SomeOrganization
+SomeOrganizationalUnit
+${FQDN}
+root@${FQDN}
+EOF
+		fi
+
 		echo "Created a self-signed SSL certificate for OpenERP. You may want to revise it or get a real one."
 		chown openerp:openerp server.cert server.key
 		popd
@@ -487,4 +508,81 @@ fi
 chkconfig postgresql on
 chkconfig openerp-server on
 
-%changelog -f %{_sourcedir}/%{name}-changelog.gitrpm.txt
+%changelog
+* Mon Apr 4 2011 P. Christeas <p_christ@hol.gr> b4c22fc
+  + redhat: update to 6.0.2
+  + redhat: a couple of fixes for rpmlint
+  + redhat: improvements at .spec to comply with Guidelines
+
+* Sun Apr 3 2011 P. Christeas <p_christ@hol.gr> 45596e1
+  + redhat: bring the server-check.sh and a patch for init.d
+  + RedHat: cleanup the .spec file, fix dependencies
+
+* Sat Apr 2 2011 P. Christeas <p_christ@hol.gr> 3a88941
+  + mandriva: demote the class, again, to public
+
+* Fri Apr 1 2011 P. Christeas <p_christ@hol.gr> 7d8252a
+  + Mandriva: add some dependencies to .spec file
+  + Update to 6.0.2+
+  + Redhat spec: strip much of the mandriva logic, make it static
+  + RPM: copy spec file from Mandriva/Mageia to RedHat
+
+* Thu Mar 24 2011 P. Christeas <p_christ@hol.gr> b9154b0
+  + Initialize submodule for 'libcli', the client library
+
+* Mon Mar 21 2011 P. Christeas <p_christ@hol.gr> 469aa48
+  + Remove tests/ , they are in the sandbox now.
+
+* Sun Mar 20 2011 P. Christeas <p_christ@hol.gr> 067bf38
+  + Add README about this repository
+
+* Thu Mar 17 2011 P. Christeas <p_christ@hol.gr> 968601a
+  + Rewrite last gtk-client patch for SpiffGtkWidgets setup
+  + mandriva: require python-lxml for gtk client
+  + Updated submodules addons, buildbot, client, client-kde, server
+  + tests: one for mails, one to dump the doc nodes cache
+  + git: Fix submodule URL of buildbot
+
+* Wed Mar 9 2011 P. Christeas <p_christ@hol.gr> fed8f66
+  + Updated submodules addons, client, client-kde, extra-addons, server
+
+* Wed Feb 23 2011 P. Christeas <p_christ@hol.gr> 9beefb7
+  + Updated submodules addons, client, client-kde, extra-addons, server
+
+* Sat Feb 19 2011 P. Christeas <p_christ@hol.gr> 23f26ca
+  + Updated submodules addons, buildbot, client, client-kde, client-web, extra-addons, server
+
+* Fri Jan 21 2011 P. Christeas <p_christ@hol.gr> a1e11b1
+  + Merge branch 'official' into xrg-60
+  + RPM spec: adapt to official release, dirs have the right names now.
+
+* Thu Jan 20 2011 P. Christeas <xrg@openerp.com> 939c332
+  + Official Release 6.0.1 + debian changelogs
+
+* Thu Jan 20 2011 P. Christeas <p_christ@hol.gr> 536461f
+  + Merge release 6.0.1
+
+* Wed Jan 19 2011 P. Christeas <p_christ@hol.gr> 4635463
+  + Merge commit 'v6.0.0' into xrg-60
+  + Merge 6.0.0 into xrg-60
+  + Updated submodules addons, client, server
+  + Release 6.0.0
+  + RPM spec: have all-modules list, skip bad addons, skip server-check.sh
+  + RPM: allow modulize.py to skip bad modules.
+  + Reset submodules addons, client*, addons, server to official
+  + Mandriva: let spec go closer to other RPM distros
+  + Updated submodules addons, client, client-kde, client-web, extra-addons, server
+
+* Sat Jan 15 2011 P. Christeas <p_christ@hol.gr> 7486fe9
+  + Updated submodules addons, client, client-kde, client-web, server
+
+* Thu Jan 13 2011 P. Christeas <p_christ@hol.gr> a9b50da
+  + Updated submodule client, using improved installer
+
+* Mon Jan 3 2011 P. Christeas <p_christ@hol.gr> bd6aa12
+  + Version 6.0.0-rc2 with addons, client, client-web, server
+
+* Sun Jan 2 2011 P. Christeas <p_christ@hol.gr> 7266984
+  + Further attempt for a correct client-web installation.
+  + client-web: fix installation, under "site-packages/openobject/"
+
