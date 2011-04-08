@@ -80,11 +80,12 @@ project management...
 Group:		Databases
 Summary:	OpenERP Client
 Requires:       pygtk2.0, pygtk2.0-libglade, python-dot, python-lxml
-Requires:	python-matplotlib, python-egenix-mx-base
+Requires:	python-matplotlib
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 %if %{_target_vendor} == mandriva
-Requires:       pygtk2.0, pygtk2.0-libglade
+Requires:       pygtk2.0, pygtk2.0-libglade, python-egenix-mx-base
+Requires:	python-dateutil
 %if %mdkver > 200900
 Requires:	python-hippo-canvas
 %endif
@@ -452,7 +453,8 @@ install -m 744 server/tools/server-check.sh %{buildroot}%{python_sitelib}/opener
 install -d %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 install -m 644 server/bin/addons/base/security/* %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 
-ln -sf %{python_sitelib}/openerp-server/pixmaps %{buildroot}/%{_datadir}/pixmaps/openerp-server
+install -d %{buildroot}/%{_datadir}/pixmaps/openerp-server
+install -m 644 -D server/pixmaps/* %{buildroot}/%{_datadir}/pixmaps/openerp-server/
 
 #temp fixes for alpha builds
 pushd %{buildroot}%{python_sitelib}
