@@ -1,13 +1,7 @@
 # Redhat, reduced, static version of the spec file
-%define name openerp
 
-%{?!pyver: %define pyver %(python -c 'import sys;print(sys.version[0:3])')}
-%{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
-%{?!py_puresitedir: %define py_puresitedir %(python -c 'import distutils.sysconfig; print distutils.sysconfig.get_python_lib()' 2>/dev/null || echo PYTHON-LIBDIR-NOT-FOUND)}
-
-%define NoDisplay	NODISPLAY=n
-%define build_kde	0
-%define build_web	0
+%global build_kde	0
+%global build_web	0
 
 %{?_without_kde:	%global build_kde 0}
 %{?_with_kde:		%global build_kde 1}
@@ -17,15 +11,16 @@
 
 %{?_use_tarball: %global use_git_clone 0}
 
-%define clone_prefixdir ./
+%global clone_prefixdir ./
 
-%define _iconsdir %{_datadir}/icons
-%define _kde_iconsdir %_kde_prefix/share/icons
+%if 0
+    %define _iconsdir %{_datadir}/icons
+    %define _kde_iconsdir %_kde_prefix/share/icons
+%endif
 
-
-Name:		%name
+Name:		openerp
 Version:	6.0.2
-Release:	2
+Release:	3%{?dist}
 License:	AGPLv3
 Group:		Applications/Databases
 Summary:	Client and Server for the OpenERP suite
@@ -38,12 +33,13 @@ Source1:	http://www.openerp.com/download/stable/source/%{name}-client-%{version}
 #                   look for the ./mandriva folder there, where this .spec file is held, also.
 Source2:	openerp-server-check.sh
 Patch0: 	openerp-server-init.patch
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
+# BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
 BuildArch:	noarch
 BuildRequires:	python
 BuildRequires:	desktop-file-utils, python-setuptools
+BuildRequires:	pygtk2-devel, libxslt-python
+BuildRequires:	python2-devel
 Requires:	openerp-client, openerp-server
-BuildRequires:	 pygtk2-devel, libxslt-python
 
 %description
 Open ERP is a free enterprise management software package. It
@@ -55,6 +51,7 @@ project management...
 # note: we want the gtk client even w/o GNOME full desktop
 Group:		Applications/Databases
 Summary:	OpenERP Client
+Requires:	pygtk2
 Requires:       pygobject2, pygtk2-libglade, pydot, python-lxml
 # Requires:	python-matplotlib
 Requires(post): desktop-file-utils
@@ -109,9 +106,7 @@ software: accounting, stock, manufacturing, project management...
 %package server
 Group:		System Environment/Daemons
 Summary:	OpenERP Server
-Requires:	pygtk2, pygtk2-libglade
 Requires:	python-lxml
-Requires:	postgresql-plpython >= 8.2
 Requires:	python-imaging
 Requires:	python-psycopg2, python-reportlab
 Requires:       pyparsing
@@ -122,6 +117,9 @@ Requires:	PyXML
 # Requires: python-matplotlib
 Requires:	PyYAML, python-mako
 # Requires:	python-pychart # embedded, still
+Requires(post):	chkconfig
+Requires(preun): chkconfig
+Requires(preun): initscripts
 
 %description server
 Server components for Open ERP.
@@ -131,11 +129,15 @@ Group:		System Environment/Daemons
 Summary:	Full server Metapackage for OpenERP
 Requires:       %{name}-server
 Requires:	postgresql-server >= 8.2
+# Suggest:	openssl ?? *-*
 
 
 %description serverinit
 With this, all necessary packages and modules for a complete OpenERP server
 are installed. This also triggers the installation of a PostgreSQL server.
+
+After installing this package, the openerp server will be ready to use. A
+default postgres user and an SSL self-signed certificate will be created.
 
 %prep
 %setup -q -c
@@ -143,6 +145,9 @@ are installed. This also triggers the installation of a PostgreSQL server.
 mv openerp-server-%{version} server
 mv openerp-client-%{version} client
 pushd server
+# I don't understand why this is needed at this stage
+rm -rf win32 debian setup.nsi
+
 %patch -P0 -p1
 popd
 
@@ -160,37 +165,39 @@ cp %{SOURCE2} server/tools/server-check.sh
 %build
 
 pushd client
-	%{NoDisplay} python ./setup.py build --quiet
+	python ./setup.py build --quiet
 popd
 
 %if %{build_kde}
 pushd client-kde
 	make
-	%{NoDisplay} python ./setup.py build --quiet
+	python ./setup.py build --quiet
 popd
 %endif
 
 %if %{build_web}
 pushd client-web
-	%{NoDisplay} python ./setup.py build --quiet
+	python ./setup.py build --quiet
 popd
 %endif
 
 pushd server
-	NO_INSTALL_REQS=1 %{NoDisplay} python ./setup.py build
+	NO_INSTALL_REQS=1 python ./setup.py build --quiet
 popd
+
+# TODO: build the thunderbird plugin and the report designer
 
 %install
 [ -n "%{buildroot}" -a "%{buildroot}" != / ] && rm -rf %{buildroot}
 
 pushd client
-	%{NoDisplay} python ./setup.py install --root=%{buildroot}
+	python ./setup.py install --root=%{buildroot} --quiet
 	install -D bin/pixmaps/openerp-icon.png %{buildroot}%{_iconsdir}/openerp-icon.png
 popd
 
 %if %{build_kde}
 pushd client-kde
-	%{NoDisplay} python ./setup.py install --root=%{buildroot}
+	python ./setup.py install --root=%{buildroot} --quiet
 	install -D Koo/ui/images/koo-icon.png %{buildroot}%{_kde_iconsdir}/koo-icon.png
 popd
 %endif
@@ -200,8 +207,8 @@ mkdir -p %{buildroot}/%{_sysconfdir}
 %if %{build_web}
 pushd client-web
 # 	  First, compile all the i18n messages
-	%{NoDisplay} python ./admin.py i18n -c ALL
-	%{NoDisplay} python ./setup.py install --root=%{buildroot}
+	python ./admin.py i18n -c ALL
+	python ./setup.py install --root=%{buildroot}
 popd
 
 #remove the default init script
@@ -226,7 +233,7 @@ fi
 %endif
 
 pushd server
-	%{NoDisplay} python ./setup.py install --root=%{buildroot}
+	python ./setup.py install --root=%{buildroot}
 popd
 
 # the Python installer plants the RPM_BUILD_ROOT inside the launch scripts, fix that:
@@ -329,13 +336,13 @@ install -m 644 -D server/pixmaps/* %{buildroot}/%{_datadir}/pixmaps/openerp-serv
 
 #temp fixes for alpha builds (rename the .egg files to remove extra version decorators)
 pushd %{buildroot}%{python_sitelib}
-	if [ -r openerp_client-*-py%{pyver}.egg-info ] && \
-	    [ openerp_client-*-py%{pyver}.egg-info != openerp_client-%{version}-py%{pyver}.egg-info ]; then
-		mv openerp_client-*-py%{pyver}.egg-info openerp_client-%{version}-py%{pyver}.egg-info
+	if [ -r openerp_client-*-py%{python_version}.egg-info ] && \
+	    [ openerp_client-*-py%{python_version}.egg-info != openerp_client-%{version}-py%{python_version}.egg-info ]; then
+		mv openerp_client-*-py%{python_version}.egg-info openerp_client-%{version}-py%{python_version}.egg-info
 	fi
-	if [ -r openerp_server-*-py%{pyver}.egg-info ] && \
-	    [ openerp_server-*-py%{pyver}.egg-info openerp_server-%{version}-py%{pyver}.egg-info ]; then
-		mv openerp_server-*-py%{pyver}.egg-info openerp_server-%{version}-py%{pyver}.egg-info
+	if [ -r openerp_server-*-py%{python_version}.egg-info ] && \
+	    [ openerp_server-*-py%{python_version}.egg-info openerp_server-%{version}-py%{python_version}.egg-info ]; then
+		mv openerp_server-*-py%{python_version}.egg-info openerp_server-%{version}-py%{python_version}.egg-info
 	fi
 popd
 
@@ -360,8 +367,11 @@ cat > 10server-check <<EOF
 EOF
 popd
 
+%if 0
+#Left here for future backporting
 %clean
 rm -rf %{buildroot}
+%endif
 
 %files
 %defattr(-,root,root)
@@ -376,7 +386,7 @@ rm -rf %{buildroot}
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp-web.cfg
 %{python_sitelib}/openobject/
 %{_defaultdocdir}/%{name}-client-web-%{version}/
-%{py_puresitedir}/openerp_web-*-py%{pyver}.egg-info
+%{python_sitelib}/openerp_web-*-py%{python_version}.egg-info
 %endif
 
 %files client -f %{clone_prefixdir}%{name}-client.lang
@@ -389,7 +399,7 @@ rm -rf %{buildroot}
 %{_mandir}/man1/openerp-client.*
 %{_datadir}/pixmaps/openerp-client/
 %{_datadir}/applications/openerp-client.desktop
-%{py_puresitedir}/openerp_client-%{version}-py%{pyver}.egg-info
+%{python_sitelib}/openerp_client-%{version}-py%{python_version}.egg-info
 
 %if %{build_kde}
 %files client-kde -f %{clone_prefixdir}koo.lang
@@ -403,7 +413,7 @@ rm -rf %{buildroot}
 %{_mandir}/man1/koo.*
 %{_datadir}/Koo/
 %{_datadir}/applications/openerp-koo.desktop
-%{py_puresitedir}/koo-*-py%{pyver}.egg-info
+%{python_sitelib}/koo-*-py%{python_version}.egg-info
 
 %files client-kde-apidoc
 %defattr(-,root,root)
@@ -440,7 +450,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %{_defaultdocdir}/%{name}-server-%{version}/
 # exclude %{_defaultdocdir}/%{name}-server-%{version}/demo
 %{_mandir}/man1/openerp-server.*
-%{py_puresitedir}/openerp_server-%{version}-py%{pyver}.egg-info
+%{python_sitelib}/openerp_server-%{version}-py%{python_version}.egg-info
 %{_mandir}/man5/openerp_serverrc.5*
 
 %pre server
