@@ -1,10 +1,6 @@
 # Redhat, reduced, static version of the spec file
 
-%global build_kde	0
 %global build_web	0
-
-%{?_without_kde:	%global build_kde 0}
-%{?_with_kde:		%global build_kde 1}
 
 %{?_without_web:	%global build_web 0}
 %{?_with_web:		%global build_web 1}
@@ -15,7 +11,6 @@
 
 %if 0
     %define _iconsdir %{_datadir}/icons
-    %define _kde_iconsdir %_kde_prefix/share/icons
 %endif
 
 Name:		openerp
@@ -32,7 +27,7 @@ Source1:	http://www.openerp.com/download/stable/source/%{name}-client-%{version}
 #                   http://git.hellug.gr/?p=xrg/openerp  and referred submodules
 #                   look for the ./mandriva folder there, where this .spec file is held, also.
 Source2:	openerp-server-check.sh
-Patch0: 	openerp-server-init.patch 
+Patch0: 	openerp-server-init.patch *-*
 # BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
 BuildArch:	noarch
 BuildRequires:	python
@@ -62,29 +57,6 @@ Requires:       pygtk2, mx
 
 %description client
 Client components for Open ERP.
-
-%if %{build_kde}
-%package client-kde
-Group:		Applications/Databases
-Summary:	OpenERP Client (KDE)
-Requires:       python-dot, python-pytz, python-kde4
-Obsoletes:	ktiny
-BuildRequires:	python-qt4
-BuildRequires:	qt4-devel, kde4-macros
-BuildRequires:  python-lxml, python-qt4-devel
-Requires(post): desktop-file-utils
-Requires(postun): desktop-file-utils
-
-%description client-kde
-KDE client (aka. koo) components for Open ERP.
-
-%package client-kde-apidoc
-Group:		Documentation
-Summary:	API documentation for ERP Client (KDE)
-
-%description client-kde-apidoc
-Technical documentation for the API of OpenERP KDE client (koo).
-%endif
 
 %if %{build_web}
 %package client-web
@@ -153,13 +125,6 @@ pushd client
 	python ./setup.py build --quiet
 popd
 
-%if %{build_kde}
-pushd client-kde
-	make
-	python ./setup.py build --quiet
-popd
-%endif
-
 %if %{build_web}
 pushd client-web
 	python ./setup.py build --quiet
@@ -179,13 +144,6 @@ pushd client
 	python ./setup.py install --root=%{buildroot} --quiet
 	install -D bin/pixmaps/openerp-icon.png %{buildroot}%{_iconsdir}/openerp-icon.png
 popd
-
-%if %{build_kde}
-pushd client-kde
-	python ./setup.py install --root=%{buildroot} --quiet
-	install -D Koo/ui/images/koo-icon.png %{buildroot}%{_kde_iconsdir}/koo-icon.png
-popd
-%endif
 
 mkdir -p %{buildroot}/%{_sysconfdir}
 
@@ -237,10 +195,6 @@ popd
 %find_lang %{name}-web
 %endif
 
-%if %{build_kde}
-%find_lang koo
-%endif
-
 mv %{buildroot}/%{_datadir}/openerp-client/* %{buildroot}/%{python_sitelib}/openerp-client
 rm -rf %{buildroot}/%{_datadir}/openerp-client
 
@@ -260,23 +214,6 @@ Categories=Office;GNOME;GTK;
 EOF
 
 desktop-file-validate %{buildroot}%{_datadir}/applications/openerp-client.desktop
-
-%if %{build_kde}
-cat > %{buildroot}%{_datadir}/applications/openerp-koo.desktop << EOF
-[Desktop Entry]
-Version=1.0
-Name=Open ERP
-GenericName=OpenERP KDE Client
-Comment=The KDE client for the open source ERP
-Exec=%{_bindir}/koo
-Icon=koo-icon
-Terminal=false
-Type=Application
-StartupNotify=true
-Categories=Office;KDE;
-EOF
-desktop-file-validate %{buildroot}%{_datadir}/applications/openerp-koo.desktop
-%endif
 
 # Make sure that all doc directories are like %{name}-foo-%{version}
 mkdir -p %{buildroot}/%{_defaultdocdir}/%{name}-%{version}
@@ -373,25 +310,6 @@ rm -rf %{buildroot}
 %{_datadir}/pixmaps/openerp-client/
 %{_datadir}/applications/openerp-client.desktop
 %{python_sitelib}/openerp_client-%{version}-py%{python_version}.egg-info
-
-%if %{build_kde}
-%files client-kde -f %{clone_prefixdir}koo.lang
-%doc
-%defattr(-,root,root)
-%{_bindir}/koo
-%{_kde_iconsdir}/koo-icon.png
-%{python_sitelib}/Koo/
-%{_defaultdocdir}/koo/
-%exclude %{_defaultdocdir}/koo/api/
-%{_mandir}/man1/koo.*
-%{_datadir}/Koo/
-%{_datadir}/applications/openerp-koo.desktop
-%{python_sitelib}/koo-*-py%{python_version}.egg-info
-
-%files client-kde-apidoc
-%defattr(-,root,root)
-%{_defaultdocdir}/koo/api/
-%endif
 
 %post client
 %{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null
