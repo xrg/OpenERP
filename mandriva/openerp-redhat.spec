@@ -160,19 +160,19 @@ cp %{SOURCE2} server/tools/server-check.sh
 %build
 
 pushd client
-	%{NoDisplay} python ./setup.py build
+	%{NoDisplay} python ./setup.py build --quiet
 popd
 
 %if %{build_kde}
 pushd client-kde
 	make
-	%{NoDisplay} python ./setup.py build
+	%{NoDisplay} python ./setup.py build --quiet
 popd
 %endif
 
 %if %{build_web}
 pushd client-web
-	%{NoDisplay} python ./setup.py build
+	%{NoDisplay} python ./setup.py build --quiet
 popd
 %endif
 
