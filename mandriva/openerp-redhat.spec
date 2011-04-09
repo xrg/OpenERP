@@ -32,7 +32,7 @@ Source1:	http://www.openerp.com/download/stable/source/%{name}-client-%{version}
 #                   http://git.hellug.gr/?p=xrg/openerp  and referred submodules
 #                   look for the ./mandriva folder there, where this .spec file is held, also.
 Source2:	openerp-server-check.sh
-Patch0: 	openerp-server-init.patch
+Patch0: 	openerp-server-init.patch 
 # BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
 BuildArch:	noarch
 BuildRequires:	python
@@ -123,21 +123,6 @@ Requires(preun): initscripts
 
 %description server
 Server components for Open ERP.
-
-%package serverinit
-Group:		System Environment/Daemons
-Summary:	Full server Metapackage for OpenERP
-Requires:       %{name}-server
-Requires:	postgresql-server >= 8.2
-# Suggest:	openssl ?? *-*
-
-
-%description serverinit
-With this, all necessary packages and modules for a complete OpenERP server
-are installed. This also triggers the installation of a PostgreSQL server.
-
-After installing this package, the openerp server will be ready to use. A
-default postgres user and an SSL self-signed certificate will be created.
 
 %prep
 %setup -q -c
@@ -355,18 +340,6 @@ mkdir -p %{buildroot}/var/log/openerp
 mkdir -p %{buildroot}/var/spool/openerp
 mkdir -p %{buildroot}/var/run/openerp
 
-# A script that will install the Postgres User, but *after* the database
-# has started (even at %post it is too early, the cluster may not have started)
-# This will run at "/etc/init.d/openerp-server start" time
-pushd %{buildroot}%{_sysconfdir}/openerp/start.d
-cat > 10server-check <<EOF
-#!/bin/sh
-
-%{_libexecdir}/%{name}-server/server-check.sh -s
-
-EOF
-popd
-
 %if 0
 #Left here for future backporting
 %clean
@@ -420,9 +393,6 @@ rm -rf %{buildroot}
 %{_defaultdocdir}/koo/api/
 %endif
 
-%files serverinit
-%defattr(-,root,root)
-
 %post client
 %{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null
 
@@ -435,13 +405,11 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %attr(0755,openerp,openerp) %dir /var/spool/openerp
 %attr(0755,openerp,openerp) %dir /var/run/openerp
 %attr(0750,openerp,openerp) %dir %{_sysconfdir}/openerp
-# attr(0755,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp/cert.cfg
 %{_initrddir}/openerp-server
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp-server.conf
 %config(noreplace)	%{_sysconfdir}/logrotate.d/openerp-server
 	%dir 		%{_sysconfdir}/openerp/start.d/
 	%dir 		%{_sysconfdir}/openerp/stop.d/
-%attr(0755,root,root)	%{_sysconfdir}/openerp/start.d/10server-check
 %{_bindir}/openerp-server
 %{python_sitelib}/openerp-server/
 %dir %{_libexecdir}/%{name}-server
@@ -461,45 +429,8 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
     exit 0
 
 %post server
-if [ ! -r "%{_sysconfdir}/openerp/server.cert" ] ; then
-	if [ ! -x "%{_bindir}/openssl" ] ; then
-		echo "OpenERP server: openssl is missing. Cannot create SSL certificates"
-	else
-		pushd %{_sysconfdir}/openerp/
-
-		if [ ! -f server.key ] ; then
-		%{_bindir}/openssl genrsa -rand /proc/apm:/proc/cpuinfo:/proc/dma:/proc/filesystems:/proc/interrupts:/proc/ioports:/proc/pci:/proc/rtc:/proc/uptime \
-			1024 > server.key 2> /dev/null
-		fi
-
-		FQDN=`hostname`
-		if [ "x${FQDN}" = "x" ]; then
-			FQDN=localhost.localdomain
-		fi
-
-		if [ ! -f server.cert ] ; then
-			cat << EOF | %{_bindir}/openssl req -new -key server.key \
-				-x509 -days 365 -set_serial $RANDOM -extensions v3_req \
-				-out server.cert 2>/dev/null
---
-SomeState
-SomeCity
-SomeOrganization
-SomeOrganizationalUnit
-${FQDN}
-root@${FQDN}
-EOF
-		fi
-
-		echo "Created a self-signed SSL certificate for OpenERP. You may want to revise it or get a real one."
-		chown openerp:openerp server.cert server.key
-		popd
-	fi
-fi
-
 # Trigger the server-check.sh the next time openerp-server starts
 touch /var/run/openerp-server-check
-
 /sbin/chkconfig --add openerp-server
 
 %preun server
@@ -508,15 +439,10 @@ if [ $1 = 0 ] ; then
     /sbin/chkconfig --del openerp-server
 fi
 
-
 %postun server
 if [ "$1" -ge "1" ] ; then
     /sbin/service openerp-server condrestart >/dev/null 2>&1 || :
 fi
-
-%post serverinit
-chkconfig postgresql on
-chkconfig openerp-server on
 
 %changelog
 * Mon Apr 4 2011 P. Christeas <p_christ@hol.gr> b4c22fc
