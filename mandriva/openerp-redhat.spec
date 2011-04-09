@@ -5,8 +5,6 @@
 %{?_without_web:	%global build_web 0}
 %{?_with_web:		%global build_web 1}
 
-%{?_use_tarball: %global use_git_clone 0}
-
 %global clone_prefixdir ./
 
 %if 0
@@ -27,7 +25,7 @@ Source1:	http://www.openerp.com/download/stable/source/%{name}-client-%{version}
 #                   http://git.hellug.gr/?p=xrg/openerp  and referred submodules
 #                   look for the ./mandriva folder there, where this .spec file is held, also.
 Source2:	openerp-server-check.sh
-Patch0: 	openerp-server-init.patch *-*
+Patch0: 	openerp-server-init.patch
 # BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
 BuildArch:	noarch
 BuildRequires:	python
@@ -289,7 +287,7 @@ rm -rf %{buildroot}
 
 %if %{build_web}
 %files client-web -f %{clone_prefixdir}%{name}-web.lang
-%doc
+%doc client-web/doc/LICENSE.txt client-web/doc/README.txt
 %defattr(-,root,root)
 %attr(0755,root, root) %{_bindir}/openerp-web
 %attr(0755,root,root) %{_initrddir}/openerp-web
@@ -300,7 +298,7 @@ rm -rf %{buildroot}
 %endif
 
 %files client -f %{clone_prefixdir}%{name}-client.lang
-%doc
+%doc client/doc/LICENSE.txt client/doc/README.txt client/doc/INSTALL
 %defattr(-,root,root)
 %{_bindir}/openerp-client
 %{_iconsdir}/openerp-icon.png
@@ -319,6 +317,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 
 %files server
 %defattr(-,root,root)
+%doc server/LICENSE server/README.txt server/doc/INSTALL
 %attr(0755,openerp,openerp) %dir /var/log/openerp
 %attr(0755,openerp,openerp) %dir /var/spool/openerp
 %attr(0755,openerp,openerp) %dir /var/run/openerp
