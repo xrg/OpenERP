@@ -1,11 +1,5 @@
-# Redhat, reduced, static version of the spec file
+# Redhat, crippled, static version of the spec file
 
-%global build_web	0
-
-%{?_without_web:	%global build_web 0}
-%{?_with_web:		%global build_web 1}
-
-%global clone_prefixdir ./
 
 %if 1
 # Where is that officially defined?
@@ -26,9 +20,6 @@ Source1:	http://www.openerp.com/download/stable/source/%{name}-client-%{version}
 #                   http://git.hellug.gr/?p=xrg/openerp  and referred submodules
 #                   look for the ./mandriva folder there, where this .spec file is held, also.
 Source2:	openerp-server-check.sh
-%if %{build_web}
-Source10:	http://www.openerp.com/download/stable/source/%{name}-web-%{version}.tar.gz
-%endif
 Patch0: 	openerp-server-init.patch
 # BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
 BuildArch:	noarch
@@ -60,23 +51,6 @@ Requires:       pygtk2, mx
 %description client
 Client components for Open ERP.
 
-%if %{build_web}
-%package client-web
-Group:		System Environment/Daemons
-Summary:	Web Client of OpenERP, the Enterprise Management Software
-BuildRequires:  python-cherrypy, python-formencode, python-babel
-Requires:       python-pytz
-Requires:       python-cherrypy, python-formencode
-Requires:       python-simplejson, python-mako
-Requires:	python-Babel
-Requires:	python-pkg-resources
-
-%description client-web
-OpenERP Web is the web client of the OpenERP, a free enterprise management 
-software: accounting, stock, manufacturing, project management...
-
-%endif
-
 %package server
 Group:		System Environment/Daemons
 Summary:	OpenERP Server
@@ -101,11 +75,6 @@ Server components for Open ERP.
 %prep
 %setup -q -c
 %setup -q -c -T -D -a1
-
-%if %{build_web}
-%setup -q -c -T -D -a10
-mv openerp-web-%{version} client-web
-%endif
 
 mv openerp-server-%{version} server
 mv openerp-client-%{version} client
@@ -133,12 +102,6 @@ pushd client
 	python ./setup.py build --quiet
 popd
 
-%if %{build_web}
-pushd client-web
-	python ./setup.py build --quiet
-popd
-%endif
-
 pushd server
 	NO_INSTALL_REQS=1 python ./setup.py build --quiet
 popd
@@ -155,34 +118,6 @@ popd
 
 mkdir -p %{buildroot}/%{_sysconfdir}
 
-%if %{build_web}
-pushd client-web
-# 	  First, compile all the i18n messages
-# 	python ./admin.py i18n -c ALL
-	python ./setup.py install --root=%{buildroot}
-popd
-
-#remove the default init script
-
-pushd %{buildroot}/%{python_sitelib}
-    mv addons openobject/addons
-popd
-
-if [ -d %{buildroot}/usr/doc/openerp-web ] ; then
-    mkdir -p %{buildroot}/%{_defaultdocdir}/
-    mv %{buildroot}/usr/doc/openerp-web/openerp-web.mdv.cfg %{buildroot}/%{_sysconfdir}/openerp-web.cfg
-    mv %{buildroot}/usr/doc/openerp-web  %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
-else
-    mkdir -p %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
-    pushd %{buildroot}/%{python_sitelib}/openobject/
-	    mv doc/ChangeLog doc/LICENSE.txt doc/README.txt \
-		    %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
-	    mv doc/openerp-web.mdv.cfg %{buildroot}/%{_sysconfdir}/openerp-web.cfg
-    popd
-fi
-
-%endif
-
 pushd server
 	python ./setup.py install --root=%{buildroot}
 popd
@@ -198,10 +133,6 @@ pushd %{buildroot}/%{_bindir}/
 popd
 
 %find_lang %{name}-client
-
-%if %{build_web}
-%find_lang %{name}-web
-%endif
 
 mv %{buildroot}/%{_datadir}/openerp-client/* %{buildroot}/%{python_sitelib}/openerp-client
 rm -rf %{buildroot}/%{_datadir}/openerp-client
@@ -223,24 +154,18 @@ EOF
 
 desktop-file-validate %{buildroot}%{_datadir}/applications/openerp-client.desktop
 
+%if 0
 # Make sure that all doc directories are like %{name}-foo-%{version}
 mkdir -p %{buildroot}/%{_defaultdocdir}/%{name}-%{version}
 pushd %{buildroot}/%{_defaultdocdir}
 	if [ -d %{name}-server-* ] && [ %{name}-server-* != %{name}-server-%{version} ] ; then
 		mv %{name}-server-* %{name}-server-%{version}
 	fi
-	if [ -d %{name}-client-web-* ] ; then
-		# put it aside, first
-		mv %{name}-client-web-* %{name}-clientweb-%{version}
-	fi
 	if [ -d %{name}-client-* ] && [ %{name}-client-* != %{name}-client-%{version} ] ; then
 		mv %{name}-client-* %{name}-client-%{version}
 	fi
-	if [ -d %{name}-clientweb-%{version} ] ; then
-		# now, move it to the right place
-		mv %{name}-clientweb-%{version} %{name}-client-web-%{version}
-	fi
 popd
+%endif
 
 # Install the init scripts and conf
 install -m 644 -D server/doc/openerp-server.conf %{buildroot}%{_sysconfdir}/openerp-server.conf
@@ -264,6 +189,7 @@ install -m 644 server/bin/addons/base/security/* %{buildroot}%{python_sitelib}/o
 install -d %{buildroot}/%{_datadir}/pixmaps/openerp-server
 install -m 644 -D server/pixmaps/* %{buildroot}/%{_datadir}/pixmaps/openerp-server/
 
+%if 0
 #temp fixes for alpha builds (rename the .egg files to remove extra version decorators)
 pushd %{buildroot}%{python_sitelib}
 	if [ -r openerp_client-*-py%{python_version}.egg-info ] && \
@@ -275,10 +201,6 @@ pushd %{buildroot}%{python_sitelib}
 		mv openerp_server-*-py%{python_version}.egg-info openerp_server-%{version}-py%{python_version}.egg-info
 	fi
 popd
-
-%if %{build_web}
-#some files for the web-client
-# TODO install -D client-web/scripts/init.d/openerp-web.mdv %{buildroot}/%{_initrddir}/%{name}-web
 %endif
 
 mkdir -p %{buildroot}/var/log/openerp
@@ -295,19 +217,7 @@ rm -rf %{buildroot}
 %defattr(-,root,root)
 %{_defaultdocdir}/%{name}-%{version}/README
 
-%if %{build_web}
-%files client-web -f %{clone_prefixdir}%{name}-web.lang
-%doc client-web/doc/LICENSE.txt client-web/doc/README.txt
-%defattr(-,root,root)
-%attr(0755,root, root) %{_bindir}/openerp-web
-%attr(0755,root,root) %{_initrddir}/openerp-web
-%attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp-web.cfg
-%{python_sitelib}/openobject/
-%{_defaultdocdir}/%{name}-client-web-%{version}/
-%{python_sitelib}/openerp_web-*-py%{python_version}.egg-info
-%endif
-
-%files client -f %{clone_prefixdir}%{name}-client.lang
+%files client -f %{name}-client.lang
 %defattr(-,root,root)
 %{_bindir}/openerp-client
 %{_iconsdir}/openerp-icon.png
@@ -342,7 +252,6 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %attr(0755,root,root)	%{_libexecdir}/%{name}-server/server-check.sh
 %{_datadir}/pixmaps/openerp-server/
 %{_defaultdocdir}/%{name}-server-%{version}/
-# exclude %{_defaultdocdir}/%{name}-server-%{version}/demo
 %{_mandir}/man1/openerp-server.*
 %{python_sitelib}/openerp_server-%{version}-py%{python_version}.egg-info
 %{_mandir}/man5/openerp_serverrc.5*
