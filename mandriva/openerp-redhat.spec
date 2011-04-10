@@ -7,7 +7,8 @@
 
 %global clone_prefixdir ./
 
-%if 0
+%if 1
+# Where is that officially defined?
     %define _iconsdir %{_datadir}/icons
 %endif
 
@@ -25,6 +26,9 @@ Source1:	http://www.openerp.com/download/stable/source/%{name}-client-%{version}
 #                   http://git.hellug.gr/?p=xrg/openerp  and referred submodules
 #                   look for the ./mandriva folder there, where this .spec file is held, also.
 Source2:	openerp-server-check.sh
+%if %{build_web}
+Source10:	http://www.openerp.com/download/stable/source/%{name}-web-%{version}.tar.gz
+%endif
 Patch0: 	openerp-server-init.patch
 # BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
 BuildArch:	noarch
@@ -60,7 +64,7 @@ Client components for Open ERP.
 %package client-web
 Group:		System Environment/Daemons
 Summary:	Web Client of OpenERP, the Enterprise Management Software
-#BuildRequires: ....
+BuildRequires:  python-cherrypy, python-formencode, python-babel
 Requires:       python-pytz
 Requires:       python-cherrypy, python-formencode
 Requires:       python-simplejson, python-mako
@@ -97,6 +101,12 @@ Server components for Open ERP.
 %prep
 %setup -q -c
 %setup -q -c -T -D -a1
+
+%if %{build_web}
+%setup -q -c -T -D -a10
+mv openerp-web-%{version} client-web
+%endif
+
 mv openerp-server-%{version} server
 mv openerp-client-%{version} client
 pushd server
@@ -148,7 +158,7 @@ mkdir -p %{buildroot}/%{_sysconfdir}
 %if %{build_web}
 pushd client-web
 # 	  First, compile all the i18n messages
-	python ./admin.py i18n -c ALL
+# 	python ./admin.py i18n -c ALL
 	python ./setup.py install --root=%{buildroot}
 popd
 
@@ -298,7 +308,6 @@ rm -rf %{buildroot}
 %endif
 
 %files client -f %{clone_prefixdir}%{name}-client.lang
-%doc client/doc/LICENSE.txt client/doc/README.txt client/doc/INSTALL
 %defattr(-,root,root)
 %{_bindir}/openerp-client
 %{_iconsdir}/openerp-icon.png
@@ -317,7 +326,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 
 %files server
 %defattr(-,root,root)
-%doc server/LICENSE server/README.txt server/doc/INSTALL
+%doc server/LICENSE server/README
 %attr(0755,openerp,openerp) %dir /var/log/openerp
 %attr(0755,openerp,openerp) %dir /var/spool/openerp
 %attr(0755,openerp,openerp) %dir /var/run/openerp
@@ -362,6 +371,17 @@ if [ "$1" -ge "1" ] ; then
 fi
 
 %changelog
+* Sat Apr 9 2011 P. Christeas <p_christ@hol.gr> 0037772
+  + Redhat: more cleanup, offer default docs
+  + Redhat: remove the kde client
+  + Redhat: remove the serverinit sub-package
+  + Redhat: cleanup macros, requires
+  + Redhat: python build --quiet
+
+* Fri Apr 8 2011 P. Christeas <p_christ@hol.gr> e7eab62
+  + Radhat: 6.0.2-2 fix groups, cert script, changelog
+  + Mandriva: a few changes in .spec file
+
 * Mon Apr 4 2011 P. Christeas <p_christ@hol.gr> b4c22fc
   + redhat: update to 6.0.2
   + redhat: a couple of fixes for rpmlint
