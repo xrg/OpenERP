@@ -159,8 +159,6 @@ install -m 644 -D server/doc/openerp-server.conf %{buildroot}%{_sysconfdir}/open
 install -m 755 -D server/doc/openerp-server.init %{buildroot}%{_initrddir}/openerp-server
 install -m 644 -D server/doc/openerp-server.logrotate %{buildroot}%{_sysconfdir}/logrotate.d/openerp-server
 
-install -m 644 -D server/README %{buildroot}%{_defaultdocdir}/%{name}-%{version}/README
-
 install -d %{buildroot}%{_sysconfdir}/openerp/start.d
 install -d %{buildroot}%{_sysconfdir}/openerp/stop.d
 
@@ -187,14 +185,14 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root)
-%{_defaultdocdir}/%{name}-%{version}/README
+%doc server/README
 
 %files client -f %{name}-client.lang
 %defattr(-,root,root)
+%doc client/doc/*
 %{_bindir}/openerp-client
 %{_iconsdir}/openerp-icon.png
 %{python_sitelib}/openerp-client/
-%{_defaultdocdir}/%{name}-client-%{version}/
 %{_mandir}/man1/openerp-client.*
 %{_datadir}/pixmaps/openerp-client/
 %{_datadir}/applications/openerp-client.desktop
@@ -208,7 +206,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 
 %files server
 %defattr(-,root,root)
-%doc server/LICENSE server/README
+%doc server/LICENSE server/README server/doc/INSTALL server/doc/Changelog
 %attr(0755,openerp,openerp) %dir /var/log/openerp
 %attr(0755,openerp,openerp) %dir /var/spool/openerp
 %attr(0755,openerp,openerp) %dir /var/run/openerp
@@ -223,7 +221,6 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %dir %{_libexecdir}/%{name}-server
 %attr(0755,root,root)	%{_libexecdir}/%{name}-server/server-check.sh
 %{_datadir}/pixmaps/openerp-server/
-%{_defaultdocdir}/%{name}-server-%{version}/
 %{_mandir}/man1/openerp-server.*
 %{python_sitelib}/openerp_server-%{version}-py%{python_version}.egg-info
 %{_mandir}/man5/openerp_serverrc.5*
