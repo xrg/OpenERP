@@ -154,19 +154,6 @@ EOF
 
 desktop-file-validate %{buildroot}%{_datadir}/applications/openerp-client.desktop
 
-%if 0
-# Make sure that all doc directories are like %{name}-foo-%{version}
-mkdir -p %{buildroot}/%{_defaultdocdir}/%{name}-%{version}
-pushd %{buildroot}/%{_defaultdocdir}
-	if [ -d %{name}-server-* ] && [ %{name}-server-* != %{name}-server-%{version} ] ; then
-		mv %{name}-server-* %{name}-server-%{version}
-	fi
-	if [ -d %{name}-client-* ] && [ %{name}-client-* != %{name}-client-%{version} ] ; then
-		mv %{name}-client-* %{name}-client-%{version}
-	fi
-popd
-%endif
-
 # Install the init scripts and conf
 install -m 644 -D server/doc/openerp-server.conf %{buildroot}%{_sysconfdir}/openerp-server.conf
 install -m 755 -D server/doc/openerp-server.init %{buildroot}%{_initrddir}/openerp-server
@@ -178,7 +165,6 @@ install -d %{buildroot}%{_sysconfdir}/openerp/start.d
 install -d %{buildroot}%{_sysconfdir}/openerp/stop.d
 
 install -m 644 server/bin/import_xml.rng %{buildroot}%{python_sitelib}/openerp-server/
-# mv %{buildroot}%{_prefix}/import_xml.rng %{buildroot}%{python_sitelib}/openerp-server/
 
 install -d %{buildroot}%{_libexecdir}/%{name}-server
 install -m 744 server/tools/server-check.sh %{buildroot}%{_libexecdir}/%{name}-server/
@@ -188,20 +174,6 @@ install -m 644 server/bin/addons/base/security/* %{buildroot}%{python_sitelib}/o
 
 install -d %{buildroot}/%{_datadir}/pixmaps/openerp-server
 install -m 644 -D server/pixmaps/* %{buildroot}/%{_datadir}/pixmaps/openerp-server/
-
-%if 0
-#temp fixes for alpha builds (rename the .egg files to remove extra version decorators)
-pushd %{buildroot}%{python_sitelib}
-	if [ -r openerp_client-*-py%{python_version}.egg-info ] && \
-	    [ openerp_client-*-py%{python_version}.egg-info != openerp_client-%{version}-py%{python_version}.egg-info ]; then
-		mv openerp_client-*-py%{python_version}.egg-info openerp_client-%{version}-py%{python_version}.egg-info
-	fi
-	if [ -r openerp_server-*-py%{python_version}.egg-info ] && \
-	    [ openerp_server-*-py%{python_version}.egg-info openerp_server-%{version}-py%{python_version}.egg-info ]; then
-		mv openerp_server-*-py%{python_version}.egg-info openerp_server-%{version}-py%{python_version}.egg-info
-	fi
-popd
-%endif
 
 mkdir -p %{buildroot}/var/log/openerp
 mkdir -p %{buildroot}/var/spool/openerp
