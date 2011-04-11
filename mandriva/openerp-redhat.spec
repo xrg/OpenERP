@@ -64,7 +64,7 @@ Requires:	ghostscript
 Requires:	PyXML
 # Requires: python-matplotlib
 Requires:	PyYAML, python-mako
-# Requires:	python-pychart # embedded, still
+Requires:	pychart
 Requires(post):	chkconfig
 Requires(preun): chkconfig
 Requires(preun): initscripts
@@ -81,6 +81,9 @@ mv openerp-client-%{version} client
 pushd server
 # I don't understand why this is needed at this stage
 rm -rf win32 debian setup.nsi
+
+# Hope that the upstream one will do.
+rm -rf bin/pychart
 
 %patch -P0 -p1
 popd
