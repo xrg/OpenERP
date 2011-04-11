@@ -46,7 +46,7 @@ Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 Requires:	hippo-canvas-python
 Requires:	python-dateutil
-Requires:       pygtk2, mx
+Requires:       mx
 
 %description client
 Client components for Open ERP.
