@@ -5,7 +5,8 @@
 %define release_class pub
 
 %{?!pyver: %define pyver %(python -c 'import sys;print(sys.version[0:3])')}
-%{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+%{?!python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+%{?!py_puresitedir: %define py_puresitedir %(python -c 'import distutils.sysconfig; print distutils.sysconfig.get_python_lib()' 2>/dev/null || echo PYTHON-LIBDIR-NOT-FOUND)}
 
 %if %{_target_vendor} == mandriva
 %define NoDisplay	DISPLAY=
@@ -17,11 +18,28 @@
 %define build_kde	0
 %define build_web	0
 %endif
+%define build_mdvmga	1
+%else
+
+%if %{_target_vendor} == mageia
+%define NoDisplay	DISPLAY=
+
+%define build_kde	1
+%define build_web	0
+%define build_mdvmga	1
 
 %else
+# Other distributions
+
 %define NoDisplay	NODISPLAY=n
 %define build_kde	0
 %define build_web	0
+
+%define build_mdvmga	0
+
+%{?!_iconsdir %define _iconsdir %{_datadir}/icons }
+%{?!_kde_iconsdir %define _kde_iconsdir %_kde_prefix/share/icons}
+%endif
 %endif
 
 %define use_git_clone	1
@@ -60,15 +78,16 @@ BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
 BuildArch:	noarch
 BuildRequires:	python, python-setuptools
 BuildRequires:	desktop-file-utils
-Requires:	openerp-client, openerp-server
-%if %{_target_vendor} == mandriva
+%if %{build_mdvmga}
 BuildRequires:	 pygtk2.0-devel, pygtk2.0-libglade, python-libxslt
 BuildRequires:	python-psycopg2, python-dot, python-pychart
 %else 
 %if %{_target_vendor} == redhat
-BuildRequires:	 pygtk2-devel, libxslt-python, mx
+BuildRequires:	pygtk2-devel, libxslt-python
+BuildRequires:	python2-devel
 %endif
 %endif
+Requires:	openerp-client, openerp-server
 
 %description
 Open ERP is a free enterprise management software package. It
@@ -79,11 +98,11 @@ project management...
 %package client
 Group:		Databases
 Summary:	OpenERP Client
-Requires:       pygtk2.0, pygtk2.0-libglade, python-dot, python-lxml
-Requires:	python-matplotlib
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
-%if %{_target_vendor} == mandriva
+%if %{build_mdvmga}
+Requires:	python-matplotlib
+Requires:       python-dot, python-lxml
 Requires:       pygtk2.0, pygtk2.0-libglade, python-egenix-mx-base
 Requires:	python-dateutil
 %if %mdkver > 200900
@@ -91,7 +110,10 @@ Requires:	python-hippo-canvas
 %endif
 %else 
 %if %{_target_vendor} == redhat
-Requires:       pygtk2, mx
+Requires:	pygtk2
+Requires:       pygobject2, pygtk2-libglade, pydot, python-lxml
+Requires:	hippo-canvas-python
+Requires:	python-dateutil
 %endif
 %endif
 
@@ -141,19 +163,28 @@ software: accounting, stock, manufacturing, project mgt...
 %package server
 Group:		System/Servers
 Summary:	OpenERP Server
-Requires:	pygtk2.0, pygtk2.0-libglade
-Requires:	python-libxslt, python-lxml
+Requires:	python-lxml
 Requires:	postgresql-plpython >= 8.2
 Requires:	python-imaging
 Requires:	python-psycopg2, python-reportlab
-Requires:       python-parsing
-Suggests:	postgresql-server >= 8.2
 Requires:	ghostscript
 # perhaps the matplotlib could yield for pytz, in Mdv >=2009.0
-Requires:	python-pyxml, python-matplotlib
+%if %{build_mdvmga}
+Requires:	python-matplotlib
+Requires:       python-parsing, python-libxslt
+Requires:	pygtk2.0, pygtk2.0-libglade
 Requires:	python-pychart, python-yaml, python-mako
 Requires(pre):	rpm-helper
 Requires(postun): rpm-helper
+%else
+Requires:       pyparsing
+Requires:	ghostscript
+Requires:	PyXML, PyYAML, python-mako
+Requires:	pychart
+Requires(post):	chkconfig
+Requires(preun): chkconfig
+Requires(preun): initscripts
+%endif
 
 %description server
 Server components for Open ERP.
@@ -276,24 +307,24 @@ cd %{name}-%{version}
 %endif
 
 pushd client
-	%{NoDisplay} python ./setup.py build
+	%{NoDisplay} python ./setup.py build --quiet
 popd
 
 %if %{build_kde}
 pushd client-kde
 	make
-	%{NoDisplay} python ./setup.py build
+	%{NoDisplay} python ./setup.py build --quiet
 popd
 %endif
 
 %if %{build_web}
 pushd client-web
-	%{NoDisplay} python ./setup.py build
+	%{NoDisplay} python ./setup.py build --quiet
 popd
 %endif
 
 pushd server
-	NO_INSTALL_REQS=1 %{NoDisplay} python ./setup.py build
+	NO_INSTALL_REQS=1 %{NoDisplay} python ./setup.py build --quiet
 popd
 
 %install
@@ -303,13 +334,13 @@ cd %{name}-%{version}
 [ -n "%{buildroot}" -a "%{buildroot}" != / ] && rm -rf %{buildroot}
 
 pushd client
-	%{NoDisplay} python ./setup.py install --root=%{buildroot}
+	%{NoDisplay} python ./setup.py install --root=%{buildroot} --quiet
 	install -D bin/pixmaps/openerp-icon.png %{buildroot}%{_iconsdir}/openerp-icon.png
 popd
 
 %if %{build_kde}
 pushd client-kde
-	%{NoDisplay} python ./setup.py install --root=%{buildroot}
+	%{NoDisplay} python ./setup.py install --root=%{buildroot} --quiet
 	install -D Koo/ui/images/koo-icon.png %{buildroot}%{_kde_iconsdir}/koo-icon.png
 popd
 %endif
@@ -320,7 +351,7 @@ mkdir -p %{buildroot}/%{_sysconfdir}
 pushd client-web
 # 	  First, compile all the i18n messages
 	%{NoDisplay} python ./admin.py i18n -c ALL
-	%{NoDisplay} python ./setup.py install --root=%{buildroot}
+	%{NoDisplay} python ./setup.py install --root=%{buildroot} --quiet
 popd
 
 #remove the default init script
@@ -330,16 +361,7 @@ pushd %{buildroot}/%{python_sitelib}
 popd
 
 if [ -d %{buildroot}/usr/doc/openerp-web ] ; then
-    mkdir -p %{buildroot}/%{_defaultdocdir}/
-    mv %{buildroot}/usr/doc/openerp-web/openerp-web.mdv.cfg %{buildroot}/%{_sysconfdir}/openerp-web.cfg
-    mv %{buildroot}/usr/doc/openerp-web  %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
-else
-    mkdir -p %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
-    pushd %{buildroot}/%{python_sitelib}/openobject/
-	    mv doc/ChangeLog doc/LICENSE.txt doc/README.txt \
-		    %{buildroot}/%{_defaultdocdir}/%{name}-client-web-%{version}/
-	    mv doc/openerp-web.mdv.cfg %{buildroot}/%{_sysconfdir}/openerp-web.cfg
-    popd
+    rm -rf %{buildroot}/usr/doc/openerp-web
 fi
 
 %if 0 
@@ -359,7 +381,7 @@ popd
 %endif
 
 pushd server
-	%{NoDisplay} python ./setup.py install --root=%{buildroot}
+	%{NoDisplay} python ./setup.py install --root=%{buildroot} --quiet
 popd
 
 # the Python installer plants the RPM_BUILD_ROOT inside the launch scripts, fix that:
@@ -386,10 +408,9 @@ mv %{buildroot}/%{_datadir}/openerp-client/* %{buildroot}/%{python_sitelib}/open
 rm -rf %{buildroot}/%{_datadir}/openerp-client
 
 mkdir %{buildroot}%{_datadir}/applications
-cat > %{buildroot}%{_datadir}/applications/mandriva-openerp-client.desktop << EOF
+cat > %{buildroot}%{_datadir}/applications/openerp-client.desktop << EOF
 [Desktop Entry]
 Version=1.0
-Encoding=UTF-8
 Name=Open ERP
 GenericName=GTK ERP Client
 Comment=A gtk client for the open source ERP
@@ -401,8 +422,10 @@ StartupNotify=true
 Categories=Office;GNOME;GTK;X-MandrivaLinux-CrossDesktop;
 EOF
 
+desktop-file-validate %{buildroot}%{_datadir}/applications/openerp-client.desktop
+
 %if %{build_kde}
-cat > %{buildroot}%{_datadir}/applications/mandriva-koo.desktop << EOF
+cat > %{buildroot}%{_datadir}/applications/openerp-koo.desktop << EOF
 [Desktop Entry]
 Version=1.0
 Name=Open ERP
@@ -415,31 +438,21 @@ Type=Application
 StartupNotify=true
 Categories=Office;KDE;X-MandrivaLinux-CrossDesktop;
 EOF
+
+desktop-file-validate %{buildroot}%{_datadir}/applications/openerp-koo.desktop
 %endif
 
-mkdir -p %{buildroot}/%{_defaultdocdir}/%{name}-%{version}
+# We remove the installed documentation dirs, because %doc will copy them again
 pushd %{buildroot}/%{_defaultdocdir}
-	if [ -d %{name}-server-* ] && [ %{name}-server-* != %{name}-server-%{version} ] ; then
-		mv %{name}-server-* %{name}-server-%{version}
-	fi
-	if [ -d %{name}-client-web-* ] ; then
-		# put it aside, first
-		mv %{name}-client-web-* %{name}-clientweb-%{version}
-	fi
-	if [ -d %{name}-client-* ] && [ %{name}-client-* != %{name}-client-%{version} ] ; then
-		mv %{name}-client-* %{name}-client-%{version}
-	fi
-	if [ -d %{name}-clientweb-%{version} ] ; then
-		# now, move it to the right place
-		mv %{name}-clientweb-%{version} %{name}-client-web-%{version}
-	fi
-
+	[ -d %{name}-server-* ] && rm -rf %{name}-server-*
+	[ -d %{name}-client-web-* ] && rm -rf %{name}-client-web-*
+	[ -d %{name}-client-* ] && rm -rf %{name}-client-*
+	[ -d koo ] && rm -rf koo
 popd
+
 install -m 644 -D server/doc/openerp-server.conf %{buildroot}%{_sysconfdir}/openerp-server.conf
 install -m 755 -D server/doc/openerp-server.init %{buildroot}%{_initrddir}/openerp-server
 install -m 644 -D server/doc/openerp-server.logrotate %{buildroot}%{_sysconfdir}/logrotate.d/openerp-server
-install -m 755 -D server/doc/README.urpmi %{buildroot}%{_defaultdocdir}/%{name}-%{version}/README.urpmi
-install -m 755 -D server/doc/README.userchange %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/README.userchange
 
 install -d %{buildroot}%{_sysconfdir}/openerp/start.d
 install -d %{buildroot}%{_sysconfdir}/openerp/stop.d
@@ -447,9 +460,9 @@ install -d %{buildroot}%{_sysconfdir}/openerp/stop.d
 install -m 750 -D server/ssl-cert.cfg %{buildroot}%{_sysconfdir}/openerp/cert.cfg
 
 install -m 644 server/bin/import_xml.rng %{buildroot}%{python_sitelib}/openerp-server/
-# mv %{buildroot}%{_prefix}/import_xml.rng %{buildroot}%{python_sitelib}/openerp-server/
-install -m 744 server/tools/server-check.sh %{buildroot}%{python_sitelib}/openerp-server/
 
+install -d %{buildroot}%{_libexecdir}/%{name}-server/
+install -m 744 server/tools/server-check.sh %{buildroot}%{_libexecdir}/%{name}-server/
 install -d %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 install -m 644 server/bin/addons/base/security/* %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 
@@ -502,30 +515,28 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root)
-%{_defaultdocdir}/%{name}-%{version}/README.urpmi
+%doc %{clone_prefixdir}server/doc/README.urpmi %{clone_prefixdir}server/README
 
 %if %{build_web}
 %files client-web -f %{clone_prefixdir}%{name}-web.lang
-%doc
+%doc %{clone_prefixdir}client-web/doc/*
 %defattr(-,root,root)
 %attr(0755,root, root) %{_bindir}/openerp-web
 %attr(0755,root,root) %{_initrddir}/openerp-web
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp-web.cfg
 %{python_sitelib}/openobject/
-%{_defaultdocdir}/%{name}-client-web-%{version}/
 %{py_puresitedir}/openerp_web-*-py%{pyver}.egg-info
 %endif
 
 %files client -f %{clone_prefixdir}%{name}-client.lang
-%doc
+%doc %{clone_prefixdir}client/doc/*
 %defattr(-,root,root)
 %{_bindir}/openerp-client
 %{_iconsdir}/openerp-icon.png
 %{python_sitelib}/openerp-client/
-%{_defaultdocdir}/%{name}-client-%{version}/
 %{_mandir}/man1/openerp-client.*
 %{_datadir}/pixmaps/openerp-client/
-%{_datadir}/applications/mandriva-openerp-client.desktop
+%{_datadir}/applications/openerp-client.desktop
 %{py_puresitedir}/openerp_client-%{version}-py%{pyver}.egg-info
 
 %if %{build_kde}
@@ -535,16 +546,16 @@ rm -rf %{buildroot}
 %{_bindir}/koo
 %{_kde_iconsdir}/koo-icon.png
 %{python_sitelib}/Koo/
-%{_defaultdocdir}/koo/
-%exclude %{_defaultdocdir}/koo/api/
 %{_mandir}/man1/koo.*
 %{_datadir}/Koo/
-%{_datadir}/applications/mandriva-koo.desktop
+%{_datadir}/applications/openerp-koo.desktop
 %{py_puresitedir}/koo-*-py%{pyver}.egg-info
 
+%if 0
 %files client-kde-apidoc
 %defattr(-,root,root)
-%{_defaultdocdir}/koo/api/
+%endif
+
 %endif
 
 %files serverinit
@@ -566,6 +577,8 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 
 %files server
 %defattr(-,root,root)
+%doc %{clone_prefixdir}server/LICENSE %{clone_prefixdir}server/README 
+%doc %{clone_prefixdir}server/doc/INSTALL %{clone_prefixdir}server/doc/Changelog
 %attr(0755,openerp,openerp) %dir /var/log/openerp
 %attr(0755,openerp,openerp) %dir /var/spool/openerp
 %attr(0755,openerp,openerp) %dir /var/run/openerp
@@ -577,10 +590,10 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 	%dir 		%{_sysconfdir}/openerp/start.d/
 	%dir 		%{_sysconfdir}/openerp/stop.d/
 %attr(0755,root,root)	%{_sysconfdir}/openerp/start.d/10server-check
+%attr(0755,root,root)	%{_libexecdir}/%{name}-server/server-check.sh
 %{_bindir}/openerp-server
 %{python_sitelib}/openerp-server/
 %{_datadir}/pixmaps/openerp-server/
-%{_defaultdocdir}/%{name}-server-%{version}/
 %exclude %{_defaultdocdir}/%{name}-server-%{version}/demo
 %{_mandir}/man1/openerp-server.*
 %{py_puresitedir}/openerp_server-%{version}-py%{pyver}.egg-info
@@ -588,7 +601,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 
 %pre server
 # todo: non-mandriva useradd
-%if %{_target_vendor} == mandriva
+%if %{build_mdvmga}
 %_pre_useradd openerp /var/spool/openerp /sbin/nologin
 %else
 #getent group GROUPNAME >/dev/null || groupadd -r GROUPNAME
@@ -616,14 +629,14 @@ fi
 # Trigger the server-check.sh the next time openerp-server starts
 touch /var/run/openerp-server-check
 
-%if %{_target_vendor} == mandriva
+%if %{build_mdvmga}
 %_post_service openerp-server
 %else
 /sbin/chkconfig --add openerp-server
 %endif
 
 %preun server
-%if %{_target_vendor} == mandriva
+%if %{build_mdvmga}
 %_preun_service openerp-server
 %else
 if [ $1 = 0 ] ; then
@@ -634,7 +647,7 @@ fi
 
 
 %postun server
-%if %{_target_vendor} == mandriva
+%if %{build_mdvmga}
 %_postun_service openerp-server
 %_postun_userdel openerp
 %else
