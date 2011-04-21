@@ -8,16 +8,14 @@
 
 %define tarball_extra -4-g0e50801
 
-Name:		openerp
+Name:		openerp-server
 Version:	6.0.2
 Release:	4%{?dist}
 License:	AGPLv3
-Group:		Applications/Databases
-Summary:	Client and Server for the ERP suite
+Group:		System Environment/Daemons
+Summary:	OpenERP Server
 URL:		http://www.openerp.com
-Obsoletes:	tinyerp
-Source0:	http://www.openerp.com/download/stable/source/%{name}-server-%{version}%{tarball_extra}.tar.gz
-Source1:	http://www.openerp.com/download/stable/source/%{name}-client-%{version}%{tarball_extra}.tar.gz
+Source0:	http://www.openerp.com/download/stable/source/%{name}-%{version}%{tarball_extra}.tar.gz
 #                   All non-official patches are contained in:
 #                   http://git.hellug.gr/?p=xrg/openerp  and referred submodules
 #                   look for the ./mandriva folder there, where this .spec file is held, also.
@@ -29,33 +27,6 @@ BuildRequires:	python
 BuildRequires:	desktop-file-utils, python-setuptools
 BuildRequires:	pygtk2-devel, libxslt-python
 BuildRequires:	python2-devel
-Requires:	openerp-client, openerp-server
-
-%description
-Open ERP is a free enterprise management software package. It
-covers all domains for small to medium businesses; accounting,
-stock management, sales, customer relationship, purchases,
-project management...
-
-%package client
-# note: we want the gtk client even w/o GNOME full desktop
-Group:		Applications/Databases
-Summary:	OpenERP Client
-Requires:	pygtk2
-Requires:       pygobject2, pygtk2-libglade, pydot, python-lxml
-# Requires:	python-matplotlib
-Requires(post): desktop-file-utils
-Requires(postun): desktop-file-utils
-Requires:	hippo-canvas-python
-Requires:	python-dateutil
-Requires:       mx
-
-%description client
-Client components for Open ERP.
-
-%package server
-Group:		System Environment/Daemons
-Summary:	OpenERP Server
 Requires:	python-lxml
 Requires:	python-imaging
 Requires:	python-psycopg2, python-reportlab
@@ -71,16 +42,12 @@ Requires(post):	chkconfig
 Requires(preun): chkconfig
 Requires(preun): initscripts
 
-%description server
-Server components for Open ERP.
+%description
+Server component for Open ERP.
 
 %prep
-%setup -q -c
-%setup -q -c -T -D -a1
+%setup -q
 
-mv openerp-server-%{version} server
-mv openerp-client-%{version} client
-pushd server
 # I don't understand why this is needed at this stage
 rm -rf win32 debian setup.nsi
 
@@ -88,10 +55,9 @@ rm -rf win32 debian setup.nsi
 rm -rf bin/pychart
 
 %patch -P0 -p1
-popd
 
 # Remove prebuilt binaries
-pushd server/bin/addons
+pushd bin/addons
     rm -f outlook/plugin/openerp-outlook-addin.exe \
 	thunderbird/plugin/openerp_plugin.xpi
 
@@ -105,39 +71,25 @@ pushd server/bin/addons
 popd
 
 # Tmp, as long as server-check is not in official sources:
-mkdir -p server/tools/
-cp %{SOURCE2} server/tools/server-check.sh
+mkdir -p tools/
+cp %{SOURCE2} tools/server-check.sh
 
 
 %build
-
-pushd client
-	python ./setup.py build --quiet
-popd
-
-pushd server
-	NO_INSTALL_REQS=1 python ./setup.py build --quiet
-popd
+NO_INSTALL_REQS=1 python ./setup.py build --quiet
 
 # TODO: build the thunderbird plugin and the report designer
 
 %install
 [ -n "%{buildroot}" -a "%{buildroot}" != / ] && rm -rf %{buildroot}
 
-pushd client
-	python ./setup.py install --root=%{buildroot} --quiet
-	install -D bin/pixmaps/openerp-icon.png %{buildroot}%{_iconsdir}/openerp-icon.png
-popd
-
 mkdir -p %{buildroot}/%{_sysconfdir}
 
-pushd server
-	python ./setup.py install --root=%{buildroot}
-popd
+python ./setup.py install --root=%{buildroot}
 
 # the Python installer plants the RPM_BUILD_ROOT inside the launch scripts, fix that:
 pushd %{buildroot}/%{_bindir}/
-	for BIN in %{name}-server %{name}-client ; do
+	for BIN in %{name} ; do
 		mv $BIN $BIN.old
 		cat $BIN.old | sed "s|%{buildroot}||" > $BIN
 		chmod a+x $BIN
@@ -147,7 +99,7 @@ popd
 
 # When setup.py copies files, it removes the executable bit, so we have to
 # restore it here for some scripts:
-pushd %{buildroot}%{python_sitelib}/%{name}-server/
+pushd %{buildroot}%{python_sitelib}/%{name}/
     chmod a+x addons/document_ftp/ftpserver/ftpserver.py \
 	addons/document/odt2txt.py \
 	addons/document/test_cindex.py \
@@ -160,57 +112,24 @@ pushd %{buildroot}%{python_sitelib}/%{name}-server/
 	tools/which.py
 popd
 
-pushd %{buildroot}%{python_sitelib}/%{name}-client/
-    chmod a+x openerp-client.py
-popd
-
-
-pushd %{buildroot}/%{_datadir}/locale
-# Adjusting localization names for Albania, Ukraine
-	mv al sq
-	rm -rf ua # there is already an "uk" file for Ukraine, ua seems old.
-popd
-
-%find_lang %{name}-client
-
-mv %{buildroot}/%{_datadir}/openerp-client/* %{buildroot}/%{python_sitelib}/openerp-client
-rm -rf %{buildroot}/%{_datadir}/openerp-client
-
-mkdir %{buildroot}%{_datadir}/applications
-cat > %{buildroot}%{_datadir}/applications/openerp-client.desktop << EOF
-[Desktop Entry]
-Version=1.0
-Name=Open ERP
-GenericName=GTK ERP Client
-Comment=A gtk client for the open source ERP
-Exec=%{_bindir}/openerp-client
-Icon=openerp-icon
-Terminal=false
-Type=Application
-StartupNotify=true
-Categories=Office;GNOME;GTK;
-EOF
-
-desktop-file-validate %{buildroot}%{_datadir}/applications/openerp-client.desktop
-
 # Install the init scripts and conf
-install -m 644 -D server/doc/openerp-server.conf %{buildroot}%{_sysconfdir}/openerp-server.conf
-install -m 755 -D server/doc/openerp-server.init %{buildroot}%{_initrddir}/openerp-server
-install -m 644 -D server/doc/openerp-server.logrotate %{buildroot}%{_sysconfdir}/logrotate.d/openerp-server
+install -m 644 -D doc/openerp-server.conf %{buildroot}%{_sysconfdir}/openerp-server.conf
+install -m 755 -D doc/openerp-server.init %{buildroot}%{_initrddir}/openerp-server
+install -m 644 -D doc/openerp-server.logrotate %{buildroot}%{_sysconfdir}/logrotate.d/openerp-server
 
 install -d %{buildroot}%{_sysconfdir}/openerp/start.d
 install -d %{buildroot}%{_sysconfdir}/openerp/stop.d
 
-install -m 644 server/bin/import_xml.rng %{buildroot}%{python_sitelib}/openerp-server/
+install -m 644 bin/import_xml.rng %{buildroot}%{python_sitelib}/%{name}/
 
-install -d %{buildroot}%{_libexecdir}/%{name}-server
-install -m 744 server/tools/server-check.sh %{buildroot}%{_libexecdir}/%{name}-server/
+install -d %{buildroot}%{_libexecdir}/%{name}
+install -m 744 tools/server-check.sh %{buildroot}%{_libexecdir}/%{name}/
 
 install -d %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
-install -m 644 server/bin/addons/base/security/* %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
+install -m 644 bin/addons/base/security/* %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 
 install -d %{buildroot}/%{_datadir}/pixmaps/openerp-server
-install -m 644 -D server/pixmaps/* %{buildroot}/%{_datadir}/pixmaps/openerp-server/
+install -m 644 -D pixmaps/* %{buildroot}/%{_datadir}/pixmaps/openerp-server/
 
 mkdir -p %{buildroot}/var/log/openerp
 mkdir -p %{buildroot}/var/spool/openerp
@@ -224,28 +143,7 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root)
-%doc server/README
-
-%files client -f %{name}-client.lang
-%defattr(-,root,root)
-%doc client/doc/*
-%{_bindir}/openerp-client
-%{_iconsdir}/openerp-icon.png
-%{python_sitelib}/openerp-client/
-%{_mandir}/man1/openerp-client.*
-%{_datadir}/pixmaps/openerp-client/
-%{_datadir}/applications/openerp-client.desktop
-%{python_sitelib}/openerp_client-%{version}-py%{python_version}.egg-info
-
-%post client
-%{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null
-
-%postun client
-if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null ; fi
-
-%files server
-%defattr(-,root,root)
-%doc server/LICENSE server/README server/doc/INSTALL server/doc/Changelog
+%doc LICENSE README doc/INSTALL doc/Changelog
 %attr(0755,openerp,openerp) %dir /var/log/openerp
 %attr(0755,openerp,openerp) %dir /var/spool/openerp
 %attr(0755,openerp,openerp) %dir /var/run/openerp
@@ -257,32 +155,32 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 	%dir 		%{_sysconfdir}/openerp/stop.d/
 %{_bindir}/openerp-server
 %{python_sitelib}/openerp-server/
-%dir %{_libexecdir}/%{name}-server
-%attr(0755,root,root)	%{_libexecdir}/%{name}-server/server-check.sh
+%dir %{_libexecdir}/%{name}
+%attr(0755,root,root)	%{_libexecdir}/%{name}/server-check.sh
 %{_datadir}/pixmaps/openerp-server/
 %{_mandir}/man1/openerp-server.*
 %{python_sitelib}/openerp_server-%{version}-py%{python_version}.egg-info
 %{_mandir}/man5/openerp_serverrc.5*
 
-%pre server
+%pre
     getent group openerp >/dev/null || groupadd -r openerp
     getent passwd openerp >/dev/null || \
         useradd -r -d /var/spool/openerp -s /sbin/nologin \
         -c "OpenERP Server" openerp
     exit 0
 
-%post server
+%post
 # Trigger the server-check.sh the next time openerp-server starts
 touch /var/run/openerp-server-check
 /sbin/chkconfig --add openerp-server
 
-%preun server
+%preun
 if [ $1 = 0 ] ; then
     /sbin/service openerp-server stop >/dev/null 2>&1
     /sbin/chkconfig --del openerp-server
 fi
 
-%postun server
+%postun
 if [ "$1" -ge "1" ] ; then
     /sbin/service openerp-server condrestart >/dev/null 2>&1 || :
 fi
