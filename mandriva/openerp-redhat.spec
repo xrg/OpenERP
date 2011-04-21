@@ -6,16 +6,18 @@
     %define _iconsdir %{_datadir}/icons
 %endif
 
+%define tarball_extra -4-g0e50801
+
 Name:		openerp
 Version:	6.0.2
-Release:	3%{?dist}
+Release:	4%{?dist}
 License:	AGPLv3
 Group:		Applications/Databases
-Summary:	Client and Server for the OpenERP suite
+Summary:	Client and Server for the ERP suite
 URL:		http://www.openerp.com
 Obsoletes:	tinyerp
-Source0:	http://www.openerp.com/download/stable/source/%{name}-server-%{version}.tar.gz
-Source1:	http://www.openerp.com/download/stable/source/%{name}-client-%{version}.tar.gz
+Source0:	http://www.openerp.com/download/stable/source/%{name}-server-%{version}%{tarball_extra}.tar.gz
+Source1:	http://www.openerp.com/download/stable/source/%{name}-client-%{version}%{tarball_extra}.tar.gz
 #                   All non-official patches are contained in:
 #                   http://git.hellug.gr/?p=xrg/openerp  and referred submodules
 #                   look for the ./mandriva folder there, where this .spec file is held, also.
@@ -92,10 +94,18 @@ popd
 pushd server/bin/addons
     rm -f outlook/plugin/openerp-outlook-addin.exe \
 	thunderbird/plugin/openerp_plugin.xpi
+
+# Well, we'd better exclude all the client-side plugin, until
+# we can build it under Fedora (doubt it).
+    rm -rf outlook/plugin/
+    
+# Remove unwanted files in addons
+    rm -f .bzrignore
+    
 popd
 
 # Tmp, as long as server-check is not in official sources:
-mkdir server/tools/
+mkdir -p server/tools/
 cp %{SOURCE2} server/tools/server-check.sh
 
 
@@ -133,6 +143,32 @@ pushd %{buildroot}/%{_bindir}/
 		chmod a+x $BIN
 		rm $BIN.old
 	done
+popd
+
+# When setup.py copies files, it removes the executable bit, so we have to
+# restore it here for some scripts:
+pushd %{buildroot}%{python_sitelib}/%{name}-server/
+    chmod a+x addons/document_ftp/ftpserver/ftpserver.py \
+	addons/document/odt2txt.py \
+	addons/document/test_cindex.py \
+	addons/document_webdav/test_davclient.py \
+	addons/email_template/html2text.py \
+	addons/mail_gateway/scripts/openerp_mailgate/openerp_mailgate.py \
+	addons/wiki/web/widgets/rss/feedparser.py openerp-server.py \
+	report/render/rml2txt/rml2txt.py \
+	tools/graph.py \
+	tools/which.py
+popd
+
+pushd %{buildroot}%{python_sitelib}/%{name}-client/
+    chmod a+x openerp-client.py
+popd
+
+
+pushd %{buildroot}/%{_datadir}/locale
+# Adjusting localization names for Albania, Ukraine
+	mv al sq
+	rm -rf ua # there is already an "uk" file for Ukraine, ua seems old.
 popd
 
 %find_lang %{name}-client
@@ -213,7 +249,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %attr(0755,openerp,openerp) %dir /var/log/openerp
 %attr(0755,openerp,openerp) %dir /var/spool/openerp
 %attr(0755,openerp,openerp) %dir /var/run/openerp
-%attr(0750,openerp,openerp) %dir %{_sysconfdir}/openerp
+%attr(0755,openerp,openerp) %dir %{_sysconfdir}/openerp
 %{_initrddir}/openerp-server
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp-server.conf
 %config(noreplace)	%{_sysconfdir}/logrotate.d/openerp-server
