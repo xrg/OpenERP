@@ -10,7 +10,7 @@
 
 Name:		openerp-client
 Version:	6.0.2
-Release:	4%{?dist}
+Release:	5%{?dist}
 License:	AGPLv3
 Group:		Applications/Databases
 Summary:	OpenERP Client
@@ -122,6 +122,29 @@ rm -rf %{buildroot}
 if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null ; fi
 
 %changelog
+* Thu Apr 21 2011 P. Christeas <p_christ@hol.gr> 6.0.2-5
+  + Redhat: split the spec into server and client ones
+  + Redhat: a few more fixes, to reduce lint errors
+  + Merge branch 'official' into xrg-60
+  + scripts: generate archives2, like the upstream tarballs
+  + server: update for RPM builds
+  + Merge remote-tracking branch 'origin/xrg-60' into HEAD
+  + Updated addons, client, client-web and server, to latest official-6.0
+
+* Tue Apr 12 2011 P. Christeas <p_christ@hol.gr> 39d1e18
+  + mandriva: pull changes from redhat spec, consider mageia
+
+* Mon Apr 11 2011 P. Christeas <p_christ@hol.gr> 4d83114
+  + Updated submodules addons, client, server
+  + Redhat: remove double-listed requires
+  + Redhat: remove embedded pychart, use upstream one
+
+* Sun Apr 10 2011 P. Christeas <p_christ@hol.gr> e3c96ef
+  + Redhat: cleanup the %doc files
+  + Redhat: remove support for intermediate builds
+  + Redhat: remove web-client support
+  + Redhat: a few improvements, try to build the web-client
+
 * Sat Apr 9 2011 P. Christeas <p_christ@hol.gr> 0037772
   + Redhat: more cleanup, offer default docs
   + Redhat: remove the kde client
