@@ -1,0 +1,23 @@
+OpenERP - Master repo
+
+This is the master repo, meaning that it controls the submodules of OpenERP
+individual components, like Server, Addons, Client etc. It does NOT contain
+the code of these projects, but only points to them. Still, it has a few
+files with build instructions and tests.
+
+Usage instructions.
+Clone this repository!
+  $ git clone <this-url>
+
+Checkout the correct head (ask inside for details).
+  $ git checkout <ref>
+
+Then, init and update the submodules. This may take some time
+
+  $ git submodule init
+  $ git submodule update
+    # note that the 'addons' repository is quite large (few hundreds of MB)
+    # so it will take some time to download
+
+Play around, explore, hack and contribute to OpenERP...  
+
