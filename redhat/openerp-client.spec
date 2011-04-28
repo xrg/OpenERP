@@ -1,7 +1,5 @@
 # Redhat, crippled, static version of the spec file
 
-%define tarball_extra -4-g0e50801
-
 Name:		openerp-client
 Version:	6.0.2
 Release:	5%{?dist}
@@ -9,11 +7,14 @@ License:	AGPLv3
 Group:		Applications/Databases
 Summary:	OpenERP Client
 URL:		http://www.openerp.com
-Source0:	http://www.openerp.com/download/stable/source/%{name}-%{version}%{tarball_extra}.tar.gz
+Source0:	http://www.openerp.com/download/stable/source/%{name}-%{version}.tar.gz
 #                   All non-official patches are contained in:
 #                   http://git.hellug.gr/?p=xrg/openerp  and referred submodules
-#                   look for the ./mandriva folder there, where this .spec file is held, also.
+#                   look for the ./redhat folder there, where this .spec file is held, also.
 # BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
+
+# ==== patches.client ====
+
 BuildArch:	noarch
 BuildRequires:	python
 BuildRequires:	desktop-file-utils, python-setuptools
@@ -36,6 +37,8 @@ Gtk client component for Open ERP.
 
 %prep
 %setup -q
+
+# ==== patches-prep.client ====
 
 %build
 
