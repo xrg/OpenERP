@@ -49,12 +49,7 @@ install -D bin/pixmaps/openerp-icon.png %{buildroot}%{_iconsdir}/openerp-icon.pn
 
 # the Python installer plants the RPM_BUILD_ROOT inside the launch scripts, fix that:
 pushd %{buildroot}/%{_bindir}/
-	for BIN in %{name} ; do
-		mv $BIN $BIN.old
-		cat $BIN.old | sed "s|%{buildroot}||" > $BIN
-		chmod a+x $BIN
-		rm $BIN.old
-	done
+	sed -i "s|%{buildroot}||" %{name}
 popd
 
 # When setup.py copies files, it removes the executable bit, so we have to
