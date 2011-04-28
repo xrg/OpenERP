@@ -125,11 +125,8 @@ mkdir -p %{buildroot}/var/log/openerp
 mkdir -p %{buildroot}/var/spool/openerp
 mkdir -p %{buildroot}/var/run/openerp
 
-%if 0
-#Left here for future backporting
 %clean
 rm -rf %{buildroot}
-%endif
 
 %files
 %defattr(-,root,root)

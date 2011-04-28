@@ -88,11 +88,8 @@ EOF
 
 desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 
-%if 0
-#Left here for future backporting
 %clean
 rm -rf %{buildroot}
-%endif
 
 %files -f %{name}.lang
 %defattr(-,root,root)
