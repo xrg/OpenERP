@@ -12,7 +12,7 @@ Source0:	http://www.openerp.com/download/stable/source/%{name}-%{version}.tar.gz
 #                   http://git.hellug.gr/?p=xrg/openerp  and referred submodules
 #                   look for the ./redhat folder there, where this .spec file is held, also.
 Source2:	openerp-server-check.sh
-# ==== patchese.server ====
+# ==== patches.server ====
 
 # BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
 BuildArch:	noarch
