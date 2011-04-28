@@ -1,11 +1,5 @@
 # Redhat, crippled, static version of the spec file
 
-
-%if 1
-# Where is that officially defined?
-    %define _iconsdir %{_datadir}/icons
-%endif
-
 %define tarball_extra -4-g0e50801
 
 Name:		openerp-server
@@ -27,6 +21,7 @@ BuildRequires:	python
 BuildRequires:	desktop-file-utils, python-setuptools
 BuildRequires:	pygtk2-devel, libxslt-python
 BuildRequires:	python2-devel
+BuildRequires:  jpackage-utils
 Requires:	python-lxml
 Requires:	python-imaging
 Requires:	python-psycopg2, python-reportlab
