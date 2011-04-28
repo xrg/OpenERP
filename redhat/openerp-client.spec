@@ -40,6 +40,8 @@ Gtk client component for Open ERP.
 
 # ==== patches-prep.client ====
 
+sed -i 's/\r//' doc/License.rtf
+
 %build
 
 python ./setup.py build --quiet
