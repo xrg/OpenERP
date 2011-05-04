@@ -32,8 +32,14 @@ Requires:	python-dateutil
 Requires:       mx
 
 %description
-Gtk client component for Open ERP.
+Gtk client for Open ERP.
 
+OpenERP is a free Enterprise Resource Planning and Customer Relationship 
+Management software. It is mainly developed to meet changing needs.
+
+This package only contains the thin, native client for the ERP application.
+After installing this, you will be able to connect to any OpenERP server
+running in your local network or the Internet.
 
 %prep
 %setup -q
