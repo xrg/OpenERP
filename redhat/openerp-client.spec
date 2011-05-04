@@ -109,9 +109,17 @@ rm -rf %{buildroot}
 
 %post
 %{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null
+touch --no-create %{_iconsdir} &>/dev/null || :
 
 %postun
 if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null ; fi
+if [ $1 -eq 0 ] ; then
+    touch --no-create %{_iconsdir} &>/dev/null
+    gtk-update-icon-cache %{_iconsdir} &>/dev/null || :
+fi
+
+%posttrans
+gtk-update-icon-cache %{_iconsdir} &>/dev/null || :
 
 %changelog
 * Thu Apr 21 2011 P. Christeas <p_christ@hol.gr> 6.0.2-5
