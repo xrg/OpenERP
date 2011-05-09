@@ -124,7 +124,7 @@ popd
 
 # Install the init scripts and conf
 install -m 644 -D doc/openerp-server.conf %{buildroot}%{_sysconfdir}/openerp-server.conf
-install -m 755 -D doc/openerp-server.init %{buildroot}%{_initrddir}/openerp-server
+install -m 755 -D doc/openerp-server.init %{buildroot}%{_initddir}/openerp-server
 install -m 644 -D doc/openerp-server.logrotate %{buildroot}%{_sysconfdir}/logrotate.d/openerp-server
 
 install -d %{buildroot}%{_sysconfdir}/openerp/start.d
@@ -155,7 +155,7 @@ rm -rf %{buildroot}
 %attr(0755,openerp,openerp) %dir /var/spool/openerp
 %attr(0755,openerp,openerp) %dir /var/run/openerp
 %attr(0755,openerp,openerp) %dir %{_sysconfdir}/openerp
-%{_initrddir}/openerp-server
+%{_initddir}/openerp-server
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp-server.conf
 %config(noreplace)	%{_sysconfdir}/logrotate.d/openerp-server
 	%dir 		%{_sysconfdir}/openerp/start.d/
