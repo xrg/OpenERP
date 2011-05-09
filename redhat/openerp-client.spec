@@ -114,11 +114,11 @@ rm -rf %{buildroot}
 %{python_sitelib}/openerp_client-%{version}-py%{python_version}.egg-info
 
 %post
-%{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null
+%{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null || :
 touch --no-create %{_iconsdir} &>/dev/null || :
 
 %postun
-if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null ; fi
+if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null || : ; fi
 if [ $1 -eq 0 ] ; then
     touch --no-create %{_iconsdir} &>/dev/null
     gtk-update-icon-cache %{_iconsdir} &>/dev/null || :
