@@ -48,14 +48,14 @@ help desk, marketing campaign, ... and vertical modules for very specific
 businesses.
 
 Technical features include a distributed server, flexible workflows, an object 
-database, dynamic GUIs, customizable reports, NET-RPC and XML-RPC interfaces, ...
+database, dynamic GUIs, custom reports, NET-RPC and XML-RPC interfaces, ...
 
 For more information, please visit:
 http://www.openerp.com
 
 This server package contains the core (server) of OpenERP system and all
-addons of the official distribution. You may need the Gtk client to connect
-to this server, or the web-client, which serves to html browsers. You can
+addons of the official distribution. You may need the GTK client to connect
+to this server, or the web-client, which serves to HTML browsers. You can
 also find more addons (aka. modules) for this ERP system in:
     http://www.openerp.com/
 or  http://apps.openerp.com/
