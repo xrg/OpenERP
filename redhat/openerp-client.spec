@@ -17,10 +17,13 @@ Source0:	http://www.openerp.com/download/stable/source/%{name}-%{version}.tar.gz
 
 BuildArch:	noarch
 BuildRequires:	python
+BuildRequires:  gettext
 BuildRequires:	desktop-file-utils, python-setuptools
 BuildRequires:	pygtk2-devel, libxslt-python
 BuildRequires:	python2-devel
 BuildRequires:  jpackage-utils
+# Required for /usr/bin/msgfmt.py
+BuildRequires:	python-tools
 
 Requires:	pygtk2
 Requires:       pygobject2, pygtk2-libglade, pydot, python-lxml
@@ -47,15 +50,17 @@ running in your local network or the Internet.
 # ==== patches-prep.client ====
 
 sed -i 's/\r//' doc/License.rtf
+# Remove the bundled script:
+rm -f msgfmt.py
 
 %build
 
-python ./setup.py build --quiet
+PYTHONPATH=%{_bindir} python ./setup.py build --quiet
 
 %install
 [ -n "%{buildroot}" -a "%{buildroot}" != / ] && rm -rf %{buildroot}
 
-python ./setup.py install --root=%{buildroot} --quiet
+PYTHONPATH=%{_bindir} python ./setup.py install --root=%{buildroot} --quiet
 install -D bin/pixmaps/openerp-icon.png %{buildroot}%{_iconsdir}/openerp-icon.png
 
 # the Python installer plants the RPM_BUILD_ROOT inside the launch scripts, fix that:
