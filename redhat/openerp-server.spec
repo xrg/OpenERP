@@ -79,7 +79,12 @@ pushd bin/addons
 # Well, we'd better exclude all the client-side plugin, until
 # we can build it under Fedora (doubt it).
     rm -rf outlook/plugin/
-    
+
+# Wiki contains some other licenses, and bundled modules, we should
+# skip it until they are resolved. Also, web modules shall better be
+# directly packaged into the web-client.
+    rm -rf wiki/web
+
 # Remove unwanted files in addons
     rm -f .bzrignore
     
@@ -116,7 +121,7 @@ pushd %{buildroot}%{python_sitelib}/%{name}/
 	addons/document_webdav/test_davclient.py \
 	addons/email_template/html2text.py \
 	addons/mail_gateway/scripts/openerp_mailgate/openerp_mailgate.py \
-	addons/wiki/web/widgets/rss/feedparser.py openerp-server.py \
+	openerp-server.py \
 	report/render/rml2txt/rml2txt.py \
 	tools/graph.py \
 	tools/which.py
