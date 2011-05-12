@@ -95,6 +95,14 @@ for tfile in args:
 			openerp_reqs.extend(get_depends(info['depends']))
 		if 'ext_depends' in info:
 			ext_reqs.extend(get_ext_depends(info['ext_depends']))
+                if 'external_dependencies' in info:
+                        for key, lst in info['external_dependencies'].items():
+                            if key == 'python':
+                                for l in lst:
+                                    ext_reqs.append('%s-%s' %(key, l))
+                            else:
+                                sys.stderr.write('Unknown external_dependencies key: %s\n' % key)
+                                exit(1)
 
 # Check if this package provides all the modules it would depend upon:
 
