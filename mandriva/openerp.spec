@@ -604,9 +604,6 @@ if [ ! -r "%{_sysconfdir}/openerp/server.cert" ] ; then
 	fi
 fi
 
-# Trigger the server-check.sh the next time openerp-server starts
-touch /var/run/openerp-server-check
-
 %if %{build_mdvmga}
 %_post_service openerp-server
 %else
