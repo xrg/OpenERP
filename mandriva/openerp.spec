@@ -213,54 +213,33 @@ Group:		Databases/Demo
 Summary:	Demo Metapackage for OpenERP
 Requires:       %{name}-serverinit, %{name}-client
 Requires: openerp-addons-account
-Requires: openerp-addons-account_analytic_analysis
-Requires: openerp-addons-account_asset
 Requires: openerp-addons-account_chart
 Requires: openerp-addons-account_greek_fiscal
-Requires: openerp-addons-account_reporting
-Requires: openerp-addons-account_simulation
-Requires: openerp-addons-account_tax_include
-Requires: openerp-addons-base
 Requires: openerp-addons-base_contact
 Requires: openerp-addons-base_iban
 Requires: openerp-addons-base_setup
 Requires: openerp-addons-base_vat
-Requires: openerp-addons-board
-Requires: openerp-addons-board_project
 Requires: openerp-addons-crm
-Requires: openerp-addons-crm_configuration
 Requires: openerp-addons-document
-Requires: openerp-addons-document_webdav
 Requires: openerp-addons-event
 Requires: openerp-addons-event_project
-Requires: openerp-addons-hotel
-Requires: openerp-addons-hotel_restaurant
 Requires: openerp-addons-hr
 Requires: openerp-addons-hr_attendance
 Requires: openerp-addons-hr_expense
 Requires: openerp-addons-hr_timesheet
 Requires: openerp-addons-hr_timesheet_invoice
 Requires: openerp-addons-hr_timesheet_sheet
-Requires: openerp-addons-l10n_chart_gr
+Requires: openerp-addons-l10n_gr
 Requires: openerp-addons-mrp
 Requires: openerp-addons-process
 Requires: openerp-addons-product
-Requires: openerp-addons-product_ean_always
-Requires: openerp-addons-profile_hotel
-Requires: openerp-addons-profile_service
 Requires: openerp-addons-project
 Requires: openerp-addons-project_event
 Requires: openerp-addons-project_retro_planning
 Requires: openerp-addons-purchase
-Requires: openerp-addons-report_analytic_line
-Requires: openerp-addons-report_analytic_planning
-Requires: openerp-addons-report_crm
-Requires: openerp-addons-report_task
-Requires: openerp-addons-report_timesheet
 Requires: openerp-addons-sale
 Requires: openerp-addons-stock
 Requires: openerp-addons-stock_location
-Requires: openerp-addons-thunderbird
 
 # Hint: issue 
 # SELECT 'Requires: openerp-addons-' || name FROM ir_module_module  WHERE state = 'installed' ORDER BY name;
