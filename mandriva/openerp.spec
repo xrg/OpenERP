@@ -360,16 +360,13 @@ popd
 %endif
 
 pushd server
-	%{NoDisplay} python ./setup.py install --root=%{buildroot} --quiet
+	NO_INSTALL_REQS=1 %{NoDisplay} python ./setup.py install --root=%{buildroot} --quiet
 popd
 
 # the Python installer plants the RPM_BUILD_ROOT inside the launch scripts, fix that:
 pushd %{buildroot}/%{_bindir}/
 	for BIN in %{name}-server %{name}-client ; do
-		mv $BIN $BIN.old
-		cat $BIN.old | sed "s|%{buildroot}||" > $BIN
-		chmod a+x $BIN
-		rm $BIN.old
+		sed -i "s|%{buildroot}||" $BIN
 	done
 popd
 
