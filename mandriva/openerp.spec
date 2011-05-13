@@ -468,7 +468,7 @@ mkdir -p %{buildroot}/var/run/openerp
 
 install -d %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/demo/
 install -m 744 mandriva/prep_database.sh %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/demo/
-install -m 644 mandriva/demodb.sql %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/demo/
+# install -m 644 mandriva/demodb.sql %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/demo/
 
 pushd %{buildroot}%{_sysconfdir}/openerp/start.d
 cat >30start-demo <<EOF
@@ -477,7 +477,7 @@ cat >30start-demo <<EOF
 # service postgresql start
 
 pushd %{_defaultdocdir}/%{name}-server-%{version}/demo/
-    DB_NAME=dbdemo DB_RESTORESCRIPT=demodb.sql ./prep_database.sh
+#    DB_NAME=dbdemo DB_RESTORESCRIPT=demodb.sql ./prep_database.sh
 popd > /dev/null
 # service openerp restart
 
@@ -540,7 +540,7 @@ rm -rf %{buildroot}
 %files alldemo
 %defattr(-,root,root)
 	%dir		%{_defaultdocdir}/%{name}-server-%{version}/demo/
-			%{_defaultdocdir}/%{name}-server-%{version}/demo/demodb.sql
+#			%{_defaultdocdir}/%{name}-server-%{version}/demo/demodb.sql
 			%{_defaultdocdir}/%{name}-server-%{version}/demo/prep_database.sh
 %attr(0755,root,root)	%{_sysconfdir}/openerp/start.d/30start-demo
 # todo: a few readme files, perhaps..
