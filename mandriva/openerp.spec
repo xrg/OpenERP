@@ -62,6 +62,8 @@
 %define clone_prefixdir ./
 %endif
 
+%define scriptsdir	%{_sysconfdir}/%{name}
+# Was %{_libexecdir}/%{name}-server/ , but mandriva uses _libdir :(
 
 Name:		%name
 Version:	%{git_get_ver}
@@ -437,8 +439,8 @@ install -m 750 -D server/ssl-cert.cfg %{buildroot}%{_sysconfdir}/openerp/cert.cf
 
 install -m 644 server/bin/import_xml.rng %{buildroot}%{python_sitelib}/openerp-server/
 
-install -d %{buildroot}%{_libexecdir}/%{name}-server/
-install -m 744 server/tools/server-check.sh %{buildroot}%{_libexecdir}/%{name}-server/
+install -d %{buildroot}%{scriptsdir}/
+install -m 744 server/tools/server-check.sh %{buildroot}%{scriptsdir}/
 install -d %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 install -m 644 server/bin/addons/base/security/* %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 
@@ -483,7 +485,7 @@ popd > /dev/null
 
 EOF
 
-ln -s %{python_sitelib}/openerp-server/server-check.sh ./10server-check
+ln -s %{scriptsdir}/server-check.sh ./10server-check
 popd
 
 %clean
@@ -566,7 +568,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 	%dir 		%{_sysconfdir}/openerp/start.d/
 	%dir 		%{_sysconfdir}/openerp/stop.d/
 %attr(0755,root,root)	%{_sysconfdir}/openerp/start.d/10server-check
-%attr(0755,root,root)	%{_libexecdir}/%{name}-server/server-check.sh
+%attr(0755,root,root)	%{scriptsdir}/server-check.sh
 %{_bindir}/openerp-server
 %{python_sitelib}/openerp-server/
 %{_datadir}/pixmaps/openerp-server/
