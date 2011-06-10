@@ -2,7 +2,7 @@
 # generate the patches to apply to released sources.
 # This file contains the git hashes that correspond to the 
 # upstream source
-server		9c4f9310e227a0fe121292f9e04b8da127811064
-client		7ed0aa633d5db4ba81c576f9d4d7ed04fae6653e
+server		e8b76acd617321c8df4da3d6a48d4197db68c132
+client		103575b6fc177c7c38643b106f2e5d961c6cd184
 client-web	a18200ff9bdb6204755617abe6789ea3f1088b92
-addons		c8d4eddbda494385f47dced18cc711cb066d060d
+addons		caae0e4c7f5fa9781ba5989dd47c032d3163da3e
