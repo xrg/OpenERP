@@ -2,7 +2,7 @@
 
 Name:		openerp-client
 Version:	6.0.2
-Release:	5%{?dist}
+Release:	6%{?dist}
 License:	AGPLv3
 Group:		Applications/Databases
 Summary:	OpenERP Client
@@ -31,6 +31,7 @@ Requires:       pygobject2, pygtk2-libglade, pydot, python-lxml
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 Requires:	hippo-canvas-python
+Requires:	python-spiffgtkwidgets
 Requires:	python-dateutil
 Requires:       mx
 
@@ -52,6 +53,9 @@ running in your local network or the Internet.
 sed -i 's/\r//' doc/License.rtf
 # Remove the bundled script:
 rm -f msgfmt.py
+
+# Remove the bundled lib:
+rm -rf bin/SpiffGtkWidgets
 
 %build
 

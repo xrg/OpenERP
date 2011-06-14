@@ -2,7 +2,7 @@
 
 Name:		openerp-server
 Version:	6.0.2
-Release:	5%{?dist}
+Release:	6%{?dist}
 License:	AGPLv3 and GPLv2 and LGPLv2+ and MIT
 Group:		System Environment/Daemons
 Summary:	OpenERP Server
