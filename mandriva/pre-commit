@@ -10,7 +10,9 @@ if [ -r $GIT_DIR/info/pre-commit.conf ] ; then
     . $GIT_DIR/info/pre-commit.conf
 fi
 
-GITLINT_FAILED=$GIT_DIR/lint-failed
+if [ -n "$GIT_DIR" ] && [ -d "$GIT_DIR" ] ; then
+    GITLINT_FAILED=$GIT_DIR/lint-failed
+fi
 
 
 fparse() {
@@ -27,7 +29,9 @@ fparse() {
 		elif [ "$EXIT" == 3 ] ; then
 			echo "Please correct $FNAME"
 			(( WARNINGS ++ ))
-			echo "$FNAME" >> $GITLINT_FAILED
+			if [ -n "$GITLINT_FAILED" ] ; then
+			    echo "$FNAME" >> $GITLINT_FAILED
+			fi
 		fi
 		if grep -HnF -m 10 '*-*' "$FNAME" ; then
 		    echo "Not ready to commit"
