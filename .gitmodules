@@ -28,3 +28,6 @@
 [submodule "libcli"]
 	path = libcli
 	url = http://members.hellug.gr/xrg/repos/openerp-libcli/
+[submodule "addons-koo"]
+	path = addons-koo
+	url = http://members.hellug.gr/xrg/repos/openobject-addons-koo
