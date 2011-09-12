@@ -1,30 +1,29 @@
 # Redhat, crippled, static version of the spec file
 
-
-%if 1
-# Where is that officially defined?
-    %define _iconsdir %{_datadir}/icons
-%endif
-
-%define tarball_extra -4-g0e50801
-
 Name:		openerp-client
 Version:	6.0.2
-Release:	5%{?dist}
+Release:	6%{?dist}
 License:	AGPLv3
 Group:		Applications/Databases
 Summary:	OpenERP Client
 URL:		http://www.openerp.com
-Source0:	http://www.openerp.com/download/stable/source/%{name}-%{version}%{tarball_extra}.tar.gz
+Source0:	http://www.openerp.com/download/stable/source/%{name}-%{version}.tar.gz
 #                   All non-official patches are contained in:
 #                   http://git.hellug.gr/?p=xrg/openerp  and referred submodules
-#                   look for the ./mandriva folder there, where this .spec file is held, also.
+#                   look for the ./redhat folder there, where this .spec file is held, also.
 # BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
+
+# ==== patches.client ====
+
 BuildArch:	noarch
 BuildRequires:	python
+BuildRequires:  gettext
 BuildRequires:	desktop-file-utils, python-setuptools
 BuildRequires:	pygtk2-devel, libxslt-python
 BuildRequires:	python2-devel
+BuildRequires:  jpackage-utils
+# Required for /usr/bin/msgfmt.py
+BuildRequires:	python-tools
 
 Requires:	pygtk2
 Requires:       pygobject2, pygtk2-libglade, pydot, python-lxml
@@ -32,34 +31,45 @@ Requires:       pygobject2, pygtk2-libglade, pydot, python-lxml
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 Requires:	hippo-canvas-python
+Requires:	python-spiffgtkwidgets
 Requires:	python-dateutil
 Requires:       mx
 
 %description
-Gtk client component for Open ERP.
+Gtk client for Open ERP.
 
+OpenERP is a free Enterprise Resource Planning and Customer Relationship 
+Management software. It is mainly developed to meet changing needs.
+
+This package only contains the thin, native client for the ERP application.
+After installing this, you will be able to connect to any OpenERP server
+running in your local network or the Internet.
 
 %prep
 %setup -q
 
+# ==== patches-prep.client ====
+
+sed -i 's/\r//' doc/License.rtf
+# Remove the bundled script:
+rm -f msgfmt.py
+
+# Remove the bundled lib:
+rm -rf bin/SpiffGtkWidgets
+
 %build
 
-python ./setup.py build --quiet
+PYTHONPATH=%{_bindir} python ./setup.py build --quiet
 
 %install
 [ -n "%{buildroot}" -a "%{buildroot}" != / ] && rm -rf %{buildroot}
 
-python ./setup.py install --root=%{buildroot} --quiet
+PYTHONPATH=%{_bindir} python ./setup.py install --root=%{buildroot} --quiet
 install -D bin/pixmaps/openerp-icon.png %{buildroot}%{_iconsdir}/openerp-icon.png
 
 # the Python installer plants the RPM_BUILD_ROOT inside the launch scripts, fix that:
 pushd %{buildroot}/%{_bindir}/
-	for BIN in %{name} ; do
-		mv $BIN $BIN.old
-		cat $BIN.old | sed "s|%{buildroot}||" > $BIN
-		chmod a+x $BIN
-		rm $BIN.old
-	done
+	sed -i "s|%{buildroot}||" %{name}
 popd
 
 # When setup.py copies files, it removes the executable bit, so we have to
@@ -98,11 +108,8 @@ EOF
 
 desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 
-%if 0
-#Left here for future backporting
 %clean
 rm -rf %{buildroot}
-%endif
 
 %files -f %{name}.lang
 %defattr(-,root,root)
@@ -116,10 +123,18 @@ rm -rf %{buildroot}
 %{python_sitelib}/openerp_client-%{version}-py%{python_version}.egg-info
 
 %post
-%{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null
+%{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null || :
+touch --no-create %{_iconsdir} &>/dev/null || :
 
 %postun
-if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null ; fi
+if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null || : ; fi
+if [ $1 -eq 0 ] ; then
+    touch --no-create %{_iconsdir} &>/dev/null
+    gtk-update-icon-cache %{_iconsdir} &>/dev/null || :
+fi
+
+%posttrans
+gtk-update-icon-cache %{_iconsdir} &>/dev/null || :
 
 %changelog
 * Thu Apr 21 2011 P. Christeas <p_christ@hol.gr> 6.0.2-5

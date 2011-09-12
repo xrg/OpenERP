@@ -1,32 +1,26 @@
 # Redhat, crippled, static version of the spec file
 
-
-%if 1
-# Where is that officially defined?
-    %define _iconsdir %{_datadir}/icons
-%endif
-
-%define tarball_extra -4-g0e50801
-
 Name:		openerp-server
 Version:	6.0.2
-Release:	5%{?dist}
-License:	AGPLv3
+Release:	6%{?dist}
+License:	AGPLv3 and GPLv2 and LGPLv2+ and MIT
 Group:		System Environment/Daemons
 Summary:	OpenERP Server
 URL:		http://www.openerp.com
-Source0:	http://www.openerp.com/download/stable/source/%{name}-%{version}%{tarball_extra}.tar.gz
+Source0:	http://www.openerp.com/download/stable/source/%{name}-%{version}.tar.gz
 #                   All non-official patches are contained in:
 #                   http://git.hellug.gr/?p=xrg/openerp  and referred submodules
-#                   look for the ./mandriva folder there, where this .spec file is held, also.
+#                   look for the ./redhat folder there, where this .spec file is held, also.
 Source2:	openerp-server-check.sh
-Patch0: 	openerp-server-init.patch
+# ==== patches.server ====
+
 # BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
 BuildArch:	noarch
 BuildRequires:	python
 BuildRequires:	desktop-file-utils, python-setuptools
 BuildRequires:	pygtk2-devel, libxslt-python
 BuildRequires:	python2-devel
+BuildRequires:  jpackage-utils
 Requires:	python-lxml
 Requires:	python-imaging
 Requires:	python-psycopg2, python-reportlab
@@ -43,18 +37,39 @@ Requires(preun): chkconfig
 Requires(preun): initscripts
 
 %description
-Server component for Open ERP.
+Server package for OpenERP.
+
+OpenERP is a free Enterprise Resource Planning and Customer Relationship 
+Management software. It is mainly developed to meet changing needs.
+
+The main functional features are: CRM & SRM, analytic and financial accounting,
+double-entry stock management, sales and purchases management, tasks automation,
+help desk, marketing campaign, ... and vertical modules for very specific
+businesses.
+
+Technical features include a distributed server, flexible workflows, an object 
+database, dynamic GUIs, custom reports, NET-RPC and XML-RPC interfaces, ...
+
+For more information, please visit:
+http://www.openerp.com
+
+This server package contains the core (server) of OpenERP system and all
+addons of the official distribution. You may need the GTK client to connect
+to this server, or the web-client, which serves to HTML browsers. You can
+also find more addons (aka. modules) for this ERP system in:
+    http://www.openerp.com/
+or  http://apps.openerp.com/
 
 %prep
 %setup -q
+
+# ==== patches-prep.server ====
 
 # I don't understand why this is needed at this stage
 rm -rf win32 debian setup.nsi
 
 # Hope that the upstream one will do.
 rm -rf bin/pychart
-
-%patch -P0 -p1
 
 # Remove prebuilt binaries
 pushd bin/addons
@@ -64,7 +79,12 @@ pushd bin/addons
 # Well, we'd better exclude all the client-side plugin, until
 # we can build it under Fedora (doubt it).
     rm -rf outlook/plugin/
-    
+
+# Wiki contains some other licenses, and bundled modules, we should
+# skip it until they are resolved. Also, web modules shall better be
+# directly packaged into the web-client.
+    rm -rf wiki/web
+
 # Remove unwanted files in addons
     rm -f .bzrignore
     
@@ -89,12 +109,7 @@ python ./setup.py install --root=%{buildroot}
 
 # the Python installer plants the RPM_BUILD_ROOT inside the launch scripts, fix that:
 pushd %{buildroot}/%{_bindir}/
-	for BIN in %{name} ; do
-		mv $BIN $BIN.old
-		cat $BIN.old | sed "s|%{buildroot}||" > $BIN
-		chmod a+x $BIN
-		rm $BIN.old
-	done
+	sed -i "s|%{buildroot}||" %{name}
 popd
 
 # When setup.py copies files, it removes the executable bit, so we have to
@@ -106,7 +121,7 @@ pushd %{buildroot}%{python_sitelib}/%{name}/
 	addons/document_webdav/test_davclient.py \
 	addons/email_template/html2text.py \
 	addons/mail_gateway/scripts/openerp_mailgate/openerp_mailgate.py \
-	addons/wiki/web/widgets/rss/feedparser.py openerp-server.py \
+	openerp-server.py \
 	report/render/rml2txt/rml2txt.py \
 	tools/graph.py \
 	tools/which.py
@@ -114,7 +129,7 @@ popd
 
 # Install the init scripts and conf
 install -m 644 -D doc/openerp-server.conf %{buildroot}%{_sysconfdir}/openerp-server.conf
-install -m 755 -D doc/openerp-server.init %{buildroot}%{_initrddir}/openerp-server
+install -m 755 -D doc/openerp-server.init %{buildroot}%{_initddir}/openerp-server
 install -m 644 -D doc/openerp-server.logrotate %{buildroot}%{_sysconfdir}/logrotate.d/openerp-server
 
 install -d %{buildroot}%{_sysconfdir}/openerp/start.d
@@ -135,11 +150,8 @@ mkdir -p %{buildroot}/var/log/openerp
 mkdir -p %{buildroot}/var/spool/openerp
 mkdir -p %{buildroot}/var/run/openerp
 
-%if 0
-#Left here for future backporting
 %clean
 rm -rf %{buildroot}
-%endif
 
 %files
 %defattr(-,root,root)
@@ -148,7 +160,7 @@ rm -rf %{buildroot}
 %attr(0755,openerp,openerp) %dir /var/spool/openerp
 %attr(0755,openerp,openerp) %dir /var/run/openerp
 %attr(0755,openerp,openerp) %dir %{_sysconfdir}/openerp
-%{_initrddir}/openerp-server
+%{_initddir}/openerp-server
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp-server.conf
 %config(noreplace)	%{_sysconfdir}/logrotate.d/openerp-server
 	%dir 		%{_sysconfdir}/openerp/start.d/

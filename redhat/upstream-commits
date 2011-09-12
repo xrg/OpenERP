@@ -1,0 +1,8 @@
+# Since we don't have updated tarballs with upstream source, we
+# generate the patches to apply to released sources.
+# This file contains the git hashes that correspond to the 
+# upstream source
+server		e8b76acd617321c8df4da3d6a48d4197db68c132
+client		103575b6fc177c7c38643b106f2e5d961c6cd184
+client-web	a18200ff9bdb6204755617abe6789ea3f1088b92
+addons		caae0e4c7f5fa9781ba5989dd47c032d3163da3e
