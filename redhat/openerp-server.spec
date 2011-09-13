@@ -11,7 +11,6 @@ Source0:        http://www.openerp.com/download/stable/source/%{name}-%{version}
 #                   All non-official patches are contained in:
 #                   http://git.hellug.gr/?p=xrg/openerp  and referred submodules
 #                   look for the ./redhat folder there, where this .spec file is held, also.
-Source2:        openerp-server-check.sh
 # ==== patches.server ====
 
 BuildArch:      noarch
@@ -85,10 +84,6 @@ pushd bin/addons
 
 popd
 
-# Tmp, as long as server-check is not in official sources:
-mkdir -p tools/
-cp %{SOURCE2} tools/server-check.sh
-
 %build
 NO_INSTALL_REQS=1 python ./setup.py build --quiet
 
@@ -129,9 +124,6 @@ install -d %{buildroot}%{_sysconfdir}/openerp/stop.d
 
 install -m 644 bin/import_xml.rng %{buildroot}%{python_sitelib}/%{name}/
 
-install -d %{buildroot}%{_libexecdir}/%{name}
-install -m 755 tools/server-check.sh %{buildroot}%{_libexecdir}/%{name}/
-
 install -d %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 install -m 644 bin/addons/base/security/* %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 
@@ -160,7 +152,6 @@ rm -rf %{buildroot}
 %{_bindir}/openerp-server
 %{python_sitelib}/openerp-server/
 %dir %{_libexecdir}/%{name}
-%attr(0755,root,root)   %{_libexecdir}/%{name}/server-check.sh
 %{_datadir}/pixmaps/openerp-server/
 %{_mandir}/man1/openerp-server.*
 %{python_sitelib}/openerp_server-%{version}-py%{python_version}.egg-info
@@ -171,8 +162,6 @@ rm -rf %{buildroot}
         -s /sbin/nologin -r -d /var/spool/openerp openerp 2>/dev/null || :
 
 %post
-# Trigger the server-check.sh the next time openerp-server starts
-touch /var/run/openerp-server-check
 /sbin/chkconfig --add openerp-server
 
 %preun
