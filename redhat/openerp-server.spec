@@ -151,7 +151,6 @@ rm -rf %{buildroot}
         %dir            %{_sysconfdir}/openerp/stop.d/
 %{_bindir}/openerp-server
 %{python_sitelib}/openerp-server/
-%dir %{_libexecdir}/%{name}
 %{_datadir}/pixmaps/openerp-server/
 %{_mandir}/man1/openerp-server.*
 %{python_sitelib}/openerp_server-%{version}-py%{python_version}.egg-info
