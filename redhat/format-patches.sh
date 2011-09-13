@@ -32,15 +32,23 @@ reg_patch() {
     done
 }
 
+NO_ADDONS=
+if [ "$1" == '--no-addons' ] ; then
+    NO_ADDONS=y
+fi
+
 for SUBM in $SUBMODULES ; do
     if [ $SUBM == addons ] ; then
 	continue
     fi
-    echo > "$PATCH_LIST.$SUBM"
-    echo > "$PATCH_LIST_PREP.$SUBM"
+    echo -n > "$PATCH_LIST.$SUBM"
+    echo -n > "$PATCH_LIST_PREP.$SUBM"
 done
 
 for SUBM in $SUBMODULES ; do
+    if [ "$NO_ADDONS" == 'y' ] && [ $SUBM == addons ] ; then
+	continue
+    fi
     if [ $SUBM == addons ] ; then
 	SUBP=server
 	FMT_EXTRA="--start-number 1000"
@@ -62,7 +70,7 @@ for SUBM in $SUBMODULES ; do
 	git format-patch -o $OURDIR/patches/$SUBM/ $FMT_EXTRA -p $COMMIT..HEAD | \
 	    reg_patch $SUBM $SUBP "$PATCH_LIST.$SUBP" "$PATCH_LIST_PREP.$SUBP" "$PATCH_EXTRA"
     popd
-    echo >> "$PATCH_LIST.$SUBP"
+    # echo >> "$PATCH_LIST.$SUBP"
     pushd $OURDIR/patches
 	for FIL in $SUBM/*.patch ; do
 	    mv $FIL openerp-$SUBP-$(basename $FIL)
