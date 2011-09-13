@@ -130,9 +130,9 @@ install -m 644 bin/addons/base/security/* %{buildroot}%{python_sitelib}/openerp-
 install -d %{buildroot}%{_datadir}/pixmaps/openerp-server
 install -m 644 -D pixmaps/* %{buildroot}%{_datadir}/pixmaps/openerp-server/
 
-mkdir -p %{buildroot}var/log/openerp
-mkdir -p %{buildroot}var/spool/openerp
-mkdir -p %{buildroot}var/run/openerp
+mkdir -p %{buildroot}/var/log/openerp
+mkdir -p %{buildroot}/var/spool/openerp
+mkdir -p %{buildroot}/var/run/openerp
 
 %clean
 rm -rf %{buildroot}
