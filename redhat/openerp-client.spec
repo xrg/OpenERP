@@ -1,38 +1,38 @@
 # Redhat, crippled, static version of the spec file
 
-Name:		openerp-client
-Version:	6.0.2
-Release:	6%{?dist}
-License:	AGPLv3
-Group:		Applications/Databases
-Summary:	OpenERP Client
-URL:		http://www.openerp.com
-Source0:	http://www.openerp.com/download/stable/source/%{name}-%{version}.tar.gz
+Name:           openerp-client
+Version:        6.0.2
+Release:        6%{?dist}
+License:        AGPLv3
+Group:          Applications/Databases
+Summary:        OpenERP Client
+URL:            http://www.openerp.com
+Source0:        http://www.openerp.com/download/stable/source/%{name}-%{version}.tar.gz
 #                   All non-official patches are contained in:
 #                   http://git.hellug.gr/?p=xrg/openerp  and referred submodules
 #                   look for the ./redhat folder there, where this .spec file is held, also.
-# BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
+# BuildRoot:    %{_tmppath}/%{name}-%{version}-%{release}
 
 # ==== patches.client ====
 
-BuildArch:	noarch
-BuildRequires:	python
+BuildArch:      noarch
+BuildRequires:  python
 BuildRequires:  gettext
-BuildRequires:	desktop-file-utils, python-setuptools
-BuildRequires:	pygtk2-devel, libxslt-python
-BuildRequires:	python2-devel
+BuildRequires:  desktop-file-utils, python-setuptools
+BuildRequires:  pygtk2-devel, libxslt-python
+BuildRequires:  python2-devel
 BuildRequires:  jpackage-utils
 # Required for /usr/bin/msgfmt.py
-BuildRequires:	python-tools
+BuildRequires:  python-tools
 
-Requires:	pygtk2
+Requires:       pygtk2
 Requires:       pygobject2, pygtk2-libglade, pydot, python-lxml
-# Requires:	python-matplotlib
+# Requires:     python-matplotlib
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
-Requires:	hippo-canvas-python
-Requires:	python-spiffgtkwidgets
-Requires:	python-dateutil
+Requires:       hippo-canvas-python
+Requires:       python-spiffgtkwidgets
+Requires:       python-dateutil
 Requires:       mx
 
 %description
@@ -69,7 +69,7 @@ install -D bin/pixmaps/openerp-icon.png %{buildroot}%{_iconsdir}/openerp-icon.pn
 
 # the Python installer plants the RPM_BUILD_ROOT inside the launch scripts, fix that:
 pushd %{buildroot}/%{_bindir}/
-	sed -i "s|%{buildroot}||" %{name}
+        sed -i "s|%{buildroot}||" %{name}
 popd
 
 # When setup.py copies files, it removes the executable bit, so we have to
@@ -82,8 +82,8 @@ popd
 
 pushd %{buildroot}/%{_datadir}/locale
 # Adjusting localization names for Albania, Ukraine
-	mv al sq
-	rm -rf ua # there is already an "uk" file for Ukraine, ua seems old.
+        mv al sq
+        rm -rf ua # there is already an "uk" file for Ukraine, ua seems old.
 popd
 
 %find_lang %{name}

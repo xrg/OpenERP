@@ -1,38 +1,38 @@
 # Redhat, crippled, static version of the spec file
 
-Name:		openerp-server
-Version:	6.0.2
-Release:	6%{?dist}
-License:	AGPLv3 and GPLv2 and LGPLv2+ and MIT
-Group:		System Environment/Daemons
-Summary:	OpenERP Server
-URL:		http://www.openerp.com
-Source0:	http://www.openerp.com/download/stable/source/%{name}-%{version}.tar.gz
+Name:           openerp-server
+Version:        6.0.2
+Release:        6%{?dist}
+License:        AGPLv3 and GPLv2 and LGPLv2+ and MIT
+Group:          System Environment/Daemons
+Summary:        OpenERP Server
+URL:            http://www.openerp.com
+Source0:        http://www.openerp.com/download/stable/source/%{name}-%{version}.tar.gz
 #                   All non-official patches are contained in:
 #                   http://git.hellug.gr/?p=xrg/openerp  and referred submodules
 #                   look for the ./redhat folder there, where this .spec file is held, also.
-Source2:	openerp-server-check.sh
+Source2:        openerp-server-check.sh
 # ==== patches.server ====
 
-# BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
-BuildArch:	noarch
-BuildRequires:	python
-BuildRequires:	desktop-file-utils, python-setuptools
-BuildRequires:	pygtk2-devel, libxslt-python
-BuildRequires:	python2-devel
+# BuildRoot:    %{_tmppath}/%{name}-%{version}-%{release}
+BuildArch:      noarch
+BuildRequires:  python
+BuildRequires:  desktop-file-utils, python-setuptools
+BuildRequires:  pygtk2-devel, libxslt-python
+BuildRequires:  python2-devel
 BuildRequires:  jpackage-utils
-Requires:	python-lxml
-Requires:	python-imaging
-Requires:	python-psycopg2, python-reportlab
+Requires:       python-lxml
+Requires:       python-imaging
+Requires:       python-psycopg2, python-reportlab
 Requires:       pyparsing
-# Suggests:	postgresql-server >= 8.2
-Requires:	ghostscript
+# Suggests:     postgresql-server >= 8.2
+Requires:       ghostscript
 # perhaps the matplotlib could yield for pytz, in Mdv >=2009.0
-Requires:	PyXML
+Requires:       PyXML
 # Requires: python-matplotlib
-Requires:	PyYAML, python-mako
-Requires:	pychart
-Requires(post):	chkconfig
+Requires:       PyYAML, python-mako
+Requires:       pychart
+Requires(post): chkconfig
 Requires(preun): chkconfig
 Requires(preun): initscripts
 
@@ -74,7 +74,7 @@ rm -rf bin/pychart
 # Remove prebuilt binaries
 pushd bin/addons
     rm -f outlook/plugin/openerp-outlook-addin.exe \
-	thunderbird/plugin/openerp_plugin.xpi
+        thunderbird/plugin/openerp_plugin.xpi
 
 # Well, we'd better exclude all the client-side plugin, until
 # we can build it under Fedora (doubt it).
@@ -87,7 +87,7 @@ pushd bin/addons
 
 # Remove unwanted files in addons
     rm -f .bzrignore
-    
+
 popd
 
 # Tmp, as long as server-check is not in official sources:
@@ -109,22 +109,22 @@ python ./setup.py install --root=%{buildroot}
 
 # the Python installer plants the RPM_BUILD_ROOT inside the launch scripts, fix that:
 pushd %{buildroot}/%{_bindir}/
-	sed -i "s|%{buildroot}||" %{name}
+        sed -i "s|%{buildroot}||" %{name}
 popd
 
 # When setup.py copies files, it removes the executable bit, so we have to
 # restore it here for some scripts:
 pushd %{buildroot}%{python_sitelib}/%{name}/
     chmod a+x addons/document_ftp/ftpserver/ftpserver.py \
-	addons/document/odt2txt.py \
-	addons/document/test_cindex.py \
-	addons/document_webdav/test_davclient.py \
-	addons/email_template/html2text.py \
-	addons/mail_gateway/scripts/openerp_mailgate/openerp_mailgate.py \
-	openerp-server.py \
-	report/render/rml2txt/rml2txt.py \
-	tools/graph.py \
-	tools/which.py
+        addons/document/odt2txt.py \
+        addons/document/test_cindex.py \
+        addons/document_webdav/test_davclient.py \
+        addons/email_template/html2text.py \
+        addons/mail_gateway/scripts/openerp_mailgate/openerp_mailgate.py \
+        openerp-server.py \
+        report/render/rml2txt/rml2txt.py \
+        tools/graph.py \
+        tools/which.py
 popd
 
 # Install the init scripts and conf
@@ -162,13 +162,13 @@ rm -rf %{buildroot}
 %attr(0755,openerp,openerp) %dir %{_sysconfdir}/openerp
 %{_initddir}/openerp-server
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp-server.conf
-%config(noreplace)	%{_sysconfdir}/logrotate.d/openerp-server
-	%dir 		%{_sysconfdir}/openerp/start.d/
-	%dir 		%{_sysconfdir}/openerp/stop.d/
+%config(noreplace)      %{_sysconfdir}/logrotate.d/openerp-server
+        %dir            %{_sysconfdir}/openerp/start.d/
+        %dir            %{_sysconfdir}/openerp/stop.d/
 %{_bindir}/openerp-server
 %{python_sitelib}/openerp-server/
 %dir %{_libexecdir}/%{name}
-%attr(0755,root,root)	%{_libexecdir}/%{name}/server-check.sh
+%attr(0755,root,root)   %{_libexecdir}/%{name}/server-check.sh
 %{_datadir}/pixmaps/openerp-server/
 %{_mandir}/man1/openerp-server.*
 %{python_sitelib}/openerp_server-%{version}-py%{python_version}.egg-info
@@ -308,4 +308,3 @@ fi
 * Sun Jan 2 2011 P. Christeas <p_christ@hol.gr> 7266984
   + Further attempt for a correct client-web installation.
   + client-web: fix installation, under "site-packages/openobject/"
-
