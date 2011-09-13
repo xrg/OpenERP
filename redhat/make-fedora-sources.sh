@@ -39,8 +39,8 @@ cat $MYDIR/upstream-commits | \
     while read SDIR COMMIT ; do
         echo "$SDIR commit:" $COMMIT
         pushd $SDIR
-            echo git archive --format=tar --prefix='openerp'-$SDIR-$VER_VER/ $COMMIT | \
-                gzip -c > $SRCDIR/openerp-$SDIR-$VER_VER.tar.gz || exit $?
+            git archive --format=tar --prefix='openerp'-$SDIR-$VER_VER/ $COMMIT | \
+                gzip -fc > $SRCDIR/openerp-$SDIR-$VER_VER.tar.gz || exit $?
         popd
 done
 
