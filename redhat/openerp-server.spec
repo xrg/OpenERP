@@ -14,7 +14,6 @@ Source0:        http://www.openerp.com/download/stable/source/%{name}-%{version}
 Source2:        openerp-server-check.sh
 # ==== patches.server ====
 
-# BuildRoot:    %{_tmppath}/%{name}-%{version}-%{release}
 BuildArch:      noarch
 BuildRequires:  python
 BuildRequires:  desktop-file-utils, python-setuptools
@@ -25,11 +24,8 @@ Requires:       python-lxml
 Requires:       python-imaging
 Requires:       python-psycopg2, python-reportlab
 Requires:       pyparsing
-# Suggests:     postgresql-server >= 8.2
 Requires:       ghostscript
-# perhaps the matplotlib could yield for pytz, in Mdv >=2009.0
 Requires:       PyXML
-# Requires: python-matplotlib
 Requires:       PyYAML, python-mako
 Requires:       pychart
 Requires(post): chkconfig
@@ -57,12 +53,11 @@ This server package contains the core (server) of OpenERP system and all
 addons of the official distribution. You may need the GTK client to connect
 to this server, or the web-client, which serves to HTML browsers. You can
 also find more addons (aka. modules) for this ERP system in:
-    http://www.openerp.com/
-or  http://apps.openerp.com/
+    http://www.openerp.com
+or  http://apps.openerp.com
 
 %prep
 %setup -q
-
 # ==== patches-prep.server ====
 
 # I don't understand why this is needed at this stage
@@ -94,21 +89,18 @@ popd
 mkdir -p tools/
 cp %{SOURCE2} tools/server-check.sh
 
-
 %build
 NO_INSTALL_REQS=1 python ./setup.py build --quiet
 
 # TODO: build the thunderbird plugin and the report designer
 
 %install
-[ -n "%{buildroot}" -a "%{buildroot}" != / ] && rm -rf %{buildroot}
-
-mkdir -p %{buildroot}/%{_sysconfdir}
+mkdir -p %{buildroot}%{_sysconfdir}
 
 python ./setup.py install --root=%{buildroot}
 
 # the Python installer plants the RPM_BUILD_ROOT inside the launch scripts, fix that:
-pushd %{buildroot}/%{_bindir}/
+pushd %{buildroot}%{_bindir}/
         sed -i "s|%{buildroot}||" %{name}
 popd
 
@@ -138,17 +130,17 @@ install -d %{buildroot}%{_sysconfdir}/openerp/stop.d
 install -m 644 bin/import_xml.rng %{buildroot}%{python_sitelib}/%{name}/
 
 install -d %{buildroot}%{_libexecdir}/%{name}
-install -m 744 tools/server-check.sh %{buildroot}%{_libexecdir}/%{name}/
+install -m 755 tools/server-check.sh %{buildroot}%{_libexecdir}/%{name}/
 
 install -d %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 install -m 644 bin/addons/base/security/* %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 
-install -d %{buildroot}/%{_datadir}/pixmaps/openerp-server
-install -m 644 -D pixmaps/* %{buildroot}/%{_datadir}/pixmaps/openerp-server/
+install -d %{buildroot}%{_datadir}/pixmaps/openerp-server
+install -m 644 -D pixmaps/* %{buildroot}%{_datadir}/pixmaps/openerp-server/
 
-mkdir -p %{buildroot}/var/log/openerp
-mkdir -p %{buildroot}/var/spool/openerp
-mkdir -p %{buildroot}/var/run/openerp
+mkdir -p %{buildroot}var/log/openerp
+mkdir -p %{buildroot}var/spool/openerp
+mkdir -p %{buildroot}var/run/openerp
 
 %clean
 rm -rf %{buildroot}
@@ -161,7 +153,7 @@ rm -rf %{buildroot}
 %attr(0755,openerp,openerp) %dir /var/run/openerp
 %attr(0755,openerp,openerp) %dir %{_sysconfdir}/openerp
 %{_initddir}/openerp-server
-%attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp-server.conf
+%attr(0644,root,openerp) %config(noreplace) %{_sysconfdir}/openerp-server.conf
 %config(noreplace)      %{_sysconfdir}/logrotate.d/openerp-server
         %dir            %{_sysconfdir}/openerp/start.d/
         %dir            %{_sysconfdir}/openerp/stop.d/
@@ -172,14 +164,11 @@ rm -rf %{buildroot}
 %{_datadir}/pixmaps/openerp-server/
 %{_mandir}/man1/openerp-server.*
 %{python_sitelib}/openerp_server-%{version}-py%{python_version}.egg-info
-%{_mandir}/man5/openerp_serverrc.5*
+%{_mandir}/man5/openerp_serverrc.*
 
 %pre
-    getent group openerp >/dev/null || groupadd -r openerp
-    getent passwd openerp >/dev/null || \
-        useradd -r -d /var/spool/openerp -s /sbin/nologin \
-        -c "OpenERP Server" openerp
-    exit 0
+    /usr/sbin/useradd -c "OpenERP Server" \
+        -s /sbin/nologin -r -d /var/spool/openerp openerp 2>/dev/null || :
 
 %post
 # Trigger the server-check.sh the next time openerp-server starts
