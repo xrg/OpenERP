@@ -47,7 +47,6 @@ running in your local network or the Internet.
 
 %prep
 %setup -q
-
 # ==== patches-prep.client ====
 
 sed -i 's/\r//' doc/License.rtf
@@ -62,13 +61,11 @@ rm -rf bin/SpiffGtkWidgets
 PYTHONPATH=%{_bindir} python ./setup.py build --quiet
 
 %install
-[ -n "%{buildroot}" -a "%{buildroot}" != / ] && rm -rf %{buildroot}
-
 PYTHONPATH=%{_bindir} python ./setup.py install --root=%{buildroot} --quiet
 install -D bin/pixmaps/openerp-icon.png %{buildroot}%{_iconsdir}/openerp-icon.png
 
 # the Python installer plants the RPM_BUILD_ROOT inside the launch scripts, fix that:
-pushd %{buildroot}/%{_bindir}/
+pushd %{buildroot}%{_bindir}/
         sed -i "s|%{buildroot}||" %{name}
 popd
 
@@ -80,7 +77,7 @@ pushd %{buildroot}%{python_sitelib}/%{name}/
 popd
 
 
-pushd %{buildroot}/%{_datadir}/locale
+pushd %{buildroot}%{_datadir}/locale
 # Adjusting localization names for Albania, Ukraine
         mv al sq
         rm -rf ua # there is already an "uk" file for Ukraine, ua seems old.
@@ -88,8 +85,8 @@ popd
 
 %find_lang %{name}
 
-mv %{buildroot}/%{_datadir}/openerp-client/* %{buildroot}/%{python_sitelib}/%{name}
-rm -rf %{buildroot}/%{_datadir}/openerp-client
+mv %{buildroot}%{_datadir}/openerp-client/* %{buildroot}%{python_sitelib}/%{name}
+rm -rf %{buildroot}%{_datadir}/openerp-client
 
 mkdir %{buildroot}%{_datadir}/applications
 cat > %{buildroot}%{_datadir}/applications/%{name}.desktop << EOF
