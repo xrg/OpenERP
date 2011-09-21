@@ -1,38 +1,38 @@
 # Redhat, crippled, static version of the spec file
 
-Name:		openerp-client
-Version:	6.0.2
-Release:	6%{?dist}
-License:	AGPLv3
-Group:		Applications/Databases
-Summary:	OpenERP Client
-URL:		http://www.openerp.com
-Source0:	http://www.openerp.com/download/stable/source/%{name}-%{version}.tar.gz
+Name:           openerp-client
+Version:        6.0.3
+Release:        0%{?dist}
+License:        AGPLv3
+Group:          Applications/Databases
+Summary:        OpenERP Client
+URL:            http://www.openerp.com
+Source0:        http://www.openerp.com/download/stable/source/%{name}-%{version}.tar.gz
 #                   All non-official patches are contained in:
 #                   http://git.hellug.gr/?p=xrg/openerp  and referred submodules
 #                   look for the ./redhat folder there, where this .spec file is held, also.
-# BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
+# BuildRoot:    %{_tmppath}/%{name}-%{version}-%{release}
 
 # ==== patches.client ====
 
-BuildArch:	noarch
-BuildRequires:	python
+BuildArch:      noarch
+BuildRequires:  python
 BuildRequires:  gettext
-BuildRequires:	desktop-file-utils, python-setuptools
-BuildRequires:	pygtk2-devel, libxslt-python
-BuildRequires:	python2-devel
+BuildRequires:  desktop-file-utils, python-setuptools
+BuildRequires:  pygtk2-devel, libxslt-python
+BuildRequires:  python2-devel
 BuildRequires:  jpackage-utils
 # Required for /usr/bin/msgfmt.py
-BuildRequires:	python-tools
+BuildRequires:  python-tools
 
-Requires:	pygtk2
+Requires:       pygtk2
 Requires:       pygobject2, pygtk2-libglade, pydot, python-lxml
-# Requires:	python-matplotlib
+# Requires:     python-matplotlib
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
-Requires:	hippo-canvas-python
-Requires:	python-spiffgtkwidgets
-Requires:	python-dateutil
+Requires:       hippo-canvas-python
+Requires:       python-spiffgtkwidgets
+Requires:       python-dateutil
 Requires:       mx
 
 %description
@@ -47,7 +47,6 @@ running in your local network or the Internet.
 
 %prep
 %setup -q
-
 # ==== patches-prep.client ====
 
 sed -i 's/\r//' doc/License.rtf
@@ -62,14 +61,12 @@ rm -rf bin/SpiffGtkWidgets
 PYTHONPATH=%{_bindir} python ./setup.py build --quiet
 
 %install
-[ -n "%{buildroot}" -a "%{buildroot}" != / ] && rm -rf %{buildroot}
-
 PYTHONPATH=%{_bindir} python ./setup.py install --root=%{buildroot} --quiet
 install -D bin/pixmaps/openerp-icon.png %{buildroot}%{_iconsdir}/openerp-icon.png
 
 # the Python installer plants the RPM_BUILD_ROOT inside the launch scripts, fix that:
-pushd %{buildroot}/%{_bindir}/
-	sed -i "s|%{buildroot}||" %{name}
+pushd %{buildroot}%{_bindir}/
+        sed -i "s|%{buildroot}||" %{name}
 popd
 
 # When setup.py copies files, it removes the executable bit, so we have to
@@ -80,16 +77,16 @@ pushd %{buildroot}%{python_sitelib}/%{name}/
 popd
 
 
-pushd %{buildroot}/%{_datadir}/locale
+pushd %{buildroot}%{_datadir}/locale
 # Adjusting localization names for Albania, Ukraine
-	mv al sq
-	rm -rf ua # there is already an "uk" file for Ukraine, ua seems old.
+        mv al sq
+        rm -rf ua # there is already an "uk" file for Ukraine, ua seems old.
 popd
 
 %find_lang %{name}
 
-mv %{buildroot}/%{_datadir}/openerp-client/* %{buildroot}/%{python_sitelib}/%{name}
-rm -rf %{buildroot}/%{_datadir}/openerp-client
+mv %{buildroot}%{_datadir}/openerp-client/* %{buildroot}%{python_sitelib}/%{name}
+rm -rf %{buildroot}%{_datadir}/openerp-client
 
 mkdir %{buildroot}%{_datadir}/applications
 cat > %{buildroot}%{_datadir}/applications/%{name}.desktop << EOF
@@ -137,6 +134,53 @@ fi
 gtk-update-icon-cache %{_iconsdir} &>/dev/null || :
 
 %changelog
+* Tue Sep 13 2011 P. Christeas <xrg@linux.gr> 6.0.3-0
+  + fedora: scripts to generate old-compatible sources/specs from git
+  + redhat: consistency and permission fixes in server.spec
+  + redhat: consistency fixes in client.spec
+  + redhat: expand tabs to spaces, in both spec files
+
+* Mon Sep 12 2011 P. Christeas <xrg@linux.gr> f27e337
+  + upstream-commits: mark the hashes of 6.0.3
+  + redhat: merge with the rpm-building branches
+  + Update all submodules to v6.0.3
+
+* Tue Jun 14 2011 P. Christeas <xrg@linux.gr> 5072656
+  + redhat: unbundle SpiffGtkWidgets, bump rel. number
+
+* Fri Jun 10 2011 P. Christeas <xrg@linux.gr> 4c09b47
+  + Update submodules addons, server, client to latest 6.0
+
+* Tue May 10 2011 P. Christeas <p_christ@hol.gr> bd6e22f
+  + Redhat: spelling fixes for server description
+  + Redhat: client: require gettext, unbundle msgfmt.py
+  + Redhat: remove web-addon of 'wiki'
+
+* Mon May 9 2011 P. Christeas <p_christ@hol.gr> 0201fa4
+  + Redhat: tolerate failures of update-desktop-database
+  + Redhat: use _initddir instead of _initrddir
+
+* Thu May 5 2011 P. Christeas <p_christ@hol.gr> 8eee9fd
+  + Update submodules server, client, addons
+  + Redhat: more description in spec files
+  + Redhat: update gtk icons cache, after install
+
+* Thu Apr 28 2011 P. Christeas <p_christ@hol.gr> 30190fb
+  + Redhat: cleanup License.rtf at client
+  + Redhat: scripts to generate the specs+patches
+  + Redhat: update licenses (multiple) for the server
+  + Redhat: prepare for patch-based build.
+  + Redhat: the %clean section can remain
+  + Redhat: refactor the removal of buildroot from /usr/bin scripts
+  + Redhat: buildrequire jpackage-utils for %{_iconsdir}
+  + Redhat: mark the upstream commits, of 6.0.2
+  + Redhat: a helper script to generate patches
+  + Redhat: move and rename spec files into redhat/openerp-<sub>.spec
+  + Merge remote-tracking branch 'origin/xrg-60' into HEAD
+
+* Fri Apr 22 2011 P. Christeas <p_christ@hol.gr> eec43a2
+  + Updated submodules addons, buildbot, client-kde, client-web, extra-addons, libcli, server
+
 * Thu Apr 21 2011 P. Christeas <p_christ@hol.gr> 6.0.2-5
   + Redhat: split the spec into server and client ones
   + Redhat: a few more fixes, to reduce lint errors

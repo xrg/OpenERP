@@ -9,51 +9,51 @@
 %{?!py_puresitedir: %define py_puresitedir %(python -c 'import distutils.sysconfig; print distutils.sysconfig.get_python_lib()' 2>/dev/null || echo PYTHON-LIBDIR-NOT-FOUND)}
 
 %if %{_target_vendor} == mandriva
-%define NoDisplay	DISPLAY=
+%define NoDisplay       DISPLAY=
 
 %if %mdkver > 200900
-%define build_kde	1
-%define build_web	1
+%define build_kde       1
+%define build_web       1
 %else
-%define build_kde	0
-%define build_web	0
+%define build_kde       0
+%define build_web       0
 %endif
-%define build_mdvmga	1
+%define build_mdvmga    1
 %else
 
 %if %{_target_vendor} == mageia
-%define NoDisplay	DISPLAY=
+%define NoDisplay       DISPLAY=
 
-%define build_kde	1
-%define build_web	0
-%define build_mdvmga	1
+%define build_kde       1
+%define build_web       0
+%define build_mdvmga    1
 
 %else
 # Other distributions
 
-%define NoDisplay	NODISPLAY=n
-%define build_kde	0
-%define build_web	0
+%define NoDisplay       NODISPLAY=n
+%define build_kde       0
+%define build_web       0
 
-%define build_mdvmga	0
+%define build_mdvmga    0
 
 %{?!_iconsdir %define _iconsdir %{_datadir}/icons }
 %{?!_kde_iconsdir %define _kde_iconsdir %_kde_prefix/share/icons}
 %endif
 %endif
 
-%define use_git_clone	1
+%define use_git_clone   1
 
-%{?_without_kde:	%global build_kde 0}
-%{?_with_kde:		%global build_kde 1}
+%{?_without_kde:        %global build_kde 0}
+%{?_with_kde:           %global build_kde 1}
 
-%{?_without_web:	%global build_web 0}
-%{?_with_web:		%global build_web 1}
+%{?_without_web:        %global build_web 0}
+%{?_with_web:           %global build_web 1}
 
 %define __find_provides   %{u2p:%{_builddir}}/%{name}-%{git_get_ver}/mandriva/find-provides.sh
 %define __find_requires   %{u2p:%{_builddir}}/%{name}-%{git_get_ver}/mandriva/find-requires.sh
 
-%{?_use_clone:	%global use_git_clone 1}
+%{?_use_clone:  %global use_git_clone 1}
 %{?_use_tarball: %global use_git_clone 0}
 
 %if %{use_git_clone}
@@ -62,34 +62,34 @@
 %define clone_prefixdir ./
 %endif
 
-%define scriptsdir	%{_sysconfdir}/%{name}
+%define scriptsdir      %{_sysconfdir}/%{name}
 # Was %{_libexecdir}/%{name}-server/ , but mandriva uses _libdir :(
 
-Name:		%name
-Version:	%{git_get_ver}
-Release:	%mkrel %{git_get_rel2}
-License:	AGPLv3+
-Group:		Databases
-Summary:	OpenERP Client and Server
-URL:		http://www.openerp.com
-Obsoletes:	tinyerp
+Name:           %name
+Version:        %{git_get_ver}
+Release:        %mkrel %{git_get_rel2}
+License:        AGPLv3+
+Group:          Databases
+Summary:        OpenERP Client and Server
+URL:            http://www.openerp.com
+Obsoletes:      tinyerp
 %if ! %{use_git_clone}
-Source:		%git_bs_source %{name}-%{version}.tar.gz
+Source:         %git_bs_source %{name}-%{version}.tar.gz
 %endif
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
-BuildArch:	noarch
-BuildRequires:	python, python-setuptools
-BuildRequires:	desktop-file-utils
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}
+BuildArch:      noarch
+BuildRequires:  python, python-setuptools
+BuildRequires:  desktop-file-utils
 %if %{build_mdvmga}
-BuildRequires:	 pygtk2.0-devel, pygtk2.0-libglade, python-libxslt
-BuildRequires:	python-psycopg2, python-dot, python-pychart
+BuildRequires:   pygtk2.0-devel, pygtk2.0-libglade, python-libxslt
+BuildRequires:  python-psycopg2, python-dot, python-pychart
 %else 
 %if %{_target_vendor} == redhat
-BuildRequires:	pygtk2-devel, libxslt-python
-BuildRequires:	python2-devel
+BuildRequires:  pygtk2-devel, libxslt-python
+BuildRequires:  python2-devel
 %endif
 %endif
-Requires:	openerp-client, openerp-server
+Requires:       openerp-client, openerp-server
 
 %description
 Open ERP is a free enterprise management software package. It
@@ -98,24 +98,24 @@ stock management, sales, customer relationship, purchases,
 project management...
 
 %package client
-Group:		Databases
-Summary:	OpenERP Client
+Group:          Databases
+Summary:        OpenERP Client
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 %if %{build_mdvmga}
-Requires:	python-matplotlib
+Requires:       python-matplotlib
 Requires:       python-dot, python-lxml
 Requires:       pygtk2.0, pygtk2.0-libglade, python-egenix-mx-base
-Requires:	python-dateutil
+Requires:       python-dateutil
 %if %mdkver > 200900
-Requires:	python-hippo-canvas
+Requires:       python-hippo-canvas
 %endif
 %else 
 %if %{_target_vendor} == redhat
-Requires:	pygtk2
+Requires:       pygtk2
 Requires:       pygobject2, pygtk2-libglade, pydot, python-lxml
-Requires:	hippo-canvas-python
-Requires:	python-dateutil
+Requires:       hippo-canvas-python
+Requires:       python-dateutil
 %endif
 %endif
 
@@ -124,12 +124,12 @@ Client components for Open ERP.
 
 %if %{build_kde}
 %package client-kde
-Group:		Databases
-Summary:	OpenERP Client (KDE)
+Group:          Databases
+Summary:        OpenERP Client (KDE)
 Requires:       python-dot, python-pytz, python-kde4
-Obsoletes:	ktiny
-BuildRequires:	python-qt4
-BuildRequires:	qt4-devel, kde4-macros
+Obsoletes:      ktiny
+BuildRequires:  python-qt4
+BuildRequires:  qt4-devel, kde4-macros
 BuildRequires:  python-lxml, python-qt4-devel
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
@@ -138,8 +138,8 @@ Requires(postun): desktop-file-utils
 KDE client (aka. koo) components for Open ERP.
 
 %package client-kde-apidoc
-Group:		Documentation
-Summary:	API documentation for ERP Client (KDE)
+Group:          Documentation
+Summary:        API documentation for ERP Client (KDE)
 
 %description client-kde-apidoc
 Technical documentation for the API of OpenERP KDE client (koo).
@@ -147,14 +147,14 @@ Technical documentation for the API of OpenERP KDE client (koo).
 
 %if %{build_web}
 %package client-web
-Group:		Databases
-Summary:	Web Client of OpenERP, the Enterprise Management Software
+Group:          Databases
+Summary:        Web Client of OpenERP, the Enterprise Management Software
 #BuildRequires: ....
 Requires:       python-pytz
 Requires:       python-cherrypy, python-formencode
 Requires:       python-simplejson, python-mako
-Requires:	python-Babel
-Requires:	python-pkg-resources
+Requires:       python-Babel
+Requires:       python-pkg-resources
 
 %description client-web
 OpenERP Web is the web client of the OpenERP, a free enterprise management 
@@ -163,27 +163,27 @@ software: accounting, stock, manufacturing, project mgt...
 %endif
 
 %package server
-Group:		System/Servers
-Summary:	OpenERP Server
-Requires:	python-lxml
-Requires:	postgresql-plpython >= 8.2
-Requires:	python-imaging
-Requires:	python-psycopg2, python-reportlab
-Requires:	ghostscript
+Group:          System/Servers
+Summary:        OpenERP Server
+Requires:       python-lxml
+Requires:       postgresql-plpython >= 8.2
+Requires:       python-imaging
+Requires:       python-psycopg2, python-reportlab
+Requires:       ghostscript
 # perhaps the matplotlib could yield for pytz, in Mdv >=2009.0
 %if %{build_mdvmga}
-Requires:	python-matplotlib
+Requires:       python-matplotlib
 Requires:       python-parsing, python-libxslt
-Requires:	pygtk2.0, pygtk2.0-libglade
-Requires:	python-pychart, python-yaml, python-mako
-Requires(pre):	rpm-helper
+Requires:       pygtk2.0, pygtk2.0-libglade
+Requires:       python-pychart, python-yaml, python-mako
+Requires(pre):  rpm-helper
 Requires(postun): rpm-helper
 %else
 Requires:       pyparsing
-Requires:	ghostscript
-Requires:	PyXML, PyYAML, python-mako
-Requires:	pychart
-Requires(post):	chkconfig
+Requires:       ghostscript
+Requires:       PyXML, PyYAML, python-mako
+Requires:       pychart
+Requires(post): chkconfig
 Requires(preun): chkconfig
 Requires(preun): initscripts
 %endif
@@ -198,12 +198,12 @@ Note: at Mandriva 2008.1, python-pychart is needed from backports,
 instead of the "pychart" package.
 
 %package serverinit
-Group:		Databases/Demo
-Summary:	Full server Metapackage for OpenERP
+Group:          Databases/Demo
+Summary:        Full server Metapackage for OpenERP
 Requires:       %{name}-server
-Requires:	postgresql-server >= 8.2
-Requires:	postgresql-plpgsql
-Requires:	run-parts
+Requires:       postgresql-server >= 8.2
+Requires:       postgresql-plpgsql
+Requires:       run-parts
 
 
 %description serverinit
@@ -211,8 +211,8 @@ With this, all necessary packages and modules for a complete OpenERP server
 are installed. This also triggers the installation of a PostgreSQL server.
 
 %package alldemo
-Group:		Databases/Demo
-Summary:	Demo Metapackage for OpenERP
+Group:          Databases/Demo
+Summary:        Demo Metapackage for OpenERP
 Requires:       %{name}-serverinit, %{name}-client
 Requires: openerp-addons-account
 Requires: openerp-addons-account_chart
@@ -288,56 +288,55 @@ cd %{name}-%{version}
 %endif
 
 pushd client
-	%{NoDisplay} python ./setup.py build --quiet
+        %{NoDisplay} python ./setup.py build --quiet
 popd
 
 %if %{build_kde}
 pushd client-kde
-	make
-	%{NoDisplay} python ./setup.py build --quiet
+        make
+        %{NoDisplay} python ./setup.py build --quiet
 popd
 %endif
 
 %if %{build_web}
 pushd client-web
-	%{NoDisplay} python ./setup.py build --quiet
+        %{NoDisplay} python ./setup.py build --quiet
 popd
 %endif
 
 pushd server
-	NO_INSTALL_REQS=1 %{NoDisplay} python ./setup.py build --quiet
+        NO_INSTALL_REQS=1 %{NoDisplay} python ./setup.py build --quiet
 popd
 
 %install
 %if %{use_git_clone}
 cd %{name}-%{version}
 %endif
-[ -n "%{buildroot}" -a "%{buildroot}" != / ] && rm -rf %{buildroot}
 
 pushd client
-	%{NoDisplay} python ./setup.py install --root=%{buildroot} --quiet
-	install -D bin/pixmaps/openerp-icon.png %{buildroot}%{_iconsdir}/openerp-icon.png
+        %{NoDisplay} python ./setup.py install --root=%{buildroot} --quiet
+        install -D bin/pixmaps/openerp-icon.png %{buildroot}%{_iconsdir}/openerp-icon.png
 popd
 
 %if %{build_kde}
 pushd client-kde
-	%{NoDisplay} python ./setup.py install --root=%{buildroot} --quiet
-	install -D Koo/ui/images/koo-icon.png %{buildroot}%{_kde_iconsdir}/koo-icon.png
+        %{NoDisplay} python ./setup.py install --root=%{buildroot} --quiet
+        install -D Koo/ui/images/koo-icon.png %{buildroot}%{_kde_iconsdir}/koo-icon.png
 popd
 %endif
 
-mkdir -p %{buildroot}/%{_sysconfdir}
+mkdir -p %{buildroot}%{_sysconfdir}
 
 %if %{build_web}
 pushd client-web
-# 	  First, compile all the i18n messages
-	%{NoDisplay} python ./admin.py i18n -c ALL
-	%{NoDisplay} python ./setup.py install --root=%{buildroot} --quiet
+#         First, compile all the i18n messages
+        %{NoDisplay} python ./admin.py i18n -c ALL
+        %{NoDisplay} python ./setup.py install --root=%{buildroot} --quiet
 popd
 
 #remove the default init script
 
-pushd %{buildroot}/%{python_sitelib}
+pushd %{buildroot}%{python_sitelib}
     mv addons openobject/addons
 popd
 
@@ -347,29 +346,29 @@ fi
 
 %if 0 
 # FIXME: where are the web locales?
-pushd %{buildroot}/%{python_sitelib}/locales
-	rm -f messages.pot
-	for LOCFI in */LC_MESSAGES/messages.mo ; do
-		LFF=$(dirname "$LOCFI")
-		if [ ! -d %{buildroot}/%{_prefix}/share/locale/$LFF ] ; then
-			mkdir -p %{buildroot}/%{_prefix}/share/locale/$LFF
-		fi
-		mv $LOCFI %{buildroot}/%{_prefix}/share/locale/$LFF/openerp-web.mo
-	done
+pushd %{buildroot}%{python_sitelib}/locales
+        rm -f messages.pot
+        for LOCFI in */LC_MESSAGES/messages.mo ; do
+                LFF=$(dirname "$LOCFI")
+                if [ ! -d %{buildroot}%{_prefix}/share/locale/$LFF ] ; then
+                        mkdir -p %{buildroot}%{_prefix}/share/locale/$LFF
+                fi
+                mv $LOCFI %{buildroot}%{_prefix}/share/locale/$LFF/openerp-web.mo
+        done
 popd
 %endif
 
 %endif
 
 pushd server
-	NO_INSTALL_REQS=1 %{NoDisplay} python ./setup.py install --root=%{buildroot} --quiet
+        NO_INSTALL_REQS=1 %{NoDisplay} python ./setup.py install --root=%{buildroot} --quiet
 popd
 
 # the Python installer plants the RPM_BUILD_ROOT inside the launch scripts, fix that:
-pushd %{buildroot}/%{_bindir}/
-	for BIN in %{name}-server %{name}-client ; do
-		sed -i "s|%{buildroot}||" $BIN
-	done
+pushd %{buildroot}%{_bindir}/
+        for BIN in %{name}-server %{name}-client ; do
+                sed -i "s|%{buildroot}||" $BIN
+        done
 popd
 
 %find_lang %{name}-client
@@ -382,8 +381,8 @@ popd
 %find_lang koo
 %endif
 
-mv %{buildroot}/%{_datadir}/openerp-client/* %{buildroot}/%{python_sitelib}/openerp-client
-rm -rf %{buildroot}/%{_datadir}/openerp-client
+mv %{buildroot}%{_datadir}/openerp-client/* %{buildroot}%{python_sitelib}/openerp-client
+rm -rf %{buildroot}%{_datadir}/openerp-client
 
 mkdir %{buildroot}%{_datadir}/applications
 cat > %{buildroot}%{_datadir}/applications/openerp-client.desktop << EOF
@@ -421,11 +420,11 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/openerp-koo.desktop
 %endif
 
 # We remove the installed documentation dirs, because %doc will copy them again
-pushd %{buildroot}/%{_defaultdocdir}
-	[ -d %{name}-server-* ] && rm -rf %{name}-server-*
-	[ -d %{name}-client-web-* ] && rm -rf %{name}-client-web-*
-	[ -d %{name}-client-* ] && rm -rf %{name}-client-*
-	[ -d koo ] && rm -rf koo
+pushd %{buildroot}%{_defaultdocdir}
+        [ -d %{name}-server-* ] && rm -rf %{name}-server-*
+        [ -d %{name}-client-web-* ] && rm -rf %{name}-client-web-*
+        [ -d %{name}-client-* ] && rm -rf %{name}-client-*
+        [ -d koo ] && rm -rf koo
 popd
 
 install -m 644 -D server/doc/openerp-server.conf %{buildroot}%{_sysconfdir}/openerp-server.conf
@@ -440,28 +439,28 @@ install -m 750 -D server/ssl-cert.cfg %{buildroot}%{_sysconfdir}/openerp/cert.cf
 install -m 644 server/bin/import_xml.rng %{buildroot}%{python_sitelib}/openerp-server/
 
 install -d %{buildroot}%{scriptsdir}/
-install -m 744 server/tools/server-check.sh %{buildroot}%{scriptsdir}/
+install -m 755 server/tools/server-check.sh %{buildroot}%{scriptsdir}/
 install -d %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 install -m 644 server/bin/addons/base/security/* %{buildroot}%{python_sitelib}/openerp-server/addons/base/security/
 
-install -d %{buildroot}/%{_datadir}/pixmaps/openerp-server
-install -m 644 -D server/pixmaps/* %{buildroot}/%{_datadir}/pixmaps/openerp-server/
+install -d %{buildroot}%{_datadir}/pixmaps/openerp-server
+install -m 644 -D server/pixmaps/* %{buildroot}%{_datadir}/pixmaps/openerp-server/
 
 #temp fixes for alpha builds
 pushd %{buildroot}%{python_sitelib}
-	if [ -r openerp_client-*-py%{pyver}.egg-info ] && \
-	    [ openerp_client-*-py%{pyver}.egg-info != openerp_client-%{version}-py%{pyver}.egg-info ]; then
-		mv openerp_client-*-py%{pyver}.egg-info openerp_client-%{version}-py%{pyver}.egg-info
-	fi
-	if [ -r openerp_server-*-py%{pyver}.egg-info ] && \
-	    [ openerp_server-*-py%{pyver}.egg-info openerp_server-%{version}-py%{pyver}.egg-info ]; then
-		mv openerp_server-*-py%{pyver}.egg-info openerp_server-%{version}-py%{pyver}.egg-info
-	fi
+        if [ -r openerp_client-*-py%{pyver}.egg-info ] && \
+            [ openerp_client-*-py%{pyver}.egg-info != openerp_client-%{version}-py%{pyver}.egg-info ]; then
+                mv openerp_client-*-py%{pyver}.egg-info openerp_client-%{version}-py%{pyver}.egg-info
+        fi
+        if [ -r openerp_server-*-py%{pyver}.egg-info ] && \
+            [ openerp_server-*-py%{pyver}.egg-info openerp_server-%{version}-py%{pyver}.egg-info ]; then
+                mv openerp_server-*-py%{pyver}.egg-info openerp_server-%{version}-py%{pyver}.egg-info
+        fi
 popd
 
 %if %{build_web}
  #some files for the web-client
-install -D client-web/scripts/init.d/openerp-web.mdv %{buildroot}/%{_initrddir}/%{name}-web
+install -D client-web/scripts/init.d/openerp-web.mdv %{buildroot}%{_initrddir}/%{name}-web
 %endif
 
 mkdir -p %{buildroot}/var/log/openerp
@@ -541,10 +540,10 @@ rm -rf %{buildroot}
 
 %files alldemo
 %defattr(-,root,root)
-	%dir		%{_defaultdocdir}/%{name}-server-%{version}/demo/
-#			%{_defaultdocdir}/%{name}-server-%{version}/demo/demodb.sql
-			%{_defaultdocdir}/%{name}-server-%{version}/demo/prep_database.sh
-%attr(0755,root,root)	%{_sysconfdir}/openerp/start.d/30start-demo
+        %dir            %{_defaultdocdir}/%{name}-server-%{version}/demo/
+#                       %{_defaultdocdir}/%{name}-server-%{version}/demo/demodb.sql
+                        %{_defaultdocdir}/%{name}-server-%{version}/demo/prep_database.sh
+%attr(0755,root,root)   %{_sysconfdir}/openerp/start.d/30start-demo
 # todo: a few readme files, perhaps..
 
 %post client
@@ -565,43 +564,41 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %{_initrddir}/openerp-server
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp-server.conf
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/logrotate.d/openerp-server
-	%dir 		%{_sysconfdir}/openerp/start.d/
-	%dir 		%{_sysconfdir}/openerp/stop.d/
-%attr(0755,root,root)	%{_sysconfdir}/openerp/start.d/10server-check
-%attr(0755,root,root)	%{scriptsdir}/server-check.sh
+        %dir            %{_sysconfdir}/openerp/start.d/
+        %dir            %{_sysconfdir}/openerp/stop.d/
+%attr(0755,root,root)   %{_sysconfdir}/openerp/start.d/10server-check
+%attr(0755,root,root)   %{scriptsdir}/server-check.sh
 %{_bindir}/openerp-server
 %{python_sitelib}/openerp-server/
 %{_datadir}/pixmaps/openerp-server/
 %exclude %{_defaultdocdir}/%{name}-server-%{version}/demo
 %{_mandir}/man1/openerp-server.*
 %{py_puresitedir}/openerp_server-%{version}-py%{pyver}.egg-info
-%{_mandir}/man5/openerp_serverrc.5*
+%{_mandir}/man5/openerp_serverrc.*
 
 %pre server
 # todo: non-mandriva useradd
 %if %{build_mdvmga}
 %_pre_useradd openerp /var/spool/openerp /sbin/nologin
 %else
-#getent group GROUPNAME >/dev/null || groupadd -r GROUPNAME
-    getent passwd openerp >/dev/null || \
-        useradd -r -d /var/spool/openerp -s /sbin/nologin \
-        -c "OpenERP Server" openerp
+    /usr/sbin/useradd -c "OpenERP Server" \
+        -s /sbin/nologin -r -d /var/spool/openerp openerp 2>/dev/null || :
 %endif
 
 %post server
 if [ ! -r "%{_sysconfdir}/openerp/server.cert" ] ; then
-	if [ ! -x "$(which certtool)" ] ; then
-		echo "OpenERP server: certtool is missing. Cannot create SSL certificates"
-	else
-		pushd %{_sysconfdir}/openerp/
-		if [ ! -r "server.key" ] ; then
-			certtool -p --outfile server.key
-		fi
-		certtool -s --load-privkey server.key --outfile server.cert --template cert.cfg
-		echo "Created a self-signed SSL certificate for OpenERP. You may want to revise it or get a real one."
-		chown openerp:openerp server.cert server.key
-		popd
-	fi
+        if [ ! -x "$(which certtool)" ] ; then
+                echo "OpenERP server: certtool is missing. Cannot create SSL certificates"
+        else
+                pushd %{_sysconfdir}/openerp/
+                if [ ! -r "server.key" ] ; then
+                        certtool -p --outfile server.key
+                fi
+                certtool -s --load-privkey server.key --outfile server.cert --template cert.cfg
+                echo "Created a self-signed SSL certificate for OpenERP. You may want to revise it or get a real one."
+                chown openerp:openerp server.cert server.key
+                popd
+        fi
 fi
 
 %if %{build_mdvmga}
