@@ -8,6 +8,8 @@
 %{?!python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 %{?!py_puresitedir: %define py_puresitedir %(python -c 'import distutils.sysconfig; print distutils.sysconfig.get_python_lib()' 2>/dev/null || echo PYTHON-LIBDIR-NOT-FOUND)}
 
+%{?!auto_specdir: %define auto_specdir %{_specdir} }
+
 %if %{_target_vendor} == mandriva
 %define NoDisplay       DISPLAY=
 
@@ -50,6 +52,7 @@
 %{?_without_web:        %global build_web 0}
 %{?_with_web:           %global build_web 1}
 
+%define _use_internal_dependency_generator 0
 %define __find_provides   %{u2p:%{_builddir}}/%{name}-%{git_get_ver}/mandriva/find-provides.sh
 %define __find_requires   %{u2p:%{_builddir}}/%{name}-%{git_get_ver}/mandriva/find-requires.sh
 
@@ -70,9 +73,9 @@ Version:        %{git_get_ver}
 Release:        %mkrel %{git_get_rel2}
 License:        AGPLv3+
 Group:          Databases
-Summary:        OpenERP Client and Server
+Summary:        Client and Server meta-package for the open source ERP
 URL:            http://www.openerp.com
-Obsoletes:      tinyerp
+Obsoletes:      tinyerp <= 5.0
 %if ! %{use_git_clone}
 Source:         %git_bs_source %{name}-%{version}.tar.gz
 %endif
@@ -99,7 +102,7 @@ project management...
 
 %package client
 Group:          Databases
-Summary:        OpenERP Client
+Summary:        GTK Client for the ERP
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 %if %{build_mdvmga}
@@ -125,14 +128,15 @@ Client components for Open ERP.
 %if %{build_kde}
 %package client-kde
 Group:          Databases
-Summary:        OpenERP Client (KDE)
+Summary:        KDE Client for the ERP
 Requires:       python-dot, python-pytz, python-kde4
-Obsoletes:      ktiny
+Obsoletes:      ktiny <= 4.0
 BuildRequires:  python-qt4
 BuildRequires:  qt4-devel, kde4-macros
 BuildRequires:  python-lxml, python-qt4-devel
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
+Requires:       locales-kde
 
 %description client-kde
 KDE client (aka. koo) components for Open ERP.
@@ -148,7 +152,7 @@ Technical documentation for the API of OpenERP KDE client (koo).
 %if %{build_web}
 %package client-web
 Group:          Databases
-Summary:        Web Client of OpenERP, the Enterprise Management Software
+Summary:        Web Client, a web-interface server
 #BuildRequires: ....
 Requires:       python-pytz
 Requires:       python-cherrypy, python-formencode
@@ -164,7 +168,7 @@ software: accounting, stock, manufacturing, project mgt...
 
 %package server
 Group:          System/Servers
-Summary:        OpenERP Server
+Summary:        Server for the ERP (framework core)
 Requires:       python-lxml
 Requires:       postgresql-plpython >= 8.2
 Requires:       python-imaging
@@ -198,8 +202,9 @@ Note: at Mandriva 2008.1, python-pychart is needed from backports,
 instead of the "pychart" package.
 
 %package serverinit
-Group:          Databases/Demo
-Summary:        Full server Metapackage for OpenERP
+Group:          Applications/Databases
+
+Summary:        Full server Metapackage, install and run
 Requires:       %{name}-server
 Requires:       postgresql-server >= 8.2
 Requires:       postgresql-plpgsql
@@ -211,8 +216,8 @@ With this, all necessary packages and modules for a complete OpenERP server
 are installed. This also triggers the installation of a PostgreSQL server.
 
 %package alldemo
-Group:          Databases/Demo
-Summary:        Demo Metapackage for OpenERP
+Group:          Applications/Databases
+Summary:        Demo Metapackage, preloads an example database
 Requires:       %{name}-serverinit, %{name}-client
 Requires: openerp-addons-account
 Requires: openerp-addons-account_chart
@@ -249,8 +254,9 @@ Requires: openerp-addons-stock_location
 
 
 %description alldemo
-With this demo, all necessary packages and modules for a complete OpenERP server
-and client are installed. The server also has a default database with some data.
+With this demo, all necessary packages and modules for a complete OpenERP
+server and client are installed. The server also has a default database
+with some data.
 
 %define modulize_g    -g %{_sourcedir}/%{name}-gitrpm.version
 
@@ -264,19 +270,19 @@ and client are installed. The server also has a default database with some data.
 %endif
 
 echo "Preparing for addons build.."
-./mandriva/modulize.py -C %{release_class} %modulize_g -x addons/server_modules.list addons/* > %{_specdir}/openerp-addons.spec
+./mandriva/modulize.py -C %{release_class} %modulize_g -x addons/server_modules.list addons/* > %{auto_specdir}/openerp-addons.spec
 rm -f %{_builddir}/openerp-addons-$(./mandriva/modulize.py %modulize_g --onlyver)
 ln -sf $(pwd)/addons %{_builddir}/openerp-addons-$(./mandriva/modulize.py %modulize_g --onlyver)
 echo "Prepared addons"
 
 echo "Preparing for extra addons build.."
-./mandriva/modulize.py -C %{release_class} -n openerp-extra-addons %modulize_g -x addons/server_modules.list extra-addons/* > %{_specdir}/openerp-extra-addons.spec
+./mandriva/modulize.py -C %{release_class} -n openerp-extra-addons %modulize_g -x addons/server_modules.list extra-addons/* > %{auto_specdir}/openerp-extra-addons.spec
 rm -f %{_builddir}/openerp-extra-addons-$(./mandriva/modulize.py %modulize_g --onlyver)
 ln -sf $(pwd)/extra-addons %{_builddir}/openerp-extra-addons-$(./mandriva/modulize.py %modulize_g --onlyver)
 echo "Prepared extra addons"
 
 echo "Preparing koo addons.."
-./mandriva/modulize.py -n openerp-addons-koo %modulize_g -C %{release_class} -x addons/server_modules.list client-kde/server-modules/* > %{_specdir}/openerp-addons-koo.spec
+./mandriva/modulize.py -n openerp-addons-koo %modulize_g -C %{release_class} -x addons/server_modules.list client-kde/server-modules/* > %{auto_specdir}/openerp-addons-koo.spec
 rm -f %{_builddir}/openerp-addons-koo-$(./mandriva/modulize.py %modulize_g --onlyver)
 ln -sf $(pwd)/client-kde/server-modules %{_builddir}/openerp-addons-koo-$(./mandriva/modulize.py %modulize_g --onlyver)
 
@@ -434,7 +440,7 @@ install -m 644 -D server/doc/openerp-server.logrotate %{buildroot}%{_sysconfdir}
 install -d %{buildroot}%{_sysconfdir}/openerp/start.d
 install -d %{buildroot}%{_sysconfdir}/openerp/stop.d
 
-install -m 750 -D server/ssl-cert.cfg %{buildroot}%{_sysconfdir}/openerp/cert.cfg
+install -m 640 -D server/ssl-cert.cfg %{buildroot}%{_sysconfdir}/openerp/cert.cfg
 
 install -m 644 server/bin/import_xml.rng %{buildroot}%{python_sitelib}/openerp-server/
 
@@ -560,7 +566,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %attr(0755,openerp,openerp) %dir /var/spool/openerp
 %attr(0755,openerp,openerp) %dir /var/run/openerp
 %attr(0750,openerp,openerp) %dir %{_sysconfdir}/openerp
-%attr(0755,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp/cert.cfg
+%attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp/cert.cfg
 %{_initrddir}/openerp-server
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp-server.conf
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/logrotate.d/openerp-server
