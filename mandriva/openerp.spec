@@ -1,17 +1,17 @@
 %define git_repo openerp
 %define git_head HEAD
 
-%define name openerp
-%define release_class pub
+%global name openerp
+%global release_class pub
 
-%{?!pyver: %define pyver %(python -c 'import sys;print(sys.version[0:3])')}
-%{?!python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
-%{?!py_puresitedir: %define py_puresitedir %(python -c 'import distutils.sysconfig; print distutils.sysconfig.get_python_lib()' 2>/dev/null || echo PYTHON-LIBDIR-NOT-FOUND)}
+%{?!pyver: %global pyver %(python -c 'import sys;print(sys.version[0:3])')}
+%{?!python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+%{?!py_puresitedir: %global py_puresitedir %(python -c 'import distutils.sysconfig; print distutils.sysconfig.get_python_lib()' 2>/dev/null || echo PYTHON-LIBDIR-NOT-FOUND)}
 
-%{?!auto_specdir: %define auto_specdir %{_specdir} }
+%{?!auto_specdir: %global auto_specdir %{_specdir} }
 
 %if %{_target_vendor} == mandriva
-%define NoDisplay       DISPLAY=
+%global NoDisplay       DISPLAY=
 
 %if %mdkver > 200900
 %define build_kde       1
@@ -20,7 +20,7 @@
 %define build_kde       0
 %define build_web       0
 %endif
-%define build_mdvmga    1
+%global build_mdvmga    1
 %else
 
 %if %{_target_vendor} == mageia
@@ -39,8 +39,8 @@
 
 %define build_mdvmga    0
 
-%{?!_iconsdir %define _iconsdir %{_datadir}/icons }
-%{?!_kde_iconsdir %define _kde_iconsdir %_kde_prefix/share/icons}
+%{?!_iconsdir %global _iconsdir %{_datadir}/icons }
+%{?!_kde_iconsdir %global _kde_iconsdir %_kde_prefix/share/icons}
 %endif
 %endif
 
@@ -60,9 +60,9 @@
 %{?_use_tarball: %global use_git_clone 0}
 
 %if %{use_git_clone}
-%define clone_prefixdir %{name}-%{version}/
+%global clone_prefixdir %{name}-%{version}/
 %else
-%define clone_prefixdir ./
+%global clone_prefixdir ./
 %endif
 
 %define scriptsdir      %{_sysconfdir}/%{name}
@@ -258,7 +258,7 @@ With this demo, all necessary packages and modules for a complete OpenERP
 server and client are installed. The server also has a default database
 with some data.
 
-%define modulize_g    -g %{_sourcedir}/%{name}-gitrpm.version
+%global modulize_g    -g %{_sourcedir}/%{name}-gitrpm.version
 
 %prep
 %if %{use_git_clone}
