@@ -31,3 +31,6 @@
 [submodule "addons-koo"]
 	path = addons-koo
 	url = http://members.hellug.gr/xrg/repos/openobject-addons-koo
+[submodule "apidoc"]
+	path = apidoc
+	url = /home/panos/tmp/pics/apidoc/
