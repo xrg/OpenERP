@@ -36,6 +36,7 @@ import errno
 import glob
 import subprocess
 import re
+import ConfigParser
 
 from optparse import OptionParser
 
@@ -109,7 +110,7 @@ class release:
                         stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
                 (child_stdout, child_stdin) = (p.stdout, p.stdin)
                 rescode = p.wait()
-                if rescode != 0 : raise CalledProcessError, rescode
+                if rescode != 0 : raise subprocess.CalledProcessError, rescode
                 res= child_stdout.read()
                 #sys.stderr.write("Git version: %s\n" % res)
                 resc = res.split('-')
@@ -248,11 +249,27 @@ def which(dep, paths=[]):
 
     raise IOError(errno.ENOENT, "Cannot locate binary %s" % dep)
 
+ext_depends_parser = None
+
+def init_ext_depends():
+    global ext_depends_parser
+    if ext_depends_parser:
+        return
+
+    ext_depends_parser = ConfigParser.SafeConfigParser()
+    ext_depends_parser.optionxform = str # we want case-sensitive names
+    ext_depends_parser.read(os.path.expanduser('~/.openerp/modulize-overrides.conf'))
+
 def get_extern_depends(deps):
+    global ext_depends_parser
     ret = []
     to_find = []
+    init_ext_depends()
     if 'python' in deps:
         for dep in deps['python']:
+            if ext_depends_parser and ext_depends_parser.has_option('python', dep):
+                ret.append('Requires: %s' % ext_depends_parser.get('python', dep))
+                continue
             res = imp.find_module(dep)
             if not res:
                 continue
@@ -263,15 +280,18 @@ def get_extern_depends(deps):
             to_find.append(res[1])
     if 'bin' in deps:
         for dep in deps['bin']:
+            if ext_depends_parser and ext_depends_parser.has_option('bin', dep):
+                ret.append('Requires: %s' % ext_depends_parser.get('bin', dep))
+                continue
             to_find.append(which(dep))
 
     for tf in to_find:
         res = subprocess.check_output(['rpm', '-q', \
                     '--queryformat=Requires: %{NAME}\\n',
                     '-f', tf], shell=False)
-        ret.append(res)
+        ret.append(res.strip())
 
-    return '\n'.join(ret)
+    return ('\n'.join(ret) ) + '\n'
 
 def fmt_spec(name, info, allnames, compat=True):
     """ Format the info object fields into a SPEC submodule section
