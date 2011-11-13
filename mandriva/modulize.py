@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 
 #
-# Copyright P. Christeas <p_christ@hol.gr> 2008-2010
+# Copyright P. Christeas <xrg@linux.gr> 2008-2011
 #
 #
 # WARNING: This program as such is intended to be used by professional
@@ -32,6 +32,7 @@
 import imp
 import sys
 import os
+import errno
 import glob
 import subprocess
 import re
@@ -212,9 +213,9 @@ def get_depends(deps,allnames):
 	if not ret : return ""
 	return "Requires: %s \n" % (", ".join(ret))
 
-# Write down dependencies for non-openerp python modules
-# The format can either be a string, or a tuple, with the version required
 def get_ext_depends(deps):
+        # Write down dependencies for non-openerp python modules
+        # The format can either be a string, or a tuple, with the version required
 	ret = []
 	ret_ver = []
 	str_ret = ''
@@ -231,7 +232,49 @@ def get_ext_depends(deps):
 		str_ret += "".join(map(lambda a: "Requires: %s\n" % a, ret_ver))
 	return str_ret
 
-def fmt_spec(name,info,allnames):
+def which(dep, paths=[]):
+    """ Locate `dep` among `paths`
+
+        Note: paths will be preserved accross calls
+    """
+
+    if not paths:
+        paths = [ p for p in os.environ['PATH'].split(':') \
+                    if not p.startswith(('/usr/local','/home','/net','.')) ]
+
+    for p in paths:
+        needle = os.path.join(p, dep)
+        if os.path.exists(needle):
+            return needle
+
+    raise IOError(errno.ENOENT, "Cannot locate binary %s" % dep)
+
+def get_extern_depends(deps):
+    ret = []
+    to_find = []
+    if 'python' in deps:
+        for dep in deps['python']:
+            res = imp.find_module(dep)
+            if not res:
+                continue
+            if res[1].startswith(('/usr/local','/home','/net','.')):
+                raise Exception("Required python package '%s' is at %s" % \
+                                (dep, res[1]))
+
+            to_find.append(res[1])
+    if 'bin' in deps:
+        for dep in deps['bin']:
+            to_find.append(which(dep))
+
+    for tf in to_find:
+        res = subprocess.check_output(['rpm', '-q', \
+                    '--queryformat=Requires: %{NAME}\\n',
+                    '-f', tf], shell=False)
+        ret.append(res)
+
+    return '\n'.join(ret)
+
+def fmt_spec(name, info, allnames, compat=True):
 	""" Format the info object fields into a SPEC submodule section
 	    allnames is a list with all supplied names
 	"""
@@ -253,7 +296,11 @@ Requires: openerp-server >= %s
 	if 'depends' in info:
 		nii += get_depends(info['depends'],allnames)
 	if 'ext_depends' in info:
-		nii += get_ext_depends(info['ext_depends'])
+                if not compat:
+                    raise ValueError("Deprecated ext_depends keyword found")
+                nii += get_ext_depends(info['ext_depends'])
+        if 'external_dependencies' in info:
+		nii += get_extern_depends(info['external_dependencies'])
 	if 'author' in info:
 		nii+= "Vendor: %s\n" % info['author']
 	if 'website' in info  and info['website'] != '' :
