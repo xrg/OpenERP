@@ -76,68 +76,67 @@ parser.add_option("--skip-unnamed", dest="skip_unnamed", action="store_true", de
 (options, args) = parser.parse_args()
 
 class release:
-	version = '4.3.x'
-	release = '1'
-	def __init__(self, gitver=None):
-		#sys.stderr.write("Init\n")
-		self.version = ''
-		self.subver = ''
-		self.release = ''
-		self.extraver = None
-		self.mainver = ''
-		if gitver:
-		    try:
-		        f = open(gitver, 'rb')
-		        for line in f:
-			    if not ':' in line:
-				continue
-			    key, val = line.split(':',1)
-			    val = val.strip()
-			    if key == 'Version':
-				self.version = val
-			    elif key == 'Release':
-				self.release = val
-			    elif key == 'Extra':
-				self.extraver = val
-			f.close()
-			sys.stderr.write("Got version from file: v: %s (%s) , r: %s \n" %(self.version,self.subver,self.release))
-		    except:
-			sys.stderr.write("Get release exception: %s \n " % str(sys.exc_info()))
-		else:
-		    try:
-			p = subprocess.Popen(["git", "describe", "--tags"], bufsize=4096, \
-				stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
-			(child_stdout, child_stdin) = (p.stdout, p.stdin)
-			rescode = p.wait()
-			if rescode != 0 : raise CalledProcessError, rescode
-			res= child_stdout.read()
-			#sys.stderr.write("Git version: %s\n" % res)
-			resc = res.split('-')
-			if re.match('g.*',resc[len(resc)-1]) :
-				resc.pop()
-			if len(resc)>1 :
-				self.release = resc.pop().strip()
-			else:
-				self.release = '0'
-			self.version = resc[0].lstrip('v')
-			if self.version:
-			    ma = re.match(r'([0-9\.]+)([a-z][\w]+)?',
-					self.version)
-			    if ma:
-				self.version = ma.group(1)
-				self.extraver = ma.group(2)
+    version = '4.3.x'
+    release = '1'
+    def __init__(self, gitver=None):
+        #sys.stderr.write("Init\n")
+        self.version = ''
+        self.subver = ''
+        self.release = ''
+        self.extraver = None
+        self.mainver = ''
+        if gitver:
+            try:
+                f = open(gitver, 'rb')
+                for line in f:
+                    if not ':' in line:
+                        continue
+                    key, val = line.split(':',1)
+                    val = val.strip()
+                    if key == 'Version':
+                        self.version = val
+                    elif key == 'Release':
+                        self.release = val
+                    elif key == 'Extra':
+                        self.extraver = val
+                f.close()
+                sys.stderr.write("Got version from file: v: %s (%s) , r: %s \n" %(self.version,self.subver,self.release))
+            except:
+                sys.stderr.write("Get release exception: %s \n " % str(sys.exc_info()))
+        else:
+            try:
+                p = subprocess.Popen(["git", "describe", "--tags"], bufsize=4096, \
+                        stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
+                (child_stdout, child_stdin) = (p.stdout, p.stdin)
+                rescode = p.wait()
+                if rescode != 0 : raise CalledProcessError, rescode
+                res= child_stdout.read()
+                #sys.stderr.write("Git version: %s\n" % res)
+                resc = res.split('-')
+                if re.match('g.*',resc[len(resc)-1]) :
+                    resc.pop()
+                if len(resc)>1 :
+                    self.release = resc.pop().strip()
+                else:
+                    self.release = '0'
+                self.version = resc[0].lstrip('v')
+                if self.version:
+                    ma = re.match(r'([0-9\.]+)([a-z][\w]+)?',
+                                self.version)
+                    if ma:
+                        self.version = ma.group(1)
+                        self.extraver = ma.group(2)
 
-			self.subver ="-".join(resc[1:])
-			sys.stderr.write("Got version from git: v: %s (%s) , r: %s \n" %(self.version,self.subver,self.release))
-		    except:
-			sys.stderr.write("Get release exception: %s \n " % str(sys.exc_info()))
-		
-		self.mainver = '.'.join(self.version.split('.')[:2])
-		self.extrarel = ''
-		if self.extraver:
-		    self.extrarel += '0.'+ self.extraver + '.'
-		self.extrarel += self.release
-		
+                self.subver ="-".join(resc[1:])
+                sys.stderr.write("Got version from git: v: %s (%s) , r: %s \n" %(self.version,self.subver,self.release))
+            except:
+                sys.stderr.write("Get release exception: %s \n " % str(sys.exc_info()))
+
+        self.mainver = '.'.join(self.version.split('.')[:2])
+        self.extrarel = ''
+        if self.extraver:
+            self.extrarel += '0.'+ self.extraver + '.'
+        self.extrarel += self.release
 
 rel = release(options.gitver)
 
@@ -150,16 +149,16 @@ knight = """
 
 %%define release_class %s
 
-Name:	%s
-Version:	%s
-Release:	%%mkrel %s
-License:	AGPLv3
-Group:		Databases
-Summary:	Addons for OpenERP
-#Source0:	%%{name}-%%{version}.tar.gz
-URL:		http://www.openerp.com
-BuildRoot:	%%{_tmppath}/%%{name}-%%{version}-%%{release}
-BuildArch:	noarch
+Name:   %s
+Version:        %s
+Release:        %%mkrel %s
+License:        AGPLv3
+Group:          Databases
+Summary:        Addons for OpenERP
+#Source0:       %%{name}-%%{version}.tar.gz
+URL:            http://www.openerp.com
+BuildRoot:      %%{_tmppath}/%%{name}-%%{version}-%%{release}
+BuildArch:      noarch
 
 %%description
 Addon modules for OpenERP
@@ -183,54 +182,54 @@ cp -ar ./* $RPM_BUILD_ROOT/%{python_sitelib}/openerp-server/addons/
 """
 
 def get_module_info(name):
-	try:
-		mpath = os.path.join(name, '__openerp__.py')
-		if not os.path.exists(mpath):
-		    mpath = os.path.join(name, '__terp__.py')
-		f = open(mpath, "r")
-		data = f.read()
-		info = eval(data)
-		if 'version' in info:
-			info['version'] = rel.mainver + '.' + info['version']+rel.subver
-		f.close()
-	except IOError:
-		sys.stderr.write("Dir at %s may not be an OpenERP module.\n" % name)
-		return {}
-	except:
-		sys.stderr.write(str( sys.exc_info()))
-		return {}
-	return info
+    try:
+        mpath = os.path.join(name, '__openerp__.py')
+        if not os.path.exists(mpath):
+            mpath = os.path.join(name, '__terp__.py')
+        f = open(mpath, "r")
+        data = f.read()
+        info = eval(data)
+        if 'version' in info:
+            info['version'] = rel.mainver + '.' + info['version']+rel.subver
+        f.close()
+    except IOError:
+        sys.stderr.write("Dir at %s may not be an OpenERP module.\n" % name)
+        return {}
+    except:
+        sys.stderr.write(str( sys.exc_info()))
+        return {}
+    return info
 
 def get_depends(deps,allnames):
-	ret = []
-	for dep in deps:
-		if dep == "base" : continue
-		if dep in allnames:
-			ret.append(oname+"-"+dep)
-		else:
-			ret.append('openerp-addons-'+dep)
-	ret = set(ret)
-	if not ret : return ""
-	return "Requires: %s \n" % (", ".join(ret))
+    ret = []
+    for dep in deps:
+        if dep == "base" : continue
+        if dep in allnames:
+            ret.append(oname+"-"+dep)
+        else:
+            ret.append('openerp-addons-'+dep)
+    ret = set(ret)
+    if not ret : return ""
+    return "Requires: %s \n" % (", ".join(ret))
 
 def get_ext_depends(deps):
-        # Write down dependencies for non-openerp python modules
-        # The format can either be a string, or a tuple, with the version required
-	ret = []
-	ret_ver = []
-	str_ret = ''
-	for dep in deps:
-		if type(dep) == type(tuple()):
-			ret_ver.append(dep[0]+' '+ dep[1] + ' ' + dep[2])
-		else:
-			ret.append(dep)
-	ret = set(ret)
-	ret_ver = set(ret_ver)
-	if ret:
-		str_ret += "Requires: %s \n" % (", ".join(ret))
-	if ret_ver:
-		str_ret += "".join(map(lambda a: "Requires: %s\n" % a, ret_ver))
-	return str_ret
+    # Write down dependencies for non-openerp python modules
+    # The format can either be a string, or a tuple, with the version required
+    ret = []
+    ret_ver = []
+    str_ret = ''
+    for dep in deps:
+        if type(dep) == type(tuple()):
+            ret_ver.append(dep[0]+' '+ dep[1] + ' ' + dep[2])
+        else:
+            ret.append(dep)
+    ret = set(ret)
+    ret_ver = set(ret_ver)
+    if ret:
+        str_ret += "Requires: %s \n" % (", ".join(ret))
+    if ret_ver:
+        str_ret += "".join(map(lambda a: "Requires: %s\n" % a, ret_ver))
+    return str_ret
 
 def which(dep, paths=[]):
     """ Locate `dep` among `paths`
@@ -275,64 +274,64 @@ def get_extern_depends(deps):
     return '\n'.join(ret)
 
 def fmt_spec(name, info, allnames, compat=True):
-	""" Format the info object fields into a SPEC submodule section
-	    allnames is a list with all supplied names
-	"""
-	if ('name' not in info) : return ""
-	if options.skip_unnamed and not info['name']:
-	    return ""
-	if ('installable' in info) and not info['installable']:
-	    return ""
-	nii = "\n"
-	nii += '%%package %s\n' % name;
-	if 'version' in info:
-		nii+= "Version: %s\n" % info['version']
-	if not info['name']:
-	    raise Exception("Addon %s should specify a name for summary!" % name)
-	nii += """Group: Databases
+    """ Format the info object fields into a SPEC submodule section
+        allnames is a list with all supplied names
+    """
+    if ('name' not in info) : return ""
+    if options.skip_unnamed and not info['name']:
+        return ""
+    if ('installable' in info) and not info['installable']:
+        return ""
+    nii = "\n"
+    nii += '%%package %s\n' % name;
+    if 'version' in info:
+        nii+= "Version: %s\n" % info['version']
+    if not info['name']:
+        raise Exception("Addon %s should specify a name for summary!" % name)
+    nii += """Group: Databases
 Summary: %s
 Requires: openerp-server >= %s
 """ % (info['name'], rel.version.rsplit('.', 1)[0])
-	if 'depends' in info:
-		nii += get_depends(info['depends'],allnames)
-	if 'ext_depends' in info:
-                if not compat:
-                    raise ValueError("Deprecated ext_depends keyword found")
-                nii += get_ext_depends(info['ext_depends'])
-        if 'external_dependencies' in info:
-		nii += get_extern_depends(info['external_dependencies'])
-	if 'author' in info:
-		nii+= "Vendor: %s\n" % info['author']
-	if 'website' in info  and info['website'] != '' :
-		# we can only have one of the urls provided.
-		ws = info['website']
-		if ',' in ws:
-		    ws = ws.split(', ')[0].strip()
-		if '- ' in ws:
-		    ws = ws.split('- ')[0].strip()
-		nii+= "URL: %s\n" % ws
-	if 'description' in info:
-		nii += "\n%%description %s\n%s\n" % (name, info['description'])
-	else:
-		nii += "\n%%description %s\n%s\n" % (name, info['name'])
-	nii +="""
+    if 'depends' in info:
+        nii += get_depends(info['depends'],allnames)
+    if 'ext_depends' in info:
+        if not compat:
+            raise ValueError("Deprecated ext_depends keyword found")
+        nii += get_ext_depends(info['ext_depends'])
+    if 'external_dependencies' in info:
+        nii += get_extern_depends(info['external_dependencies'])
+    if 'author' in info:
+        nii+= "Vendor: %s\n" % info['author']
+    if 'website' in info  and info['website'] != '' :
+        # we can only have one of the urls provided.
+        ws = info['website']
+        if ',' in ws:
+            ws = ws.split(', ')[0].strip()
+        if '- ' in ws:
+            ws = ws.split('- ')[0].strip()
+        nii+= "URL: %s\n" % ws
+    if 'description' in info:
+        nii += "\n%%description %s\n%s\n" % (name, info['description'])
+    else:
+        nii += "\n%%description %s\n%s\n" % (name, info['name'])
+    nii +="""
 %%files %s
 %%defattr(-,root,root)
 %%{python_sitelib}/openerp-server/addons/%s
 """ % (name, name)
-	return nii
+    return nii
 
 
 info_dirs = []
 no_dirs = []
 
 if ( options.onlyver):
-	print rel.mainver+rel.subver
-	exit(0)
+    print rel.mainver+rel.subver
+    exit(0)
 
 if ( options.onlyrel):
-	print rel.extrarel
-	exit(0)
+    print rel.extrarel
+    exit(0)
 
 exclude_modules = []
 if options.exclude and len(options.exclude):
@@ -346,33 +345,33 @@ if options.exclude and len(options.exclude):
     f.close()
 
 for tdir in args:
-        bdir = os.path.basename(tdir)
-        if bdir in exclude_modules:
-            no_dirs.append(bdir)
-            continue
-	info = get_module_info(tdir)
-	if (not info ) or (not info.get('installable',True)) :
-		no_dirs.append(bdir)
-	else :
-		info_dirs.append({'dir': bdir, 'info': info})
+    bdir = os.path.basename(tdir)
+    if bdir in exclude_modules:
+        no_dirs.append(bdir)
+        continue
+    info = get_module_info(tdir)
+    if (not info ) or (not info.get('installable',True)) :
+        no_dirs.append(bdir)
+    else :
+        info_dirs.append({'dir': bdir, 'info': info})
 
 
 print knight
 print inst_str
 
 if no_dirs != [] :
-	print 'pushd $RPM_BUILD_ROOT/%{python_sitelib}/openerp-server/addons/'
-	for tdir in no_dirs:
-		print "\trm -rf %s" % tdir
-	print "popd\n"
+    print 'pushd $RPM_BUILD_ROOT/%{python_sitelib}/openerp-server/addons/'
+    for tdir in no_dirs:
+        print "\trm -rf %s" % tdir
+    print "popd\n"
 
 allnames = set(map(lambda i: i['dir'], info_dirs))
 
 for tinf in info_dirs:
-	print fmt_spec(tinf['dir'],tinf['info'],allnames)
+        print fmt_spec(tinf['dir'],tinf['info'],allnames)
 
 sys.stderr.write("Modules created: %d\n"% len(info_dirs))
 #sys.stderr.write("Don't forget to create the archive, with:\n" \
-	#"git archive --format=tar --prefix=openerp-addons-%s/ HEAD | gzip -c > openerp-addons-%s.tar.gz\n" \
-	#% (rel.version.rsplit('.', 1)[0],rel.version.rsplit('.', 1)[0]));
+        #"git archive --format=tar --prefix=openerp-addons-%s/ HEAD | gzip -c > openerp-addons-%s.tar.gz\n" \
+        #% (rel.version.rsplit('.', 1)[0],rel.version.rsplit('.', 1)[0]));
 #eof
