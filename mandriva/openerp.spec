@@ -27,7 +27,7 @@
 %define NoDisplay       DISPLAY=
 
 %define build_kde       1
-%define build_web       0
+%define build_web       1
 %define build_mdvmga    1
 
 %else
@@ -390,7 +390,7 @@ popd
 mv %{buildroot}%{_datadir}/openerp-client/* %{buildroot}%{python_sitelib}/openerp-client
 rm -rf %{buildroot}%{_datadir}/openerp-client
 
-mkdir %{buildroot}%{_datadir}/applications
+mkdir %{buildroot}%{_datadir}/applications || :
 cat > %{buildroot}%{_datadir}/applications/openerp-client.desktop << EOF
 [Desktop Entry]
 Version=1.0
@@ -465,8 +465,9 @@ pushd %{buildroot}%{python_sitelib}
 popd
 
 %if %{build_web}
- #some files for the web-client
+# some files for the web-client
 install -D client-web/scripts/init.d/openerp-web.mdv %{buildroot}%{_initrddir}/%{name}-web
+install -D client-web/doc/openerp-web.mdv.cfg %{buildroot}%{_sysconfdir}/openerp-web.cfg
 %endif
 
 mkdir -p %{buildroot}/var/log/openerp
