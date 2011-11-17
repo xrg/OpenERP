@@ -54,7 +54,7 @@
 
 %define _use_internal_dependency_generator 0
 %define __find_provides   %{u2p:%{_builddir}}/%{name}-%{git_get_ver}/mandriva/find-provides.sh
-%define __find_requires   %{u2p:%{_builddir}}/%{name}-%{git_get_ver}/mandriva/find-requires.sh
+# %define __find_requires   %{u2p:%{_builddir}}/%{name}-%{git_get_ver}/mandriva/find-requires.sh
 
 %{?_use_clone:  %global use_git_clone 1}
 %{?_use_tarball: %global use_git_clone 0}
@@ -114,9 +114,11 @@ Requires:       python-dateutil
 Requires:       python-hippo-canvas
 %endif
 %else 
-%if %{_target_vendor} == redhat
+%if %{_target_vendor} == redhat || %{_target_vendor} == pc
 Requires:       pygtk2
 Requires:       pygobject2, pygtk2-libglade, pydot, python-lxml
+BuildRequires:  pygobject2
+BuildRequires:  jpackage-utils
 Requires:       hippo-canvas-python
 Requires:       python-dateutil
 %endif
@@ -170,7 +172,7 @@ software: accounting, stock, manufacturing, project mgt...
 Group:          System/Servers
 Summary:        Server for the ERP (framework core)
 Requires:       python-lxml
-Requires:       postgresql-plpython >= 8.2
+Requires:       postgresql >= 8.2
 Requires:       python-imaging
 Requires:       python-psycopg2, python-reportlab
 Requires:       ghostscript
@@ -183,6 +185,7 @@ Requires:       python-pychart, python-yaml, python-mako
 Requires(pre):  rpm-helper
 Requires(postun): rpm-helper
 %else
+Requires:       python-dateutil
 Requires:       pyparsing
 Requires:       ghostscript
 Requires:       PyXML, PyYAML, python-mako
@@ -395,6 +398,7 @@ cat > %{buildroot}%{_datadir}/applications/openerp-client.desktop << EOF
 [Desktop Entry]
 Version=1.0
 Name=Open ERP
+Encoding=UTF-8
 GenericName=GTK ERP Client
 Comment=A gtk client for the open source ERP
 Exec=%{_bindir}/openerp-client
@@ -412,6 +416,7 @@ cat > %{buildroot}%{_datadir}/applications/openerp-koo.desktop << EOF
 [Desktop Entry]
 Version=1.0
 Name=Open ERP
+Encoding=UTF-8
 GenericName=OpenERP KDE Client
 Comment=The KDE client for the open source ERP
 Exec=%{_bindir}/koo
@@ -474,9 +479,9 @@ mkdir -p %{buildroot}/var/log/openerp
 mkdir -p %{buildroot}/var/spool/openerp
 mkdir -p %{buildroot}/var/run/openerp
 
-install -d %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/demo/
-install -m 744 mandriva/prep_database.sh %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/demo/
-# install -m 644 mandriva/demodb.sql %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/demo/
+install -d %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}-demo/
+install -m 744 mandriva/prep_database.sh %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}-demo/
+# install -m 644 mandriva/demodb.sql %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}-demo/
 
 pushd %{buildroot}%{_sysconfdir}/openerp/start.d
 cat >30start-demo <<EOF
@@ -484,18 +489,15 @@ cat >30start-demo <<EOF
 
 # service postgresql start
 
-pushd %{_defaultdocdir}/%{name}-server-%{version}/demo/
+pushd %{_defaultdocdir}/%{name}-server-%{version}-demo/
 #    DB_NAME=dbdemo DB_RESTORESCRIPT=demodb.sql ./prep_database.sh
 popd > /dev/null
 # service openerp restart
 
 EOF
 
-ln -s %{scriptsdir}/server-check.sh ./10server-check
+ln -sf %{scriptsdir}/server-check.sh ./10server-check
 popd
-
-%clean
-rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root)
@@ -547,9 +549,9 @@ rm -rf %{buildroot}
 
 %files alldemo
 %defattr(-,root,root)
-        %dir            %{_defaultdocdir}/%{name}-server-%{version}/demo/
-#                       %{_defaultdocdir}/%{name}-server-%{version}/demo/demodb.sql
-                        %{_defaultdocdir}/%{name}-server-%{version}/demo/prep_database.sh
+        %dir            %{_defaultdocdir}/%{name}-server-%{version}-demo/
+#                       %{_defaultdocdir}/%{name}-server-%{version}-demo/demodb.sql
+                        %{_defaultdocdir}/%{name}-server-%{version}-demo/prep_database.sh
 %attr(0755,root,root)   %{_sysconfdir}/openerp/start.d/30start-demo
 # todo: a few readme files, perhaps..
 
@@ -578,7 +580,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %{_bindir}/openerp-server
 %{python_sitelib}/openerp-server/
 %{_datadir}/pixmaps/openerp-server/
-%exclude %{_defaultdocdir}/%{name}-server-%{version}/demo
+%exclude %{_defaultdocdir}/%{name}-server-%{version}-demo
 %{_mandir}/man1/openerp-server.*
 %{py_puresitedir}/openerp_server-%{version}-py%{pyver}.egg-info
 %{_mandir}/man5/openerp_serverrc.*
