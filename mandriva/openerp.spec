@@ -186,7 +186,6 @@ Requires(pre):  rpm-helper
 Requires(postun): rpm-helper
 %else
 Requires:       python-dateutil
-Requires:       pyparsing
 Requires:       ghostscript
 Requires:       PyXML, PyYAML, python-mako
 Requires:       pychart

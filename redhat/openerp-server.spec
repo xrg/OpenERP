@@ -22,7 +22,6 @@ BuildRequires:  jpackage-utils
 Requires:       python-lxml
 Requires:       python-imaging
 Requires:       python-psycopg2, python-reportlab
-Requires:       pyparsing
 Requires:       ghostscript
 Requires:       PyXML
 Requires:       PyYAML, python-mako
