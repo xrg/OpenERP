@@ -54,7 +54,7 @@
 
 %define _use_internal_dependency_generator 0
 %define __find_provides   %{u2p:%{_builddir}}/%{name}-%{git_get_ver}/mandriva/find-provides.sh
-# %define __find_requires   %{u2p:%{_builddir}}/%{name}-%{git_get_ver}/mandriva/find-requires.sh
+%define __find_requires   %{u2p:%{_builddir}}/%{name}-%{git_get_ver}/mandriva/find-requires.sh
 
 %{?_use_clone:  %global use_git_clone 1}
 %{?_use_tarball: %global use_git_clone 0}
@@ -156,11 +156,22 @@ Technical documentation for the API of OpenERP KDE client (koo).
 Group:          Databases
 Summary:        Web Client, a web-interface server
 #BuildRequires: ....
-Requires:       python-pytz
 Requires:       python-cherrypy, python-formencode
 Requires:       python-simplejson, python-mako
-Requires:       python-Babel
+BuildRequires:  python-cherrypy, python-formencode
+BuildRequires:  python-simplejson
+%if %{build_mdvmga}
 Requires:       python-pkg-resources
+Requires:       python-pytz
+BuildRequires:  python-pytz
+Requires:       python-Babel
+BuildRequires:  python-Babel
+%else
+Requires:       pytz
+BuildRequires:  pytz
+Requires:       python-babel
+BuildRequires:  python-babel
+%endif
 
 %description client-web
 OpenERP Web is the web client of the OpenERP, a free enterprise management 
@@ -382,7 +393,7 @@ popd
 %find_lang %{name}-client
 
 %if %{build_web}
-%find_lang %{name}-web
+%find_lang %{name}-web || :
 %endif
 
 %if %{build_kde}
