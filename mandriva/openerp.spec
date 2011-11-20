@@ -158,19 +158,15 @@ Summary:        Web Client, a web-interface server
 #BuildRequires: ....
 Requires:       python-cherrypy, python-formencode
 Requires:       python-simplejson, python-mako
-BuildRequires:  python-cherrypy, python-formencode
-BuildRequires:  python-simplejson
+# BuildRequires:  python-cherrypy, python-formencode
+# BuildRequires:  python-simplejson
 %if %{build_mdvmga}
 Requires:       python-pkg-resources
 Requires:       python-pytz
-BuildRequires:  python-pytz
 Requires:       python-Babel
-BuildRequires:  python-Babel
 %else
 Requires:       pytz
-BuildRequires:  pytz
 Requires:       python-babel
-BuildRequires:  python-babel
 %endif
 
 %description client-web
@@ -348,8 +344,6 @@ mkdir -p %{buildroot}%{_sysconfdir}
 
 %if %{build_web}
 pushd client-web
-#         First, compile all the i18n messages
-        %{NoDisplay} python ./admin.py i18n -c ALL
         %{NoDisplay} python ./setup.py install --root=%{buildroot} --quiet
 popd
 
@@ -362,20 +356,6 @@ popd
 if [ -d %{buildroot}/usr/doc/openerp-web ] ; then
     rm -rf %{buildroot}/usr/doc/openerp-web
 fi
-
-%if 0 
-# FIXME: where are the web locales?
-pushd %{buildroot}%{python_sitelib}/locales
-        rm -f messages.pot
-        for LOCFI in */LC_MESSAGES/messages.mo ; do
-                LFF=$(dirname "$LOCFI")
-                if [ ! -d %{buildroot}%{_prefix}/share/locale/$LFF ] ; then
-                        mkdir -p %{buildroot}%{_prefix}/share/locale/$LFF
-                fi
-                mv $LOCFI %{buildroot}%{_prefix}/share/locale/$LFF/openerp-web.mo
-        done
-popd
-%endif
 
 %endif
 
@@ -391,10 +371,6 @@ pushd %{buildroot}%{_bindir}/
 popd
 
 %find_lang %{name}-client
-
-%if %{build_web}
-%find_lang %{name}-web || :
-%endif
 
 %if %{build_kde}
 %find_lang koo
