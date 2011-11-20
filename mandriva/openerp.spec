@@ -490,7 +490,7 @@ popd
 %doc %{clone_prefixdir}server/doc/README.urpmi %{clone_prefixdir}server/README
 
 %if %{build_web}
-%files client-web -f %{clone_prefixdir}%{name}-web.lang
+%files client-web
 %doc %{clone_prefixdir}client-web/doc/*
 %defattr(-,root,root)
 %attr(0755,root, root) %{_bindir}/openerp-web
