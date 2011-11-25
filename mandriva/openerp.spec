@@ -27,7 +27,7 @@
 %define NoDisplay       DISPLAY=
 
 %define build_kde       1
-%define build_web       0
+%define build_web       1
 %define build_mdvmga    1
 
 %else
@@ -114,9 +114,11 @@ Requires:       python-dateutil
 Requires:       python-hippo-canvas
 %endif
 %else 
-%if %{_target_vendor} == redhat
+%if %{_target_vendor} == redhat || %{_target_vendor} == pc
 Requires:       pygtk2
 Requires:       pygobject2, pygtk2-libglade, pydot, python-lxml
+BuildRequires:  pygobject2
+BuildRequires:  jpackage-utils
 Requires:       hippo-canvas-python
 Requires:       python-dateutil
 %endif
@@ -154,11 +156,18 @@ Technical documentation for the API of OpenERP KDE client (koo).
 Group:          Databases
 Summary:        Web Client, a web-interface server
 #BuildRequires: ....
-Requires:       python-pytz
 Requires:       python-cherrypy, python-formencode
 Requires:       python-simplejson, python-mako
-Requires:       python-Babel
+# BuildRequires:  python-cherrypy, python-formencode
+# BuildRequires:  python-simplejson
+%if %{build_mdvmga}
 Requires:       python-pkg-resources
+Requires:       python-pytz
+Requires:       python-Babel
+%else
+Requires:       pytz
+Requires:       python-babel
+%endif
 
 %description client-web
 OpenERP Web is the web client of the OpenERP, a free enterprise management 
@@ -170,7 +179,7 @@ software: accounting, stock, manufacturing, project mgt...
 Group:          System/Servers
 Summary:        Server for the ERP (framework core)
 Requires:       python-lxml
-Requires:       postgresql-plpython >= 8.2
+Requires:       postgresql >= 8.2
 Requires:       python-imaging
 Requires:       python-psycopg2, python-reportlab
 Requires:       ghostscript
@@ -183,7 +192,7 @@ Requires:       python-pychart, python-yaml, python-mako
 Requires(pre):  rpm-helper
 Requires(postun): rpm-helper
 %else
-Requires:       pyparsing
+Requires:       python-dateutil
 Requires:       ghostscript
 Requires:       PyXML, PyYAML, python-mako
 Requires:       pychart
@@ -335,8 +344,6 @@ mkdir -p %{buildroot}%{_sysconfdir}
 
 %if %{build_web}
 pushd client-web
-#         First, compile all the i18n messages
-        %{NoDisplay} python ./admin.py i18n -c ALL
         %{NoDisplay} python ./setup.py install --root=%{buildroot} --quiet
 popd
 
@@ -349,20 +356,6 @@ popd
 if [ -d %{buildroot}/usr/doc/openerp-web ] ; then
     rm -rf %{buildroot}/usr/doc/openerp-web
 fi
-
-%if 0 
-# FIXME: where are the web locales?
-pushd %{buildroot}%{python_sitelib}/locales
-        rm -f messages.pot
-        for LOCFI in */LC_MESSAGES/messages.mo ; do
-                LFF=$(dirname "$LOCFI")
-                if [ ! -d %{buildroot}%{_prefix}/share/locale/$LFF ] ; then
-                        mkdir -p %{buildroot}%{_prefix}/share/locale/$LFF
-                fi
-                mv $LOCFI %{buildroot}%{_prefix}/share/locale/$LFF/openerp-web.mo
-        done
-popd
-%endif
 
 %endif
 
@@ -379,10 +372,6 @@ popd
 
 %find_lang %{name}-client
 
-%if %{build_web}
-%find_lang %{name}-web
-%endif
-
 %if %{build_kde}
 %find_lang koo
 %endif
@@ -390,11 +379,12 @@ popd
 mv %{buildroot}%{_datadir}/openerp-client/* %{buildroot}%{python_sitelib}/openerp-client
 rm -rf %{buildroot}%{_datadir}/openerp-client
 
-mkdir %{buildroot}%{_datadir}/applications
+mkdir %{buildroot}%{_datadir}/applications || :
 cat > %{buildroot}%{_datadir}/applications/openerp-client.desktop << EOF
 [Desktop Entry]
 Version=1.0
 Name=Open ERP
+Encoding=UTF-8
 GenericName=GTK ERP Client
 Comment=A gtk client for the open source ERP
 Exec=%{_bindir}/openerp-client
@@ -412,6 +402,7 @@ cat > %{buildroot}%{_datadir}/applications/openerp-koo.desktop << EOF
 [Desktop Entry]
 Version=1.0
 Name=Open ERP
+Encoding=UTF-8
 GenericName=OpenERP KDE Client
 Comment=The KDE client for the open source ERP
 Exec=%{_bindir}/koo
@@ -465,17 +456,18 @@ pushd %{buildroot}%{python_sitelib}
 popd
 
 %if %{build_web}
- #some files for the web-client
+# some files for the web-client
 install -D client-web/scripts/init.d/openerp-web.mdv %{buildroot}%{_initrddir}/%{name}-web
+install -D client-web/doc/openerp-web.mdv.cfg %{buildroot}%{_sysconfdir}/openerp-web.cfg
 %endif
 
 mkdir -p %{buildroot}/var/log/openerp
 mkdir -p %{buildroot}/var/spool/openerp
 mkdir -p %{buildroot}/var/run/openerp
 
-install -d %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/demo/
-install -m 744 mandriva/prep_database.sh %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/demo/
-# install -m 644 mandriva/demodb.sql %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}/demo/
+install -d %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}-demo/
+install -m 744 mandriva/prep_database.sh %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}-demo/
+# install -m 644 mandriva/demodb.sql %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}-demo/
 
 pushd %{buildroot}%{_sysconfdir}/openerp/start.d
 cat >30start-demo <<EOF
@@ -483,25 +475,22 @@ cat >30start-demo <<EOF
 
 # service postgresql start
 
-pushd %{_defaultdocdir}/%{name}-server-%{version}/demo/
+pushd %{_defaultdocdir}/%{name}-server-%{version}-demo/
 #    DB_NAME=dbdemo DB_RESTORESCRIPT=demodb.sql ./prep_database.sh
 popd > /dev/null
 # service openerp restart
 
 EOF
 
-ln -s %{scriptsdir}/server-check.sh ./10server-check
+ln -sf %{scriptsdir}/server-check.sh ./10server-check
 popd
-
-%clean
-rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root)
 %doc %{clone_prefixdir}server/doc/README.urpmi %{clone_prefixdir}server/README
 
 %if %{build_web}
-%files client-web -f %{clone_prefixdir}%{name}-web.lang
+%files client-web
 %doc %{clone_prefixdir}client-web/doc/*
 %defattr(-,root,root)
 %attr(0755,root, root) %{_bindir}/openerp-web
@@ -546,9 +535,9 @@ rm -rf %{buildroot}
 
 %files alldemo
 %defattr(-,root,root)
-        %dir            %{_defaultdocdir}/%{name}-server-%{version}/demo/
-#                       %{_defaultdocdir}/%{name}-server-%{version}/demo/demodb.sql
-                        %{_defaultdocdir}/%{name}-server-%{version}/demo/prep_database.sh
+        %dir            %{_defaultdocdir}/%{name}-server-%{version}-demo/
+#                       %{_defaultdocdir}/%{name}-server-%{version}-demo/demodb.sql
+                        %{_defaultdocdir}/%{name}-server-%{version}-demo/prep_database.sh
 %attr(0755,root,root)   %{_sysconfdir}/openerp/start.d/30start-demo
 # todo: a few readme files, perhaps..
 
@@ -577,7 +566,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %{_bindir}/openerp-server
 %{python_sitelib}/openerp-server/
 %{_datadir}/pixmaps/openerp-server/
-%exclude %{_defaultdocdir}/%{name}-server-%{version}/demo
+%exclude %{_defaultdocdir}/%{name}-server-%{version}-demo
 %{_mandir}/man1/openerp-server.*
 %{py_puresitedir}/openerp_server-%{version}-py%{pyver}.egg-info
 %{_mandir}/man5/openerp_serverrc.*
