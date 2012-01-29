@@ -33,7 +33,7 @@ fparse() {
 			    echo "$FNAME" >> $GITLINT_FAILED
 			fi
 		fi
-		if grep -HnF -m 10 '*-*' "$FNAME" ; then
+		if git --no-pager grep --cached -HnF '*-*' "$FNAME" ; then
 		    echo "Not ready to commit"
 		    (( ERRORS++ ))
 		fi
