@@ -270,11 +270,14 @@ def get_extern_depends(deps):
             if ext_depends_parser and ext_depends_parser.has_option('python', dep):
                 ret.append('Requires: %s' % ext_depends_parser.get('python', dep))
                 continue
-            res = imp.find_module(dep)
+            try:
+                res = imp.find_module(dep)
+            except ImportError:
+                raise ValueError("This system does not provide the %s python module" % dep)
             if not res:
                 continue
             if res[1].startswith(('/usr/local','/home','/net','.')):
-                raise Exception("Required python package '%s' is at %s" % \
+                raise ValueError("Required python package '%s' is at %s" % \
                                 (dep, res[1]))
 
             to_find.append(res[1])
@@ -283,7 +286,10 @@ def get_extern_depends(deps):
             if ext_depends_parser and ext_depends_parser.has_option('bin', dep):
                 ret.append('Requires: %s' % ext_depends_parser.get('bin', dep))
                 continue
-            to_find.append(which(dep))
+            try:
+                to_find.append(which(dep))
+            except EnvironmentError, e:
+                raise ValueError("This system does not have the %s binary" % dep)
 
     for tf in to_find:
         res = subprocess.check_output(['rpm', '-q', \
@@ -388,7 +394,11 @@ if no_dirs != [] :
 allnames = set(map(lambda i: i['dir'], info_dirs))
 
 for tinf in info_dirs:
-        print fmt_spec(tinf['dir'],tinf['info'],allnames)
+    try:
+        module_spec = fmt_spec(tinf['dir'],tinf['info'],allnames)
+        print module_spec
+    except ValueError, e:
+        sys.stderr.write("Cannot use %s module: %s\n" % (tinf['dir'], e))
 
 sys.stderr.write("Modules created: %d\n"% len(info_dirs))
 #sys.stderr.write("Don't forget to create the archive, with:\n" \
