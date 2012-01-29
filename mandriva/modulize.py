@@ -33,7 +33,7 @@ import imp
 import sys
 import os
 import errno
-import glob
+#import glob
 import subprocess
 import re
 import ConfigParser
@@ -288,18 +288,21 @@ def get_extern_depends(deps):
                 continue
             try:
                 to_find.append(which(dep))
-            except EnvironmentError, e:
+            except EnvironmentError:
                 raise ValueError("This system does not have the %s binary" % dep)
 
     for tf in to_find:
-        res = subprocess.check_output(['rpm', '-q', \
-                    '--queryformat=Requires: %{NAME}\\n',
-                    '-f', tf], shell=False)
-        ret.append(res.strip())
+        try:
+            res = subprocess.check_output(['rpm', '-q', \
+                        '--queryformat=Requires: %{NAME}\\n',
+                        '-f', tf], shell=False)
+            ret.append(res.strip())
+        except Exception, e:
+            raise ValueError("Cannot locate dependency for %s: %s" %(tf, e))
 
     return ('\n'.join(ret) ) + '\n'
 
-def fmt_spec(name, info, allnames, compat=True):
+def fmt_spec(name, info, allnames, ext_deps=False):
     """ Format the info object fields into a SPEC submodule section
         allnames is a list with all supplied names
     """
@@ -320,12 +323,8 @@ Requires: openerp-server >= %s
 """ % (info['name'], rel.version.rsplit('.', 1)[0])
     if 'depends' in info:
         nii += get_depends(info['depends'],allnames)
-    if 'ext_depends' in info:
-        if not compat:
-            raise ValueError("Deprecated ext_depends keyword found")
-        nii += get_ext_depends(info['ext_depends'])
-    if 'external_dependencies' in info:
-        nii += get_extern_depends(info['external_dependencies'])
+    if ext_deps:
+        nii += ext_deps
     if 'author' in info:
         nii+= "Vendor: %s\n" % info['author']
     if 'website' in info  and info['website'] != '' :
@@ -379,8 +378,21 @@ for tdir in args:
     if (not info ) or (not info.get('installable',True)) :
         no_dirs.append(bdir)
     else :
-        info_dirs.append({'dir': bdir, 'info': info})
+        ext_deps = ''
+        try:
+            if 'ext_depends' in info:
+                #if True:
+                #    raise ValueError("Deprecated ext_depends keyword found")
+                ext_deps += get_ext_depends(info['ext_depends'])
+                
+            if 'external_dependencies' in info:
+                ext_deps += get_extern_depends(info['external_dependencies'])
+        except ValueError, e:
+            sys.stderr.write("Cannot use %s module: %s\n" % (tdir, e))
+            no_dirs.append(bdir)
+            continue
 
+        info_dirs.append({'dir': bdir, 'info': info, 'ext_deps': ext_deps})
 
 print knight
 print inst_str
@@ -394,11 +406,7 @@ if no_dirs != [] :
 allnames = set(map(lambda i: i['dir'], info_dirs))
 
 for tinf in info_dirs:
-    try:
-        module_spec = fmt_spec(tinf['dir'],tinf['info'],allnames)
-        print module_spec
-    except ValueError, e:
-        sys.stderr.write("Cannot use %s module: %s\n" % (tinf['dir'], e))
+    print fmt_spec(tinf['dir'],tinf['info'], allnames, ext_deps=tinf['ext_deps'])
 
 sys.stderr.write("Modules created: %d\n"% len(info_dirs))
 #sys.stderr.write("Don't forget to create the archive, with:\n" \
