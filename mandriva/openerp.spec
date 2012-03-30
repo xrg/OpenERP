@@ -2,7 +2,7 @@
 %define git_head HEAD
 
 %global name openerp
-%global release_class pub
+%global release_class experimental
 
 %{?!pyver: %global pyver %(python -c 'import sys;print(sys.version[0:3])')}
 %{?!python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
