@@ -482,7 +482,8 @@ popd > /dev/null
 
 EOF
 
-ln -sf %{scriptsdir}/server-check.sh ./10server-check
+rm ./10server-check || :
+ln -sf ../server-check.sh ./10server-check
 popd
 
 %files
