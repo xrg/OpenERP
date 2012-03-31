@@ -101,6 +101,21 @@ def which(dep, paths=[]):
 
     raise IOError(errno.ENOENT, "Cannot locate binary %s" % dep)
 
+def check_output(*popenargs, **kwargs):
+    r""" Copied from python2.7/subprocess.py, backport to 2.6
+    """
+    if 'stdout' in kwargs:
+        raise ValueError('stdout argument not allowed, it will be overridden.')
+    process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
+    output, unused_err = process.communicate()
+    retcode = process.poll()
+    if retcode:
+        cmd = kwargs.get("args")
+        if cmd is None:
+            cmd = popenargs[0]
+        raise subprocess.CalledProcessError(retcode, cmd, output=output)
+    return output
+
 ext_depends_parser = None
 
 def init_ext_depends():
@@ -145,7 +160,7 @@ def get_extern_depends(deps):
 
     for tf in to_find:
         try:
-            res = subprocess.check_output(['rpm', '-q', \
+            res = check_output(['rpm', '-q', \
                         '--queryformat=Requires: %{NAME}\\n',
                         '-f', tf], shell=False)
             ret.append(res.strip())
@@ -154,7 +169,7 @@ def get_extern_depends(deps):
             sys.stderr.write("First attempt for dependency %s failed. Retrying.\n" %(tf))
         
         try:
-            res = subprocess.check_output(['rpm', '-q', \
+            res = check_output(['rpm', '-q', \
                         '--queryformat=Requires: %{NAME}\\n',
                         '-f', os.path.join(tf,'__init__.py')], shell=False)
             ret.append(res.strip())
