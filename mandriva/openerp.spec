@@ -8,6 +8,7 @@
 %{?!python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 %{?!py_puresitedir: %global py_puresitedir %(python -c 'import distutils.sysconfig; print distutils.sysconfig.get_python_lib()' 2>/dev/null || echo PYTHON-LIBDIR-NOT-FOUND)}
 
+%{?genspec_inline: %global auto_specdir %{_builddir}/%{name}-%{git_get_ver}/mandriva }
 %{?!auto_specdir: %global auto_specdir %{_specdir} }
 
 %if %{_target_vendor} == mandriva
