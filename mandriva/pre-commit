@@ -43,7 +43,7 @@ fparse() {
 		fi
 	;;
 	*.xml)
-		if grep -HnF -m 10 '*-*' "$FNAME" ; then
+		if  git --no-pager grep --cached -HnF '*-*' "$FNAME" ; then
 		    echo "Not ready to commit"
 		    (( ERRORS++ ))
 		fi
@@ -65,6 +65,10 @@ fparse() {
 		msgfmt -c "$FNAME" -o /dev/null || (( ERRORS++ ))
 	;;
 	*.yml)
+		if  git --no-pager grep --cached -HnF '*-*' "$FNAME" ; then
+		    echo "Not ready to commit"
+		    (( ERRORS++ ))
+		fi
 		if [ "$ALLOW_PYTABS" != "y" ] && grep -HnP -m 10 '^ *\t' "$FNAME" ; then
 			echo "You used tabs in $FNAME. Please expand them"
 			(( ERRORS++ ))
@@ -72,6 +76,12 @@ fparse() {
 	;;
 	*.png)
 		true
+	;;
+	*.c|*.cpp|*.c++|*.cc|*.h)
+		if  git --no-pager grep --cached -HnF '*-*' "$FNAME" ; then
+		    echo "Not ready to commit"
+		    (( ERRORS++ ))
+		fi
 	;;
 	*.zip)
 	    if ! unzip -t -q "$FNAME" ; then
