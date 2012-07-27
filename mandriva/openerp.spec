@@ -292,9 +292,9 @@ ln -sf $(pwd)/extra-addons %{_builddir}/openerp-extra-addons-$(./mandriva/moduli
 echo "Prepared extra addons"
 
 echo "Preparing koo addons.."
-./mandriva/modulize.py -n openerp-addons-koo %modulize_g -C %{release_class} -x addons/server_modules.list client-kde/server-modules/* > %{auto_specdir}/openerp-addons-koo.spec
+./mandriva/modulize.py -n openerp-addons-koo %modulize_g -C %{release_class} -x addons/server_modules.list addons-koo/* > %{auto_specdir}/openerp-addons-koo.spec
 rm -f %{_builddir}/openerp-addons-koo-$(./mandriva/modulize.py %modulize_g --onlyver)
-ln -sf $(pwd)/client-kde/server-modules %{_builddir}/openerp-addons-koo-$(./mandriva/modulize.py %modulize_g --onlyver)
+ln -sf $(pwd)/addons-koo %{_builddir}/openerp-addons-koo-$(./mandriva/modulize.py %modulize_g --onlyver)
 
 echo "Prepared koo addons."
 
