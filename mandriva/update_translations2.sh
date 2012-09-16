@@ -36,9 +36,15 @@ fi
 
 USE_LANG='*'
 FORCE=no
+DO_CREATE=
 
 if [ "$1" == "-f" ] ; then
 	FORCE=yes
+	shift 1
+fi
+
+if [ "$1" == "-C" ] ; then
+	DO_CREATE=y
 	shift 1
 fi
 
@@ -72,6 +78,9 @@ for ADDON_PATH in ${ADDONS_PATH[@]} ; do pushd "$ADDON_PATH"
 		
 		for POFILE in "$DIR/i18n/"$USE_LANG.po ; do
 			if [ ! -r "$POFILE" ] ; then
+				if [ "$USE_LANG" != '*' ] && [ "$DO_CREATE" == "y" ] ; then
+				    msginit -i "$DIR/i18n/$DIR.pot" -o "$DIR/i18n/"$USE_LANG.po -l "$USE_LANG" --no-translator
+				fi
 				continue
 			fi
 			
