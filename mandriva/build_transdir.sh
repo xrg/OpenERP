@@ -46,6 +46,7 @@ fi
 
 if [ "$1" == "-T" ] ; then
     DO_SKIP_TEMPLATES=y
+    shift 1
 fi
 
 declare -a ADDONS_PATH
