@@ -53,10 +53,18 @@ fparse() {
 		fi
 	;;
 	*.rml)
+                if head -n1 "$FNAME" | grep '^\{' > /dev/null ; then
+                    # skip jinja2/django templates
+                    true
+                elif [ "$SKIP_RML_LINT" == 'y' ] ; then
+                    true
+                else
+                    # only lint pure xml files
 		if ! xmllint --noout --nowarning "$FNAME" ; then
 			echo "XmlLint failed for: $FNAME"
 			(( ERRORS++ ))
 		fi
+                fi
 	;;
 	*.po)
 		msgfmt -c "$FNAME" -o /dev/null || (( ERRORS++ ))
