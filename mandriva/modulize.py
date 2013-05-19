@@ -224,7 +224,10 @@ Requires: openerp-server >= %s
 %%defattr(-,root,root)
 %%{python_sitelib}/openerp-server/addons/%s
 """ % (name, name)
-    return nii
+    if isinstance(nii, unicode):
+        return nii.encode('utf-8')
+    else:
+        return nii
 
 
 info_dirs = []
