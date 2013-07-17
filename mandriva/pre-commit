@@ -21,7 +21,7 @@ fparse() {
     while read FNAME ; do
 	case $(basename "$FNAME") in
 	*.py)
-		~/bin/pyflakes2.py "$FNAME" ; EXIT=$?
+		pyflakes "$FNAME" ; EXIT=$?
 		
 		if [ "$EXIT" == 1 ]; then
 			echo "Pyflakes failed for: $FNAME"
