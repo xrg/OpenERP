@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 #
-# Copyright P. Christeas <xrg@hellug.gr> 2008-2012
+# Copyright P. Christeas <xrg@hellug.gr> 2008-2013
 #
 #
 # WARNING: This program as such is intended to be used by professional
@@ -30,9 +30,12 @@ import imp
 import sys
 import os
 import errno
+import logging
 
 import subprocess
 import ConfigParser
+
+log = logging.getLogger('mod_utils')
 
 def get_module_info(name, rel=False):
     try:
@@ -46,10 +49,10 @@ def get_module_info(name, rel=False):
             info['version'] = rel.mainver + '.' + info['version']+rel.subver
         f.close()
     except IOError:
-        sys.stderr.write("Dir at %s may not be an OpenERP module.\n" % name)
+        log.warning("Dir at %s may not be an OpenERP module.", name)
         return {}
-    except:
-        sys.stderr.write(str( sys.exc_info()))
+    except Exception:
+        log.exception("Getting module info")
         return {}
     return info
 
@@ -166,7 +169,7 @@ def get_extern_depends(deps):
             ret.append(res.strip())
             continue
         except Exception, e:
-            sys.stderr.write("First attempt for dependency %s failed. Retrying.\n" %(tf))
+            log.info("First attempt for dependency %s failed. Retrying.", tf)
         
         try:
             res = check_output(['rpm', '-q', \

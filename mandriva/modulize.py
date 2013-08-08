@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 
 #
-# Copyright P. Christeas <xrg@linux.gr> 2008-2012
+# Copyright P. Christeas <xrg@linux.gr> 2008-2013
 #
 #
 # WARNING: This program as such is intended to be used by professional
@@ -27,13 +27,18 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 ###############################################################################
 #
-# Convert an OpenERP module to RPM package
+# Convert an OpenERP/F3 module to RPM package
 
 import sys
 import os
 #import glob
 import re
 import subprocess
+import jinja2
+from jinja2.utils import evalcontextfunction, contextfunction
+import platform
+import logging
+
 
 from optparse import OptionParser
 
@@ -42,8 +47,12 @@ from modulize_utils import get_depends, get_module_info, get_ext_depends, get_ex
 
 parser = OptionParser()
 parser.add_option("-q", "--quiet",
-                  action="store_false", dest="verbose", default=True,
-                  help="don't print status messages to stdout")
+                  action="store_true", dest="quiet", default=False,
+                  help="don't print status messages to stderr")
+
+parser.add_option("-d", "--debug",
+                  action="store_true", dest="verbose", default=False,
+                  help="verbose messages to stderr")
 
 parser.add_option("-r", "--onlyver",
                   action="store_true", dest="onlyver", default=False,
@@ -65,6 +74,7 @@ parser.add_option("-x", "--exclude-from",
                   dest="exclude",
                   help="Reads the file FROM_LIST and excludes those modules",
                   metavar = "FROM_LIST")
+parser.add_option("-T", "--target-platform", help="Target platform or linux distro")
 
 
 parser.add_option("-n", "--name",
@@ -75,6 +85,16 @@ parser.add_option("--skip-unnamed", dest="skip_unnamed", action="store_true", de
                   help="Relax checks and tolerate name errors, skipping addons")
 
 (options, args) = parser.parse_args()
+
+level = logging.INFO
+if options.quiet:
+    level = logging.WARNING
+elif options.verbose:
+    level = logging.DEBUG
+
+logging.basicConfig(level=level)
+del level
+log = logging.getLogger('modulize')
 
 class release:
     version = '4.3.x'
@@ -101,9 +121,9 @@ class release:
                     elif key == 'Extra':
                         self.extraver = val
                 f.close()
-                sys.stderr.write("Got version from file: v: %s (%s) , r: %s \n" %(self.version,self.subver,self.release))
-            except:
-                sys.stderr.write("Get release exception: %s \n " % str(sys.exc_info()))
+                log.info("Got version from file: v: %s (%s) , r: %s", self.version,self.subver,self.release)
+            except Exception:
+                log.exception("Get release exception: ")
         else:
             try:
                 p = subprocess.Popen(["git", "describe", "--tags"], bufsize=4096, \
@@ -129,9 +149,9 @@ class release:
                         self.extraver = ma.group(2)
 
                 self.subver ="-".join(resc[1:])
-                sys.stderr.write("Got version from git: v: %s (%s) , r: %s \n" %(self.version,self.subver,self.release))
-            except:
-                sys.stderr.write("Get release exception: %s \n " % str(sys.exc_info()))
+                log.info("Got version from git: v: %s (%s) , r: %s", self.version,self.subver,self.release)
+            except Exception:
+                log.exception("Get release exception:")
 
         self.mainver = '.'.join(self.version.split('.')[:2])
         self.extrarel = ''
@@ -140,95 +160,6 @@ class release:
         self.extrarel += self.release
 
 rel = release(options.gitver)
-
-release_class = options.rclass or 'pub'
-oname = options.name or 'openerp-addons'
-
-knight = """
-%%{?!pyver: %%define pyver %%(python -c 'import sys;print(sys.version[0:3])')}
-%%{!?python_sitelib: %%define python_sitelib %%(%%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
-
-%%define release_class %s
-
-Name:   %s
-Version:        %s
-Release:        %%mkrel %s
-License:        AGPLv3
-Group:          Databases
-Summary:        Addons for OpenERP
-#Source0:       %%{name}-%%{version}.tar.gz
-URL:            http://www.openerp.com
-BuildRoot:      %%{_tmppath}/%%{name}-%%{version}-%%{release}
-BuildArch:      noarch
-
-%%description
-Addon modules for OpenERP
-
-%%prep
-cd %%{name}-%%{version}
-# setup -q
-
-%%build
-cd %%{name}-%%{version}
-
-""" % ( release_class,oname, rel.mainver+rel.subver,rel.extrarel)
-
-inst_str = """
-%install
-cd %{name}-%{version}
-rm -rf $RPM_BUILD_ROOT
-
-install -d $RPM_BUILD_ROOT/%{python_sitelib}/openerp-server/addons
-cp -ar ./* $RPM_BUILD_ROOT/%{python_sitelib}/openerp-server/addons/
-"""
-
-def fmt_spec(name, info, allnames, ext_deps=False):
-    """ Format the info object fields into a SPEC submodule section
-        allnames is a list with all supplied names
-    """
-    if ('name' not in info) : return ""
-    if options.skip_unnamed and not info['name']:
-        return ""
-    if ('installable' in info) and not info['installable']:
-        return ""
-    nii = "\n"
-    nii += '%%package %s\n' % name;
-    if 'version' in info:
-        nii+= "Version: %s\n" % info['version']
-    if not info['name']:
-        raise Exception("Addon %s should specify a name for summary!" % name)
-    nii += """Group: Databases
-Summary: %s
-Requires: openerp-server >= %s
-""" % (info['name'], rel.version.rsplit('.', 1)[0])
-    if 'depends' in info:
-        nii += get_depends(info['depends'], allnames, oname=oname)
-    if ext_deps:
-        nii += ext_deps
-    if 'author' in info:
-        nii+= "Vendor: %s\n" % info['author']
-    if 'website' in info  and info['website'] != '' :
-        # we can only have one of the urls provided.
-        ws = info['website']
-        if ',' in ws:
-            ws = ws.split(', ')[0].strip()
-        if '- ' in ws:
-            ws = ws.split('- ')[0].strip()
-        nii+= "URL: %s\n" % ws
-    if 'description' in info:
-        nii += "\n%%description %s\n%s\n" % (name, info['description'])
-    else:
-        nii += "\n%%description %s\n%s\n" % (name, info['name'])
-    nii +="""
-%%files %s
-%%defattr(-,root,root)
-%%{python_sitelib}/openerp-server/addons/%s
-""" % (name, name)
-    if isinstance(nii, unicode):
-        return nii.encode('utf-8')
-    else:
-        return nii
-
 
 info_dirs = []
 no_dirs = []
@@ -241,57 +172,153 @@ if ( options.onlyrel):
     print rel.extrarel
     exit(0)
 
-exclude_modules = []
-if options.exclude and len(options.exclude):
-    f = open(options.exclude,'r')
-    mods = f.readlines()
-    for mname in mods:
-        mname = mname.strip()
-        if not mname:
-            continue
-        exclude_modules.append(mname)
-    f.close()
+class SysInfo(object):
+    def __init__(self, options):
+        self.__options = options
+        
+    def _init_platform(self):
+        if platform.system() == 'Linux':
+            if not self.__options.target_platform:
+                self.target_platform = platform.linux_distribution()[0].lower()
+                # It's your responsibility to adapt to each version!
+            else:
+                self.target_platform = self.__options.target_platform
+        else:
+            raise RuntimeError("Unsupported system: %s" %  platform.system())
 
-for tdir in args:
-    bdir = os.path.basename(tdir)
-    if bdir in exclude_modules:
-        no_dirs.append(bdir)
-        continue
-    info = get_module_info(tdir, rel=rel)
-    if (not info ) or (not info.get('installable',True)) :
-        no_dirs.append(bdir)
-    else :
-        ext_deps = ''
-        try:
-            if 'ext_depends' in info:
-                #if True:
-                #    raise ValueError("Deprecated ext_depends keyword found")
-                ext_deps += get_ext_depends(info['ext_depends'])
-                
-            if 'external_dependencies' in info:
-                ext_deps += get_extern_depends(info['external_dependencies'])
-        except ValueError, e:
-            sys.stderr.write("Cannot use %s module: %s\n" % (tdir, e))
-            no_dirs.append(bdir)
-            continue
+        log.debug("Target platform: %s", self.target_platform)
 
-        info_dirs.append({'dir': bdir, 'info': info, 'ext_deps': ext_deps})
+    def init_all(self):
+        self._init_platform()
 
-print knight
-print inst_str
+class InfoDir(object):
+    def __init__(self, info, parent):
+        self.__info = info
+        self.__parent = parent
 
-if no_dirs != [] :
-    print 'pushd $RPM_BUILD_ROOT/%{python_sitelib}/openerp-server/addons/'
-    for tdir in no_dirs:
-        print "\trm -rf %s" % tdir
-    print "popd\n"
+    @property
+    def name(self):
+        return self.__info['dir']
 
-allnames = set(map(lambda i: i['dir'], info_dirs))
+    @property
+    def info(self):
+        return self.__info['info']
 
-for tinf in info_dirs:
-    print fmt_spec(tinf['dir'],tinf['info'], allnames, ext_deps=tinf['ext_deps'])
+    @property
+    def installable(self):
+        return self.__info['info'].get('installable', True)
 
-sys.stderr.write("Modules created: %d\n"% len(info_dirs))
+    @contextfunction
+    def get_depends(self, context):
+        return get_depends(self.__info['info']['depends'], self.__parent.allnames,
+                    oname=context['name'])
+
+    @property
+    def ext_deps(self):
+        return self.__info['ext_deps']
+
+    def get_website(self):
+        ws = self.__info['info']['website']
+        if ',' in ws:
+            ws = ws.split(', ')[0].strip()
+        if '- ' in ws:
+            ws = ws.split('- ')[0].strip()
+        return ws
+
+class InfoDirList(object):
+    def __init__(self, options, args, rel):
+        self._info_dirs = []
+        self.no_dirs = []
+        self.exclude_modules = []
+        self.allnames = set()
+        self._rel = rel
+        self.scan(options, args)
+        
+    def scan(self, options, args):
+        if options.exclude and len(options.exclude):
+            log.debug("Scanning excludes from: %s", options.exclude)
+            f = open(options.exclude,'r')
+            mods = f.readlines()
+            for mname in mods:
+                mname = mname.strip()
+                if not mname:
+                    continue
+                self.exclude_modules.append(mname)
+            f.close()
+            log.debug("Excludes loaded: %d", len(self.exclude_modules))
+
+        for tdir in args:
+            bdir = os.path.basename(tdir)
+            if bdir in self.exclude_modules:
+                self.no_dirs.append(bdir)
+                continue
+            if not os.path.isdir(tdir):
+                log.debug("Path \"%s\" is not a dir", tdir)
+                self.no_dirs.append(bdir)
+                continue
+
+            log.debug("Scanning module: %s", tdir)
+            info = get_module_info(tdir, self._rel)
+            if not (info and info.get('installable',True)):
+                self.no_dirs.append(bdir)
+            elif not (options.skip_unnamed or info.get('name', False)):
+                # bail out when an unnamed module exists
+                raise Exception("Addon %s should specify a name for summary!" % tdir)
+            else:
+                ext_deps = ''
+                # TODO more like a list, cross-distro
+                try:
+                    if 'ext_depends' in info:
+                        #if True:
+                        #    raise ValueError("Deprecated ext_depends keyword found")
+                        ext_deps += get_ext_depends(info['ext_depends'])
+                        
+                    if 'external_dependencies' in info:
+                        ext_deps += get_extern_depends(info['external_dependencies'])
+                except ValueError, e:
+                    sys.stderr.write("Cannot use %s module: %s\n" % (tdir, e))
+                    self.no_dirs.append(bdir)
+                    continue
+
+                for field in ('name', 'description', 'author'):
+                    if isinstance(info.get(field, False), str):
+                        info[field] = info[field].decode('utf-8')
+
+                self._info_dirs.append({'dir': bdir.decode('utf-8'), 'info': info, 'ext_deps': ext_deps})
+
+        # compute all the names
+        self.allnames = set(map(lambda i: i['dir'], self._info_dirs))
+
+
+    def __iter__(self):
+        for info in self._info_dirs:
+            if not info['info'].get('name', False):
+                continue
+            yield InfoDir(info, self)
+
+    def __len__(self):
+        return len(self._info_dirs)
+
+try:
+    our_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
+    floader = jinja2.FileSystemLoader(os.path.join(our_dir, 'templates'))
+    env = jinja2.Environment(loader=floader, trim_blocks=True,
+                extensions=['jinja2.ext.do', 'jinja2.ext.loopcontrols', 'jinja2.ext.with_'])
+    sys_info = SysInfo(options)
+    sys_info.init_all()
+    mod_dirs = InfoDirList(options, args, rel)
+    tmpl = env.get_template(sys_info.target_platform + '.tmpl.spec')
+    res = tmpl.render(system=sys_info, args=args, rel=rel, modules=mod_dirs,
+                release_class=options.rclass or 'pub',
+                name=options.name or 'openerp-addons' )
+    print res.encode('utf-8')
+
+    log.info("Modules created: %d", len(mod_dirs))
+except Exception:
+    log.exception("Fail:")
+    exit(-1)
+
+
 #sys.stderr.write("Don't forget to create the archive, with:\n" \
         #"git archive --format=tar --prefix=openerp-addons-%s/ HEAD | gzip -c > openerp-addons-%s.tar.gz\n" \
         #% (rel.version.rsplit('.', 1)[0],rel.version.rsplit('.', 1)[0]));
