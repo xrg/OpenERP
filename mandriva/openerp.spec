@@ -40,8 +40,9 @@
 
 %define build_mdvmga    0
 
-%{?!_iconsdir %global _iconsdir %{_datadir}/icons }
-%{?!_kde_iconsdir %global _kde_iconsdir %_kde_prefix/share/icons}
+%{?!_iconsdir: %global _iconsdir %{_datadir}/icons }
+%{?!_initrddir: %global _initrddir %{_sysconfdir}/init.d }
+%{?!_kde_iconsdir: %global _kde_iconsdir %_kde_prefix/share/icons}
 %endif
 %endif
 
@@ -194,7 +195,7 @@ Requires:       python-pychart, python-yaml, python-mako
 Requires(pre):  rpm-helper
 Requires(postun): rpm-helper
 %else
-Requires:       python-dateutil
+Requires:       python-dateutil, pytz
 Requires:       ghostscript
 Requires:       PyXML, PyYAML, python-mako
 Requires:       pychart
