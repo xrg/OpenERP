@@ -85,7 +85,7 @@ fparse() {
 	*.png)
 		true
 	;;
-	*.c|*.cpp|*.c++|*.cc|*.h)
+	*.c|*.cpp|*.c++|*.cc|*.h|*.js|*.html)
 		if  git --no-pager grep --cached -HnF '*-*' "$FNAME" ; then
 		    echo "Not ready to commit"
 		    (( ERRORS++ ))
