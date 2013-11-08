@@ -84,7 +84,7 @@ Source:         %git_bs_source %{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}
 BuildArch:      noarch
 BuildRequires:  python, python-setuptools
-BuildRequires:  python-jinja2
+BuildRequires:  python-jinja2 >= 2.4
 BuildRequires:  desktop-file-utils
 %if %{build_mdvmga}
 BuildRequires:   pygtk2.0-devel, pygtk2.0-libglade, python-libxslt
