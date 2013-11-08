@@ -3,6 +3,9 @@
 
 %define release_class {{ release_class }}
 
+%define __find_provides   %{u2p:%{_builddir}}/openerp-{{rel.version }}/mandriva/find-provides.sh
+%define __find_requires   %{u2p:%{_builddir}}/openerp-{{rel.version }}/mandriva/find-requires.sh
+
 Name:   {{name}}
 Version:        {{rel.mainver+rel.subver }}
 Release:        %mkrel {{ rel.extrarel }}
