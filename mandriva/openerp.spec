@@ -219,8 +219,10 @@ Group:          Applications/Databases
 Summary:        Full server Metapackage, install and run
 Requires:       %{name}-server
 Requires:       postgresql-server >= 8.2
+%if %{build_mdvmga}
 Requires:       postgresql-plpgsql
 Requires:       run-parts
+%endif
 
 
 %description serverinit
