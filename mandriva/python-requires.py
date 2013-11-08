@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 
 #
-# Copyright P. Christeas <xrg@hellug.gr> 2008-2012
+# Copyright P. Christeas <xrg@hellug.gr> 2008-2013
 #
 #
 # WARNING: This program as such is intended to be used by professional
@@ -31,6 +31,7 @@
    are OpenERP modules, it will list their provides
 '''
 
+import logging
 import sys
 import os
 
@@ -45,7 +46,12 @@ parser.add_option("-q", "--quiet",
                   help="don't print status messages to stdout")
 (options, args) = parser.parse_args()
 
+level = logging.WARNING
+if options.verbose:
+    level = logging.INFO
 
+logging.basicConfig(level=level)
+del level
 
 def get_odepends(deps):
         ret = []

@@ -35,7 +35,7 @@ import os
 import re
 import subprocess
 import jinja2
-from jinja2.utils import evalcontextfunction, contextfunction
+from jinja2.utils import contextfunction
 import platform
 import logging
 
