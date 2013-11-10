@@ -68,7 +68,8 @@ ext_reqs = []
 for tfile in args:
         if os.path.basename(tfile) not in ('__terp__.py', '__openerp__.py'):
             continue
-        info = get_module_info(tfile)
+        tdir = os.path.dirname(tfile)
+        info = get_module_info(tdir)
         if (info == {}):
                 #no_dirs.append(bdir)
                 pass
@@ -77,9 +78,9 @@ for tfile in args:
                 if 'depends' in info:
                         openerp_reqs.extend(get_odepends(info['depends']))
                 if 'ext_depends' in info:
-                        ext_reqs.extend(get_ext_depends(info['ext_depends']))
+                        ext_reqs.append(get_ext_depends(info['ext_depends']))
                 if 'external_dependencies' in info:
-                        ext_reqs += get_extern_depends(info['external_dependencies'])
+                        ext_reqs.append(get_extern_depends(info['external_dependencies']))
 
 # Check if this package provides all the modules it would depend upon:
 
@@ -87,7 +88,7 @@ req_fail = []
 for dep in openerp_reqs:
         if dep not in openerp_provides:
                 req_fail.append(dep)
-                
+
 if len(req_fail):
         sys.stderr.write("Included modules do not contain these required ones:\n%s\n" % 
                 ', '.join(req_fail))
