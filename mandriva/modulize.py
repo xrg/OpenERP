@@ -76,6 +76,9 @@ parser.add_option("-x", "--exclude-from",
                   metavar = "FROM_LIST")
 parser.add_option("-T", "--target-platform", help="Target platform or linux distro")
 
+parser.add_option("-A", "--autonomous", action="store_true", default=False,
+                  help="Autonomous mode, generate git-source lines")
+parser.add_option("-V", "--server-version", help="Override required server version, useful for autonomous mode")
 
 parser.add_option("-n", "--name",
                   dest="name",
@@ -248,6 +251,8 @@ class InfoDirList(object):
             log.debug("Excludes loaded: %d", len(self.exclude_modules))
 
         for tdir in args:
+            if tdir.endswith(os.sep):
+                tdir = tdir[:-1]
             bdir = os.path.basename(tdir)
             if bdir in self.exclude_modules:
                 self.no_dirs.append(bdir)
@@ -306,10 +311,13 @@ try:
                 extensions=['jinja2.ext.do', 'jinja2.ext.loopcontrols', 'jinja2.ext.with_'])
     sys_info = SysInfo(options)
     sys_info.init_all()
+    if options.server_version is not None:
+        rel.mainver = options.server_version
     mod_dirs = InfoDirList(options, args, rel)
     tmpl = env.get_template(sys_info.target_platform + '.tmpl.spec')
     res = tmpl.render(system=sys_info, args=args, rel=rel, modules=mod_dirs,
                 release_class=options.rclass or 'pub',
+                autonomous=options.autonomous,
                 name=options.name or 'openerp-addons' )
     print res.encode('utf-8')
 

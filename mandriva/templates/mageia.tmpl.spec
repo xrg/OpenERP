@@ -1,3 +1,11 @@
+{% if autonomous %}
+%define git_repo {{ name }}
+%define git_head HEAD
+%define cd_if_modular
+{% else %}
+%define cd_if_modular cd %{name}-%{version}
+{% endif %}
+
 %{?!pyver: %define pyver %(python -c 'import sys;print(sys.version[0:3])')}
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
@@ -7,13 +15,21 @@
 %define __find_requires   %{u2p:%{_builddir}}/openerp-{{rel.version }}/mandriva/find-requires.sh
 
 Name:   {{name}}
-Version:        {{rel.mainver+rel.subver }}
-Release:        %mkrel {{ rel.extrarel }}
 License:        AGPLv3
 Group:          Databases
 Summary:        Addons for OpenERP/F3
+{% if autonomous %}
+Version:        %git_get_ver
+Release:        %mkrel %git_get_rel2
+Source0:        %git_bs_source %{name}-%{version}.tar.gz
+Source1:        %{name}-gitrpm.version
+Source2:        %{name}-changelog.gitrpm.txt
+{% else %}
+Version:        {{rel.mainver+rel.subver }}
+Release:        %mkrel {{ rel.extrarel }}
 #Source0:       %{name}-%{version}.tar.gz
-URL:            http://openerp.hellug.gr
+{% endif %}
+URL:            {{ project_url or 'http://openerp.hellug.gr' }}
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}
 BuildArch:      noarch
 
@@ -21,14 +37,18 @@ BuildArch:      noarch
 Addon modules for OpenERP
 
 %prep
+{% if autonomous %}
+%git_get_source
+%setup -q
+{% else %}
 cd %{name}-%{version}
-# setup -q
+{% endif %}
 
 %build
-cd %{name}-%{version}
+%{cd_if_modular}
 
 %install
-cd %{name}-%{version}
+%{cd_if_modular}
 rm -rf $RPM_BUILD_ROOT
 
 install -d $RPM_BUILD_ROOT/%{python_sitelib}/openerp-server/addons
@@ -52,7 +72,8 @@ Version: {{ module.info.version }}
 {% endif %}
 Group: Databases
 Summary: {{ module.info.name }}
-Requires: openerp-server >= {{ rel.mainver }}
+Requires: openerp-server {% if rel.mainver %}>= {{ rel.mainver }}{% endif %}
+
 {% if module.info.depends %}
 {{ module.get_depends() }}
 {% endif -%}
@@ -75,5 +96,9 @@ URL: {{ module.get_website() }}
 %{python_sitelib}/openerp-server/addons/{{ module.name }}
 
 {% endfor %}
+
+{% if autonomous %}
+%changelog -f %{_sourcedir}/%{name}-changelog.gitrpm.txt
+{% endif %}
 
 #eof

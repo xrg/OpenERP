@@ -45,8 +45,9 @@ def get_module_info(name, rel=False):
         f = open(mpath, "r")
         data = f.read()
         info = eval(data)
-        if 'version' in info and rel:
+        if 'version' in info and rel and rel.mainver:
             info['version'] = rel.mainver + '.' + info['version']+rel.subver
+        # else we leave info['version'] as is
         f.close()
     except IOError:
         log.warning("Dir at %s may not be an OpenERP module.", name)
