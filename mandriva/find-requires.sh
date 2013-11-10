@@ -22,9 +22,9 @@ fi
 
 cat $TMP_STDIN | $RPM_FIND_REQUIRES || EXIT=$?
 
-NAMES=$(cat $TMP_STDIN | grep '__\(open\|t\)erp__\.py$')
-
-$(dirname $0)/python-requires.py $NAMES || EXIT=$?
+# Not needed, since our .spec file will have them pre-calculated
+#NAMES=$(cat $TMP_STDIN | grep '__\(open\|t\)erp__\.py$')
+# $(dirname $0)/python-requires.py $NAMES || EXIT=$?
 
 rm -f $TMP_STDIN
 exit $EXIT
