@@ -857,3 +857,93 @@ file_filter = addons/wiki_sale_faq/i18n/<lang>.po
 source_file = addons/wiki_sale_faq/i18n/wiki_sale_faq.pot
 source_lang = C
 
+[openerp-f3.awebui]
+file_filter = addons/awebui/i18n/<lang>.po
+source_file = addons/awebui/i18n/awebui.pot
+source_lang = C
+
+[openerp-f3.base_commands]
+file_filter = addons/base_commands/i18n/<lang>.po
+source_file = addons/base_commands/i18n/base_commands.pot
+source_lang = C
+
+[openerp-f3.base_crypt2]
+file_filter = addons/base_crypt2/i18n/<lang>.po
+source_file = addons/base_crypt2/i18n/base_crypt2.pot
+source_lang = C
+
+[openerp-f3.event_contact]
+file_filter = addons/event_contact/i18n/<lang>.po
+source_file = addons/event_contact/i18n/event_contact.pot
+source_lang = C
+
+[openerp-f3.event_seating]
+file_filter = addons/event_seating/i18n/<lang>.po
+source_file = addons/event_seating/i18n/event_seating.pot
+source_lang = C
+
+[openerp-f3.http_dyn_server]
+file_filter = addons/http_dyn_server/i18n/<lang>.po
+source_file = addons/http_dyn_server/i18n/http_dyn_server.pot
+source_lang = C
+
+[openerp-f3.http_dyn_upload]
+file_filter = addons/http_dyn_upload/i18n/<lang>.po
+source_file = addons/http_dyn_upload/i18n/http_dyn_upload.pot
+source_lang = C
+
+[openerp-f3.http_login_throttle]
+file_filter = addons/http_login_throttle/i18n/<lang>.po
+source_file = addons/http_login_throttle/i18n/http_login_throttle.pot
+source_lang = C
+
+[openerp-f3.http_wiki_server]
+file_filter = addons/http_wiki_server/i18n/<lang>.po
+source_file = addons/http_wiki_server/i18n/http_wiki_server.pot
+source_lang = C
+
+[openerp-f3.l10n_at]
+file_filter = addons/l10n_at/i18n/<lang>.po
+source_file = addons/l10n_at/i18n/l10n_at.pot
+source_lang = C
+
+[openerp-f3.messaging_o2o]
+file_filter = addons/messaging_o2o/i18n/<lang>.po
+source_file = addons/messaging_o2o/i18n/messaging_o2o.pot
+source_lang = C
+
+[openerp-f3.mini_cms]
+file_filter = addons/mini_cms/i18n/<lang>.po
+source_file = addons/mini_cms/i18n/mini_cms.pot
+source_lang = C
+
+[openerp-f3.remote_logs]
+file_filter = addons/remote_logs/i18n/<lang>.po
+source_file = addons/remote_logs/i18n/remote_logs.pot
+source_lang = C
+
+[openerp-f3.rpc_json]
+file_filter = addons/rpc_json/i18n/<lang>.po
+source_file = addons/rpc_json/i18n/rpc_json.pot
+source_lang = C
+
+[openerp-f3.survey_http]
+file_filter = addons/survey_http/i18n/<lang>.po
+source_file = addons/survey_http/i18n/survey_http.pot
+source_lang = C
+
+[openerp-f3.web_devel]
+file_filter = addons/web_devel/i18n/<lang>.po
+source_file = addons/web_devel/i18n/web_devel.pot
+source_lang = C
+
+[openerp-f3.webui_min]
+file_filter = addons/webui_min/i18n/<lang>.po
+source_file = addons/webui_min/i18n/webui_min.pot
+source_lang = C
+
+[openerp-f3.webui_res]
+file_filter = addons/webui_res/i18n/<lang>.po
+source_file = addons/webui_res/i18n/webui_res.pot
+source_lang = C
+
