@@ -85,6 +85,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}
 BuildArch:      noarch
 BuildRequires:  python, python-setuptools
 BuildRequires:  python-jinja2 >= 2.4
+BuildRequires:  f3sdk
 BuildRequires:  desktop-file-utils
 %if %{build_mdvmga}
 BuildRequires:   pygtk2.0-devel, pygtk2.0-libglade, python-libxslt
@@ -284,21 +285,21 @@ with some data.
 %endif
 
 echo "Preparing for addons build.."
-./mandriva/modulize.py -C %{release_class} %modulize_g -x addons/server_modules.list addons/* > %{auto_specdir}/openerp-addons.spec
-rm -f %{_builddir}/openerp-addons-$(./mandriva/modulize.py %modulize_g --onlyver)
-ln -sf $(pwd)/addons %{_builddir}/openerp-addons-$(./mandriva/modulize.py %modulize_g --onlyver)
+f3-modulize -C %{release_class} %modulize_g -x addons/server_modules.list addons/* > %{auto_specdir}/openerp-addons.spec
+rm -f %{_builddir}/openerp-addons-$(f3-modulize %modulize_g --onlyver)
+ln -sf $(pwd)/addons %{_builddir}/openerp-addons-$(f3-modulize %modulize_g --onlyver)
 echo "Prepared addons"
 
 echo "Preparing for extra addons build.."
-./mandriva/modulize.py -C %{release_class} -n openerp-extra-addons %modulize_g -x addons/server_modules.list extra-addons/* > %{auto_specdir}/openerp-extra-addons.spec
-rm -f %{_builddir}/openerp-extra-addons-$(./mandriva/modulize.py %modulize_g --onlyver)
-ln -sf $(pwd)/extra-addons %{_builddir}/openerp-extra-addons-$(./mandriva/modulize.py %modulize_g --onlyver)
+f3-modulize -C %{release_class} -n openerp-extra-addons %modulize_g -x addons/server_modules.list extra-addons/* > %{auto_specdir}/openerp-extra-addons.spec
+rm -f %{_builddir}/openerp-extra-addons-$(f3-modulize %modulize_g --onlyver)
+ln -sf $(pwd)/extra-addons %{_builddir}/openerp-extra-addons-$(f3-modulize %modulize_g --onlyver)
 echo "Prepared extra addons"
 
 echo "Preparing koo addons.."
-./mandriva/modulize.py -n openerp-addons-koo %modulize_g -C %{release_class} -x addons/server_modules.list addons-koo/* > %{auto_specdir}/openerp-addons-koo.spec
-rm -f %{_builddir}/openerp-addons-koo-$(./mandriva/modulize.py %modulize_g --onlyver)
-ln -sf $(pwd)/addons-koo %{_builddir}/openerp-addons-koo-$(./mandriva/modulize.py %modulize_g --onlyver)
+f3-modulize -n openerp-addons-koo %modulize_g -C %{release_class} -x addons/server_modules.list addons-koo/* > %{auto_specdir}/openerp-addons-koo.spec
+rm -f %{_builddir}/openerp-addons-koo-$(f3-modulize %modulize_g --onlyver)
+ln -sf $(pwd)/addons-koo %{_builddir}/openerp-addons-koo-$(f3-modulize %modulize_g --onlyver)
 
 echo "Prepared koo addons."
 
