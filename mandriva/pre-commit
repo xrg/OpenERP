@@ -20,6 +20,9 @@ fparse() {
     let -i WARNINGS=0
     while read FNAME ; do
 	case $(basename "$FNAME") in
+    *.part.py)
+        true
+        ;;
 	*.py)
 		pyflakes "$FNAME" ; EXIT=$?
 		
