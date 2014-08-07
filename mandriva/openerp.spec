@@ -140,14 +140,22 @@ Client components for Open ERP.
 %package client-kde
 Group:          Databases
 Summary:        KDE Client for the ERP
-Requires:       python-dot, python-pytz, python-kde4
+Requires:       python-kde4
 Obsoletes:      ktiny <= 4.0
 BuildRequires:  python-qt4
 BuildRequires:  qt4-devel, kde4-macros
-BuildRequires:  python-lxml, python-qt4-devel
+BuildRequires:  python-qt4-devel
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 Requires:       locales-kde
+%if %{build_mdvmga}
+Requires:       python-dot, python-pytz
+BuildRequires:  python-lxml
+%endif
+%if %{_target_vendor} == redhat
+Requires:       python-dateutil, pyOpenSSL, pydot, pytz,lxml
+BuildRequires:  lxml
+%endif
 
 %description client-kde
 KDE client (aka. koo) components for Open ERP.
