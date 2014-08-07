@@ -89,7 +89,12 @@ BuildRequires:  f3sdk
 BuildRequires:  desktop-file-utils
 %if %{build_mdvmga}
 BuildRequires:   pygtk2.0-devel, pygtk2.0-libglade, python-libxslt
-BuildRequires:  python-psycopg2, python-dot, python-pychart
+BuildRequires:  python-psycopg2, python-pychart
+%if %{mgaver} >= 4
+BuildRequires: python-pydot
+%else
+BuildRequires: python-dot
+%endif
 %else 
 %if %{_target_vendor} == redhat
 BuildRequires:  pygtk2-devel, libxslt-python
