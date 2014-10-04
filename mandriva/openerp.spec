@@ -116,7 +116,12 @@ Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 %if %{build_mdvmga}
 Requires:       python-matplotlib
-Requires:       python-dot, python-lxml
+%if %{mgaver} >= 4
+Requires:       python-pydot
+%else
+Requires:       python-dot
+%endif
+Requires: python-lxml
 Requires:       pygtk2.0, pygtk2.0-libglade, python-egenix-mx-base
 Requires:       python-dateutil
 %if %mdkver > 200900
@@ -149,7 +154,11 @@ Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 Requires:       locales-kde
 %if %{build_mdvmga}
+%if %{mgaver} >= 4
+Requires:       python-pydot
+%else
 Requires:       python-dot, python-pytz
+%endif
 BuildRequires:  python-lxml
 %endif
 %if %{_target_vendor} == redhat
