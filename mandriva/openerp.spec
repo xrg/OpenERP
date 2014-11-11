@@ -114,6 +114,7 @@ Group:          Databases
 Summary:        GTK Client for the ERP
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
+Conflicts:      openerp-client >= 7.0
 %if %{build_mdvmga}
 Requires:       python-matplotlib
 %if %{mgaver} >= 4
@@ -226,6 +227,9 @@ Requires(post): chkconfig
 Requires(preun): chkconfig
 Requires(preun): initscripts
 %endif
+Conflicts:      openerp-server >= 7.0
+Conflicts:      odoo-server
+
 
 %description server
 Server components for Open ERP.
@@ -233,8 +237,6 @@ Server components for Open ERP.
 IMPORTANT: Please read the INSTALL file in /usr/share/doc/openerp-server for
 the first time run.
 
-Note: at Mandriva 2008.1, python-pychart is needed from backports,
-instead of the "pychart" package.
 
 %package serverinit
 Group:          Applications/Databases
@@ -453,11 +455,17 @@ pushd %{buildroot}%{_defaultdocdir}
 popd
 
 install -m 644 -D server/doc/openerp-server.conf %{buildroot}%{_sysconfdir}/openerp-server.conf
+
+%if %{mgaver} >= 3
+# with systemd
+mkdir -p %{buildroot}%{_unitdir}
+install -m 644 mandriva/openerp-server.service %{buildroot}%{_unitdir}/openerp-server.service
+%else
 install -m 755 -D server/doc/openerp-server.init %{buildroot}%{_initrddir}/openerp-server
 install -m 644 -D server/doc/openerp-server.logrotate %{buildroot}%{_sysconfdir}/logrotate.d/openerp-server
-
 install -d %{buildroot}%{_sysconfdir}/openerp/start.d
 install -d %{buildroot}%{_sysconfdir}/openerp/stop.d
+%endif
 
 install -m 640 -D server/ssl-cert.cfg %{buildroot}%{_sysconfdir}/openerp/cert.cfg
 
@@ -497,6 +505,7 @@ install -d %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}-demo/
 install -m 744 mandriva/prep_database.sh %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}-demo/
 # install -m 644 mandriva/demodb.sql %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}-demo/
 
+%if %{mgaver} < 3
 pushd %{buildroot}%{_sysconfdir}/openerp/start.d
 cat >30start-demo <<EOF
 #!/bin/bash
@@ -513,6 +522,7 @@ EOF
 rm ./10server-check || :
 ln -sf ../server-check.sh ./10server-check
 popd
+%endif
 
 %files
 %defattr(-,root,root)
@@ -567,8 +577,11 @@ popd
         %dir            %{_defaultdocdir}/%{name}-server-%{version}-demo/
 #                       %{_defaultdocdir}/%{name}-server-%{version}-demo/demodb.sql
                         %{_defaultdocdir}/%{name}-server-%{version}-demo/prep_database.sh
+
+%if %{mgaver} < 3
 %attr(0755,root,root)   %{_sysconfdir}/openerp/start.d/30start-demo
 # todo: a few readme files, perhaps..
+%endif
 
 %post client
 %{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null
@@ -585,12 +598,16 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %attr(0755,openerp,openerp) %dir /var/run/openerp
 %attr(0750,openerp,openerp) %dir %{_sysconfdir}/openerp
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp/cert.cfg
-%{_initrddir}/openerp-server
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp-server.conf
+%if %{mgaver} >= 3
+%{_unitdir}/openerp-server.service
+%else
+%{_initrddir}/openerp-server
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/logrotate.d/openerp-server
         %dir            %{_sysconfdir}/openerp/start.d/
         %dir            %{_sysconfdir}/openerp/stop.d/
 %attr(0755,root,root)   %{_sysconfdir}/openerp/start.d/10server-check
+%endif
 %attr(0755,root,root)   %{scriptsdir}/server-check.sh
 %{_bindir}/openerp-server
 %{python_sitelib}/openerp-server/

@@ -1,0 +1,16 @@
+[Unit]
+Description=OpenERP/F3 server
+After=syslog.target
+Wants=postgresql.service
+
+[Service]
+Type=notify
+User=openerp
+OOMScoreAdjust=200
+RestartSec=10
+TimeoutStartSec=5min
+ExecStartPre=/etc/openerp/server-check.sh
+ExecStart=/usr/bin/openerp-server -c /etc/openerp-server.conf
+
+[Install]
+WantedBy=multi-user.target
