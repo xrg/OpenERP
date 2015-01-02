@@ -11,15 +11,15 @@
 %{?genspec_inline: %global auto_specdir %{_builddir}/%{name}-%{git_get_ver}/mandriva }
 %{?!auto_specdir: %global auto_specdir %{_specdir} }
 
+%define build_web       0
+
 %if %{_target_vendor} == mandriva
 %global NoDisplay       DISPLAY=
 
 %if %mdkver > 200900
 %define build_kde       1
-%define build_web       1
 %else
 %define build_kde       0
-%define build_web       0
 %endif
 %global build_mdvmga    1
 %else
@@ -28,7 +28,6 @@
 %define NoDisplay       DISPLAY=
 
 %define build_kde       1
-%define build_web       1
 %define build_mdvmga    1
 
 %if %{mgaver} >= 3
@@ -42,7 +41,6 @@
 
 %define NoDisplay       NODISPLAY=n
 %define build_kde       0
-%define build_web       0
 %define with_systemd    0
 
 %define build_mdvmga    0
@@ -261,6 +259,7 @@ Requires:       run-parts
 With this, all necessary packages and modules for a complete OpenERP server
 are installed. This also triggers the installation of a PostgreSQL server.
 
+%if 0
 %package alldemo
 Group:          Applications/Databases
 Summary:        Demo Metapackage, preloads an example database
@@ -303,6 +302,8 @@ Requires: openerp-addons-stock_location
 With this demo, all necessary packages and modules for a complete OpenERP
 server and client are installed. The server also has a default database
 with some data.
+
+%endif
 
 %global modulize_g    -g %{_sourcedir}/%{name}-gitrpm.version
 
@@ -579,16 +580,18 @@ popd
 %files serverinit
 %defattr(-,root,root)
 
+%if 0
 %files alldemo
 %defattr(-,root,root)
         %dir            %{_defaultdocdir}/%{name}-server-%{version}-demo/
 #                       %{_defaultdocdir}/%{name}-server-%{version}-demo/demodb.sql
                         %{_defaultdocdir}/%{name}-server-%{version}-demo/prep_database.sh
-
 %if %{with_systemd} == 0
 %attr(0755,root,root)   %{_sysconfdir}/openerp/start.d/30start-demo
 # todo: a few readme files, perhaps..
 %endif
+%endif
+
 
 %post client
 %{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null
