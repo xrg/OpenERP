@@ -80,7 +80,7 @@ Version:        %{git_get_ver}
 Release:        %mkrel %{git_get_rel2}
 License:        AGPLv3+
 Group:          Databases
-Summary:        Client and Server meta-package for the open source ERP
+Summary:        Client and Server meta-package for the open source F3-ERP
 URL:            http://www.openerp.com
 Obsoletes:      tinyerp <= 5.0
 %if ! %{use_git_clone}
@@ -116,7 +116,7 @@ project management...
 
 %package client
 Group:          Databases
-Summary:        GTK Client for the ERP
+Summary:        GTK Client for the ERP (F3)
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
 Conflicts:      openerp-client >= 7.0
@@ -150,7 +150,7 @@ Client components for Open ERP.
 %if %{build_kde}
 %package client-kde
 Group:          Databases
-Summary:        KDE Client for the ERP
+Summary:        KDE Client for the F3-ERP
 Requires:       python-kde4
 Obsoletes:      ktiny <= 4.0
 BuildRequires:  python-qt4
@@ -207,9 +207,11 @@ software: accounting, stock, manufacturing, project mgt...
 
 %endif
 
-%package server
+%package f3-server
 Group:          System/Servers
-Summary:        Server for the ERP (framework core)
+Summary:        Server for the F3-ERP (framework core)
+Provides:       openerp-server = 6.9
+Obsoletes:      openerp-server
 Requires:       python-lxml
 Requires:       postgresql >= 8.2
 Requires:       python-imaging
@@ -236,7 +238,7 @@ Conflicts:      openerp-server >= 7.0
 Conflicts:      odoo-server
 
 
-%description server
+%description f3-server
 Server components for Open ERP.
 
 IMPORTANT: Please read the INSTALL file in /usr/share/doc/openerp-server for
@@ -599,7 +601,7 @@ popd
 %postun client
 if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-database %{_datadir}/applications > /dev/null ; fi
 
-%files server
+%files f3-server
 %defattr(-,root,root)
 %doc %{clone_prefixdir}server/LICENSE %{clone_prefixdir}server/README 
 %doc %{clone_prefixdir}server/doc/INSTALL %{clone_prefixdir}server/doc/Changelog
@@ -627,7 +629,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %{py_puresitedir}/openerp_server-%{version}-py%{pyver}.egg-info
 %{_mandir}/man5/openerp_serverrc.*
 
-%pre server
+%pre f3-server
 # todo: non-mandriva useradd
 %if %{build_mdvmga}
 %_pre_useradd openerp /var/spool/openerp /sbin/nologin
@@ -636,7 +638,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
         -s /sbin/nologin -r -d /var/spool/openerp openerp 2>/dev/null || :
 %endif
 
-%post server
+%post f3-server
 if [ ! -r "%{_sysconfdir}/openerp/server.cert" ] ; then
         if [ ! -x "$(which certtool)" ] ; then
                 echo "OpenERP server: certtool is missing. Cannot create SSL certificates"
@@ -658,7 +660,7 @@ fi
 /sbin/chkconfig --add openerp-server
 %endif
 
-%preun server
+%preun f3-server
 %if %{build_mdvmga}
 %_preun_service openerp-server
 %else
@@ -669,7 +671,7 @@ fi
 %endif
 
 
-%postun server
+%postun f3-server
 %if %{build_mdvmga}
 %_postun_service openerp-server
 %_postun_userdel openerp
