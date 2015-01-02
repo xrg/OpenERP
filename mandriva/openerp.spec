@@ -31,12 +31,19 @@
 %define build_web       1
 %define build_mdvmga    1
 
+%if %{mgaver} >= 3
+%define with_systemd    1
+%else
+%define with_systemd    0
+%endif
+
 %else
 # Other distributions
 
 %define NoDisplay       NODISPLAY=n
 %define build_kde       0
 %define build_web       0
+%define with_systemd    0
 
 %define build_mdvmga    0
 
@@ -456,7 +463,7 @@ popd
 
 install -m 644 -D server/doc/openerp-server.conf %{buildroot}%{_sysconfdir}/openerp-server.conf
 
-%if %{mgaver} >= 3
+%if %{with_systemd}
 # with systemd
 mkdir -p %{buildroot}%{_unitdir}
 install -m 644 mandriva/openerp-server.service %{buildroot}%{_unitdir}/openerp-server.service
@@ -505,7 +512,7 @@ install -d %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}-demo/
 install -m 744 mandriva/prep_database.sh %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}-demo/
 # install -m 644 mandriva/demodb.sql %{buildroot}%{_defaultdocdir}/%{name}-server-%{version}-demo/
 
-%if %{mgaver} < 3
+%if %{with_systemd} == 0
 pushd %{buildroot}%{_sysconfdir}/openerp/start.d
 cat >30start-demo <<EOF
 #!/bin/bash
@@ -578,7 +585,7 @@ popd
 #                       %{_defaultdocdir}/%{name}-server-%{version}-demo/demodb.sql
                         %{_defaultdocdir}/%{name}-server-%{version}-demo/prep_database.sh
 
-%if %{mgaver} < 3
+%if %{with_systemd} == 0
 %attr(0755,root,root)   %{_sysconfdir}/openerp/start.d/30start-demo
 # todo: a few readme files, perhaps..
 %endif
@@ -599,7 +606,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %attr(0750,openerp,openerp) %dir %{_sysconfdir}/openerp
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp/cert.cfg
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp-server.conf
-%if %{mgaver} >= 3
+%if %{with_systemd}
 %{_unitdir}/openerp-server.service
 %else
 %{_initrddir}/openerp-server
