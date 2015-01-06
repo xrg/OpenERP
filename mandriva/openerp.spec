@@ -458,10 +458,10 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/openerp-koo.desktop
 
 # We remove the installed documentation dirs, because %doc will copy them again
 pushd %{buildroot}%{_defaultdocdir}
-        [ -d %{name}-server-* ] && rm -rf %{name}-server-*
-        [ -d %{name}-client-web-* ] && rm -rf %{name}-client-web-*
-        [ -d %{name}-client-* ] && rm -rf %{name}-client-*
-        [ -d koo ] && rm -rf koo
+        rm -rf %{name}-server-*
+        rm -rf %{name}-client-web-*
+        rm -rf %{name}-client-*
+        rm -rf koo
 popd
 
 install -m 644 -D server/doc/openerp-server.conf %{buildroot}%{_sysconfdir}/openerp-server.conf
@@ -517,6 +517,7 @@ install -m 744 mandriva/prep_database.sh %{buildroot}%{_defaultdocdir}/%{name}-s
 
 %if %{with_systemd} == 0
 pushd %{buildroot}%{_sysconfdir}/openerp/start.d
+%if 0
 cat >30start-demo <<EOF
 #!/bin/bash
 
@@ -528,6 +529,8 @@ popd > /dev/null
 # service openerp restart
 
 EOF
+
+%endif
 
 rm ./10server-check || :
 ln -sf ../server-check.sh ./10server-check
@@ -558,7 +561,7 @@ popd
 %{_mandir}/man1/openerp-client.*
 %{_datadir}/pixmaps/openerp-client/
 %{_datadir}/applications/openerp-client.desktop
-%{py_puresitedir}/openerp_client-%{version}-py%{pyver}.egg-info
+%{py_puresitedir}/openerp_client-*-py%{pyver}.egg-info
 
 %if %{build_kde}
 %files client-kde -f %{clone_prefixdir}koo.lang
@@ -626,7 +629,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %{_datadir}/pixmaps/openerp-server/
 %exclude %{_defaultdocdir}/%{name}-server-%{version}-demo
 %{_mandir}/man1/openerp-server.*
-%{py_puresitedir}/openerp_server-%{version}-py%{pyver}.egg-info
+%{py_puresitedir}/openerp_server-*-py%{pyver}.egg-info
 %{_mandir}/man5/openerp_serverrc.*
 
 %pre f3-server
