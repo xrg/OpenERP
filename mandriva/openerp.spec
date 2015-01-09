@@ -41,7 +41,12 @@
 
 %define NoDisplay       NODISPLAY=n
 %define build_kde       0
+
+%if 0%{rhel} >= 07
+%define with_systemd    1
+%else
 %define with_systemd    0
+%endif
 
 %define build_mdvmga    0
 
@@ -229,11 +234,16 @@ Requires(postun): rpm-helper
 %else
 Requires:       python-dateutil, pytz
 Requires:       ghostscript
-Requires:       PyXML, PyYAML, python-mako
-Requires:       pychart
+%if 0%{rhel} >= 07
+%{systemd_requires}
+%else
+Suggests:       PyXML
 Requires(post): chkconfig
 Requires(preun): chkconfig
 Requires(preun): initscripts
+%endif
+Requires:       PyYAML, python-mako
+Requires:       pychart
 %endif
 Conflicts:      openerp-server >= 7.0
 Conflicts:      odoo-server
@@ -656,17 +666,25 @@ if [ ! -r "%{_sysconfdir}/openerp/server.cert" ] ; then
 %if %{build_mdvmga}
 %_post_service openerp-server
 %else
+%if %{with_systemd}
+%systemd_post openerp-server.service
+%else
 /sbin/chkconfig --add openerp-server
+%endif
 %endif
 
 %preun f3-server
 %if %{build_mdvmga}
 %_preun_service openerp-server
 %else
+%if %{with_systemd}
+%systemd_preun openerp-server.service
+%else
 if [ $1 = 0 ] ; then
     /sbin/service openerp-server stop >/dev/null 2>&1
     /sbin/chkconfig --del openerp-server
 fi
+%endif
 %endif
 
 
@@ -675,13 +693,26 @@ fi
 %_postun_service openerp-server
 %_postun_userdel openerp
 %else
+%if %{with_systemd}
+%systemd_postun openerp-server.service
+%else
+
 if [ "$1" -ge "1" ] ; then
     /sbin/service openerp-server condrestart >/dev/null 2>&1 || :
 fi
 %endif
+%endif
 
 %post serverinit
+%if !%{build_mdvmga}
+postgresql-setup initdb
+%endif
+%if %{with_systemd}
+systemctl enable openerp-server
+systemctl start openerp-server
+%else
 chkconfig postgresql on
 chkconfig openerp-server on
+%endif
 
 %changelog -f %{_sourcedir}/%{name}-changelog.gitrpm.txt
