@@ -217,6 +217,7 @@ Requires:       postgresql >= 8.2
 Requires:       python-imaging
 Requires:       python-psycopg2, python-reportlab
 Requires:       ghostscript
+Requires:       openssl
 # perhaps the matplotlib could yield for pytz, in Mdv >=2009.0
 %if %{build_mdvmga}
 Requires:       python-matplotlib
@@ -643,19 +644,14 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 
 %post f3-server
 if [ ! -r "%{_sysconfdir}/openerp/server.cert" ] ; then
-        if [ ! -x "$(which certtool)" ] ; then
-                echo "OpenERP server: certtool is missing. Cannot create SSL certificates"
-        else
-                pushd %{_sysconfdir}/openerp/
-                if [ ! -r "server.key" ] ; then
-                        certtool -p --outfile server.key
-                fi
-                certtool -s --load-privkey server.key --outfile server.cert --template cert.cfg
+        pushd %{_sysconfdir}/openerp/
+                openssl req -nodes -batch \
+                        -newkey rsa:1024 -x509 -days 3650 \
+                        -keyout server.key -out server.cert
                 echo "Created a self-signed SSL certificate for OpenERP. You may want to revise it or get a real one."
                 chown openerp:openerp server.cert server.key
-                popd
-        fi
-fi
+        popd
+        
 
 %if %{build_mdvmga}
 %_post_service openerp-server
