@@ -622,7 +622,7 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %attr(0755,openerp,openerp) %dir /var/log/openerp
 %attr(0755,openerp,openerp) %dir /var/spool/openerp
 %attr(0755,openerp,openerp) %dir /var/run/openerp
-%attr(0750,openerp,openerp) %dir %{_sysconfdir}/openerp
+%attr(0754,openerp,openerp) %dir %{_sysconfdir}/openerp
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp/cert.cfg
 %attr(0644,openerp,openerp) %config(noreplace) %{_sysconfdir}/openerp-server.conf
 %if %{with_systemd}
@@ -655,13 +655,14 @@ if [ -x %{_bindir}/update-desktop-database ]; then %{_bindir}/update-desktop-dat
 %post f3-server
 if [ ! -r "%{_sysconfdir}/openerp/server.cert" ] ; then
         pushd %{_sysconfdir}/openerp/
+                umask go-rwx
                 openssl req -nodes -batch \
                         -newkey rsa:1024 -x509 -days 3650 \
                         -keyout server.key -out server.cert
                 echo "Created a self-signed SSL certificate for OpenERP. You may want to revise it or get a real one."
                 chown openerp:openerp server.cert server.key
         popd
-        
+fi
 
 %if %{build_mdvmga}
 %_post_service openerp-server
