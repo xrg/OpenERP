@@ -161,13 +161,15 @@ Obsoletes:      ktiny <= 4.0
 BuildRequires:  python-qt4
 BuildRequires:  qt4-devel, kde4-macros
 BuildRequires:  python-qt4-devel
+Requires:       python-openerp-libclient
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
-Requires:       locales-kde
 %if %{build_mdvmga}
 %if %{mgaver} >= 4
 Requires:       python-pydot
+Requires:       python-dateutil, python-pytz
 %else
+Requires:       locales-kde
 Requires:       python-dot, python-pytz
 %endif
 BuildRequires:  python-lxml
@@ -237,7 +239,7 @@ Requires:       ghostscript
 %if 0%{rhel} >= 07
 %{systemd_requires}
 %else
-Suggests:       PyXML
+# Suggests:       PyXML
 Requires(post): chkconfig
 Requires(preun): chkconfig
 Requires(preun): initscripts
